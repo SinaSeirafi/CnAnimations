@@ -25,10 +25,13 @@ This is exactly what this package is trying to do.
 - Slide
 - Scale
 
+![](https://github.com/SinaSeirafi/CnAnimations/blob/master/CnAnimations-first-gif-.gif)
+
 ### Route Aware Animation
 Combining Fade and Slide animations with navigation 
 - same page push / pop animation
 - next page push / pop animation 
+
 Note: Requires adding RouteObserver in Material App to work
 Otherwise only push will work
 
