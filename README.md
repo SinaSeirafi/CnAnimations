@@ -11,7 +11,8 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages).
 -->
 
-Flutter basic animations simplified.
+# Flutter basic animations simplified
+
 Flutter is made of widgets, right?
 So adding a simple fade in or slide animation shouldn't be that hard. 
 In fact, it should be as simple as adding a widget on top of your current widget.
@@ -27,30 +28,12 @@ This is exactly what this package is trying to do.
 
 ![](https://github.com/SinaSeirafi/CnAnimations/blob/master/CnAnimations-first-gif-.gif)
 
-### Route Aware Animation
-Combining Fade and Slide animations with navigation 
-- same page push / pop animation
-- next page push / pop animation 
-
-Note: Requires adding RouteObserver in Material App to work
-Otherwise only push will work
-
-### Route Aware Widget 
-Can be used separately.
-It is used within CnRouteAwareAnimation.
-
-Setup: Add routeObserver in material app (main)
-```dart
-MaterialApp(
-    navigatorObservers: [routeObserver],
-) 
-```
 
 ## Getting started
 If you want to use RouteAwareWidget or CnRouteAwareAnimation you need to setup routeObserver as above. 
 Otherwise, you're good to go!
 
-## Usage
+## Usage (simple animations)
 
 Simply add these widgets above target widget.
 
@@ -79,5 +62,25 @@ CnScale(
     begin: 0.5,
     controller: _controller,
     child: child,
+) 
+```
+
+
+## Route Aware Animation
+Combining Fade and Slide animations with navigation 
+- same page push / pop animation
+- next page push / pop animation 
+
+Note: Requires adding RouteObserver in Material App to work
+Otherwise only push will work
+
+### Route Aware Widget 
+Can be used separately.
+It is used within CnRouteAwareAnimation.
+
+Setup: Add routeObserver in material app (main)
+```dart
+MaterialApp(
+    navigatorObservers: [routeObserver],
 ) 
 ```
