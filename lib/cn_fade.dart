@@ -7,6 +7,7 @@ class CnFade extends StatefulWidget {
   final Duration duration;
   final int? durationInMilliseconds;
   final bool forward;
+  final Curve? curve;
   final double fadeStartValue;
   final double fadeEndValue;
   final int delayInMilliseconds;
@@ -24,6 +25,7 @@ class CnFade extends StatefulWidget {
     this.delay,
     this.delayInMilliseconds = 10,
     this.controller,
+    this.curve,
   }) : super(key: key);
 
   @override
@@ -53,7 +55,10 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
       begin: widget.forward ? widget.fadeStartValue : widget.fadeEndValue,
       end: widget.forward ? widget.fadeEndValue : widget.fadeStartValue,
     ).animate(
-      widget.controller ?? _controller,
+      CurvedAnimation(
+        parent: widget.controller ?? _controller,
+        curve: widget.curve ?? Curves.easeInOut,
+      ),
     );
 
     Future.delayed(

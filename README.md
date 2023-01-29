@@ -11,9 +11,6 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages).
 -->
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
-
 Flutter basic animations simplified.
 Flutter is made of widgets, right?
 So adding a simple fade in or slide animation shouldn't be that hard. 
@@ -47,18 +44,37 @@ MaterialApp(
 ```
 
 ## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+If you want to use RouteAwareWidget or CnRouteAwareAnimation you need to setup routeObserver as above. 
+Otherwise, you're good to go!
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+Simply add these widgets above target widget.
 
+```dart
+CnFade(
+    child: child,
+) 
+```
 
-## Additional information
+```dart
+CnSlide(
+    begin: const Offset(-0.2, 0),
+    duration: const Duration(milliseconds: 500),
+    // Delay before starting the animation
+    delay: const Duration(milliseconds: 100), 
+    curve: Curves.easeIn,
+    child: child,
+) 
+```
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+If you want you can pass the animation controller to the widget. 
+But the duration is not overriden.
+
+```dart
+CnScale(
+    begin: 0.5,
+    controller: _controller,
+    child: child,
+) 
+```

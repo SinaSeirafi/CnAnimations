@@ -84,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 delayInMilliseconds: 200,
                 child: CnScale(
                   duration: const Duration(milliseconds: 3000),
-                  intervalBegin: 0.7,
+                  begin: 0.7,
                   child: _buildChild("Combined"),
                 ),
               ),
