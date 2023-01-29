@@ -1,115 +1,123 @@
+import 'package:cn_animations/cn_animations.dart';
+
+import 'package:cn_animations/route_aware_widget.dart';
+import 'package:example/restart_widget.dart';
 import 'package:flutter/material.dart';
 
+// import 'package:cn_animations/cn_animations.dart';
+
 void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+  runApp(
+    RestartWidget(
+      child: MaterialApp(
+        home: const MyHomePage(),
+        theme: ThemeData(primarySwatch: Colors.teal),
+        navigatorObservers: [routeObserver],
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
+    ),
+  );
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text("Cn Animations Example"),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+            CnFade(
+              duration: animationDuration,
+              child: _buildChild("Fade"),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            CnScale(
+              duration: const Duration(milliseconds: 2000),
+              child: _buildChild("Scale"),
+            ),
+            CnSlide(
+              begin: const Offset(-0.1, 0),
+              duration: animationDuration,
+              child: _buildChild("Slide"),
+            ),
+
+            /// You can chain animations together
+            /// Use first animation duration as the second one's delay and so on
+            ///
+            /// make sure to cancel previous values
+            ///
+            /// This is probably very inefficient
+            CnSlide(
+              begin: const Offset(-0.2, 0),
+              end: const Offset(0.03, 0),
+              duration: animationDuration,
+              child: CnSlide(
+                begin: const Offset(0.03, 0),
+
+                /// to cancel the other animation end value
+                end: const Offset(-0.03, 0),
+                delay: animationDuration,
+                duration: const Duration(milliseconds: 450),
+                child: _buildChild("Chained"),
+              ),
+            ),
+
+            /// You can combine different animations easily
+            ///
+            /// If you use a combination a lot,
+            /// extract as a widget and just add that widget
+            CnFade(
+              duration: animationDuration,
+              delayInMilliseconds: 100,
+              child: CnSlide(
+                begin: const Offset(0, 0.2),
+                duration: animationDuration,
+                delayInMilliseconds: 200,
+                child: CnScale(
+                  duration: const Duration(milliseconds: 3000),
+                  intervalBegin: 0.7,
+                  child: _buildChild("Combined"),
+                ),
+              ),
             ),
           ],
         ),
       ),
+
+      /// To replay the animations after saving changes
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        child: const Icon(Icons.replay_rounded),
+        onPressed: () => RestartWidget.restartApp(context),
+      ),
+    );
+  }
+
+  Duration animationDuration = const Duration(milliseconds: 1000);
+
+  Widget _buildChild(String title) {
+    return Container(
+      height: 100,
+      width: 100,
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.teal,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Center(
+        child: Text(
+          title,
+          style: const TextStyle(color: Colors.white),
+        ),
+      ),
     );
   }
 }

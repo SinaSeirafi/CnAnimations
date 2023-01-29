@@ -14,9 +14,37 @@ and the Flutter guide for
 TODO: Put a short description of the package here that helps potential users
 know whether this package might be useful for them.
 
+Flutter basic animations simplified.
+Flutter is made of widgets, right?
+So adding a simple fade in or slide animation shouldn't be that hard. 
+In fact, it should be as simple as adding a widget on top of your current widget.
+
+This is exactly what this package is trying to do. 
+
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+### Basic Animations: 
+- Fade
+- Slide
+- Scale
+
+### Route Aware Animation
+Combining Fade and Slide animations with navigation 
+- same page push / pop animation
+- next page push / pop animation 
+Note: Requires adding RouteObserver in Material App to work
+Otherwise only push will work
+
+### Route Aware Widget 
+Can be used separately.
+It is used within CnRouteAwareAnimation.
+
+Setup: Add routeObserver in material app (main)
+```dart
+MaterialApp(
+    navigatorObservers: [routeObserver],
+) 
+```
 
 ## Getting started
 
@@ -28,9 +56,6 @@ start using the package.
 TODO: Include short and useful examples for package users. Add longer examples
 to `/example` folder.
 
-```dart
-const like = 'sample';
-```
 
 ## Additional information
 

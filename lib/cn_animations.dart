@@ -1,7 +1,6 @@
 library cn_animations;
 
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+export 'cn_fade.dart';
+export 'cn_slide.dart';
+export 'cn_scale.dart';
+export 'cn_route_aware_animation.dart';
