@@ -45,12 +45,17 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
   late Animation<double> _fadeAnimation;
 
   @override
-  void initState() {
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+  void didUpdateWidget(covariant CnFade oldWidget) {
+    if (widget.forward != oldWidget.forward ||
+        widget.fadeStartValue != oldWidget.fadeStartValue ||
+        widget.fadeEndValue != oldWidget.fadeEndValue ||
+        widget.controller != oldWidget.controller ||
+        widget.curve != oldWidget.curve) _updateFadeAnimation();
 
+    super.didUpdateWidget(oldWidget);
+  }
+
+  _updateFadeAnimation() {
     _fadeAnimation = Tween<double>(
       begin: widget.forward ? widget.fadeStartValue : widget.fadeEndValue,
       end: widget.forward ? widget.fadeEndValue : widget.fadeStartValue,
@@ -60,13 +65,25 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
         curve: widget.curve ?? Curves.easeInOut,
       ),
     );
+  }
 
-    Future.delayed(
-      widget.delay ?? Duration(milliseconds: widget.delayInMilliseconds),
-      () {
-        if (mounted) _controller.forward();
-      },
+  @override
+  void initState() {
+    _controller = AnimationController(
+      duration: widget.duration,
+      vsync: this,
     );
+
+    _updateFadeAnimation();
+
+    if (widget.controller == null) {
+      Future.delayed(
+        widget.delay ?? Duration(milliseconds: widget.delayInMilliseconds),
+        () {
+          if (mounted) _controller.forward();
+        },
+      );
+    }
 
     super.initState();
   }

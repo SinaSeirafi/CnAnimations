@@ -43,12 +43,17 @@ class _CnScaleState extends State<CnScale> with SingleTickerProviderStateMixin {
   late Animation<double> _scaleAnimation;
 
   @override
-  void initState() {
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+  void didUpdateWidget(covariant CnScale oldWidget) {
+    if (widget.forward != oldWidget.forward ||
+        widget.begin != oldWidget.begin ||
+        widget.end != oldWidget.end ||
+        widget.controller != oldWidget.controller ||
+        widget.curve != oldWidget.curve) _updateScaleAnimation();
 
+    super.didUpdateWidget(oldWidget);
+  }
+
+  _updateScaleAnimation() {
     _scaleAnimation = Tween<double>(
       begin: widget.forward ? widget.begin : widget.end,
       end: widget.forward ? widget.end : widget.begin,
@@ -58,15 +63,27 @@ class _CnScaleState extends State<CnScale> with SingleTickerProviderStateMixin {
         curve: widget.curve ?? Curves.easeInOut,
       ),
     );
+  }
 
-    Future.delayed(
-      widget.delay ?? Duration(milliseconds: widget.delayInMilliseconds),
-      () {
-        if (!mounted) return;
-
-        widget.forward ? _controller.forward() : _controller.reverse();
-      },
+  @override
+  void initState() {
+    _controller = AnimationController(
+      duration: widget.duration,
+      vsync: this,
     );
+
+    _updateScaleAnimation();
+
+    if (widget.controller == null) {
+      Future.delayed(
+        widget.delay ?? Duration(milliseconds: widget.delayInMilliseconds),
+        () {
+          if (!mounted) return;
+
+          widget.forward ? _controller.forward() : _controller.reverse();
+        },
+      );
+    }
 
     super.initState();
   }

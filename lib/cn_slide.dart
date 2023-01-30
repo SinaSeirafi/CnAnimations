@@ -49,12 +49,17 @@ class _CnSlideState extends State<CnSlide> with SingleTickerProviderStateMixin {
   late Animation<Offset> _slideAnimation;
 
   @override
-  void initState() {
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+  void didUpdateWidget(covariant CnSlide oldWidget) {
+    if (widget.forward != oldWidget.forward ||
+        widget.begin != oldWidget.begin ||
+        widget.end != oldWidget.end ||
+        widget.controller != oldWidget.controller ||
+        widget.curve != oldWidget.curve) _updateSlideAnimation();
 
+    super.didUpdateWidget(oldWidget);
+  }
+
+  _updateSlideAnimation() {
     _slideAnimation = Tween<Offset>(
       begin: widget.forward ? widget.begin : widget.end,
       end: widget.forward ? widget.end : widget.begin,
@@ -64,13 +69,25 @@ class _CnSlideState extends State<CnSlide> with SingleTickerProviderStateMixin {
         curve: widget.curve ?? Curves.easeInOut,
       ),
     );
+  }
 
-    Future.delayed(
-      widget.delay ?? Duration(milliseconds: widget.delayInMilliseconds),
-      () {
-        if (mounted) _controller.forward();
-      },
+  @override
+  void initState() {
+    _controller = AnimationController(
+      duration: widget.duration,
+      vsync: this,
     );
+
+    _updateSlideAnimation();
+
+    if (widget.controller == null) {
+      Future.delayed(
+        widget.delay ?? Duration(milliseconds: widget.delayInMilliseconds),
+        () {
+          if (mounted) _controller.forward();
+        },
+      );
+    }
 
     super.initState();
   }
