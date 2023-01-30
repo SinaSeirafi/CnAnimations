@@ -1,5 +1,5 @@
-## 0.0.2
-* Bug fix 
+## 0.0.3
+* Bug fix
 * Adding Route Aware Animation example
 
 ## 0.0.1
