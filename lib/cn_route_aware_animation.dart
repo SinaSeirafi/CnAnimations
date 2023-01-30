@@ -35,28 +35,67 @@ class CnRouteAwareAnimation extends StatefulWidget {
 
   final Widget child;
 
+  /// Use to cancel animations all together
   final bool animate;
+
+  /// Whether to show [push] animation or not
   final bool showPush;
+
+  /// Whether to show [pop] animation or not
   final bool showPop;
+
+  /// Whether to show [pushNext] animation or not
   final bool showPushNext;
+
+  /// Whether to show [popNext] animation or not
   final bool showPopNext;
 
+  // --- Fade animation values
+
+  /// Whether to show [fade] animations or not
+  /// This effects all of the navigation events animations
   final bool showFadeAnimation;
+
+  /// Fade animation [start] value for the [SamePage] animations
   final double fadeStartSamePage;
+
+  /// Fade animation [end] value for the [SamePage] animations
   final double fadeEndSamePage;
+
+  /// Fade animation [start] value for the [NextPage] animations
   final double? fadeStartNextPage;
+
+  /// Fade animation [end] value for the [NextPage] animations
   final double? fadeEndNextPage;
 
+  /// Duration of the [fade] animations
   final Duration fadeDuration;
+
+  /// [Delay] before starting the [fade] animations in milliseconds
   final int fadeDelayInMilliseconds;
 
+  // --- Slide animation values
+
+  /// Whether to show [slide] animations or not
+  /// This effects all of the navigation events animations
   final bool showSlideAnimation;
+
+  /// Slide animation [begin] value for the [SamePage] animations
   final Offset beginSamePage;
+
+  /// Slide animation [end] value for the [SamePage] animations
   final Offset endSamePage;
+
+  /// Slide animation [begin] value for the [NextPage] animations
   final Offset? beginNextPage;
+
+  /// Slide animation [end] value for the [NextPage] animations
   final Offset? endNextPage;
 
+  /// Duration of the [slide] animations
   final Duration slideDuration;
+
+  /// [Delay] before starting the [slide] animations in milliseconds
   final int slideDelayInMilliseconds;
 
   @override

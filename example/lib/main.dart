@@ -100,9 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _buildChild(int index, String title) {
     /// Tap on any item on home screen to navigate forward
-    navigate() async {
-      await Future.delayed(Duration(seconds: 1));
-
+    navigate() {
       Navigator.push(
         context,
 
@@ -135,10 +133,6 @@ class NewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Future.delayed(Duration(seconds: 1), () {
-      Navigator.pop(context);
-    });
-
     return Scaffold(
       appBar: AppBar(title: const Text("New Page")),
       body: Center(
