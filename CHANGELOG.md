@@ -1,13 +1,9 @@
-## [0.0.1] 2023-01-29
+## 0.0.2
+* Bug fix 
+* Adding Route Aware Animation example
 
+## 0.0.1
 * Initial release
-* Basic Animations: 
-- Fade
-- Slide
-- Scale
-
-* Route Aware Animation
-Combining Fade and Slide animations with navigation 
-
-* Route Aware Widget 
-Setup: Add routeObserver in material app (main)
+* Basic Animations (Fade, Slide, Scale)
+* Route Aware Animation (Fade and Slide triggered by navigation)
+* Route Aware Widget

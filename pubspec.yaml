@@ -1,6 +1,6 @@
 name: cn_animations
-description: A new Flutter package project.
-version: 0.0.1
+description: A flutter package to simplify animations.
+version: 0.0.2
 homepage: https://github.com/SinaSeirafi/CnAnimations
 
 environment:
