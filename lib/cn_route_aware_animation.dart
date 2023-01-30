@@ -102,8 +102,9 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
       },
       child: StreamBuilder<_AnimationValues>(
         stream: streamController.stream,
-        initialData: _initialValues,
         builder: (context, snapshot) {
+          if (snapshot.data == null) return widget.child;
+
           return _fadeAnimation(
             controller: fadeController,
             fadeStart: snapshot.data!.fadeStart,
@@ -151,13 +152,6 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
       child: child,
     );
   }
-
-  final _AnimationValues _initialValues = _AnimationValues(
-    begin: Offset.zero,
-    end: Offset.zero,
-    fadeStart: 0,
-    fadeEnd: 1,
-  );
 
   _setControllerValues(double val) {
     fadeController.value = val;
