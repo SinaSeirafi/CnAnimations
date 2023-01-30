@@ -1,5 +1,3 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -35,7 +33,7 @@ class CnSlide extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _CnSlideState createState() => _CnSlideState();
+  State<CnSlide> createState() => _CnSlideState();
 }
 
 class _CnSlideState extends State<CnSlide> with SingleTickerProviderStateMixin {
