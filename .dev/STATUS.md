@@ -46,8 +46,9 @@ About 70% toward 0.9.0 and 65% toward 1.0.0, weighted by effort.
 | F1: exports, route timing param, 0.9.0 pubspec, CHANGELOG/README skeleton | Merged |
 | F2: README snippets, CHANGELOG bullet, snippet tests | Merged (40d3726 → merge f9a2280); 19 snippet tests; root 183 pass, analyze clean |
 | G: example app (`example/**`) | Merged (85346d2 → merge 76dae93); example 7 tests, root 164 tests, both analyzes clean |
-| H: integration tests (`test/integration/**`) | WIP f8b0af5; interactive back done, rest of design §8 not started |
-| Full verification, Fable review, 1.0.0 removal | Not started |
+| H: integration tests (`test/integration/**`) | Merged (afaff3d…e80fe25 → merge 3f644e8); 62 integration tests, 0 skipped |
+| Full verification (step 5) | Done on 3f644e8 |
+| Fable review, 1.0.0 removal | Not started |
 
 ## Known bugs (found by slice H; fixed by C2 in ee3de20, pending H un-skip and device check)
 
@@ -68,7 +69,8 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 
 ## Session 2 (2026-10-09, from ~14:05 Yerevan)
 
-- Step 4 in flight: integration merged into `v1/slice-h` (7e16df4); H (opus) un-skipping the 4 bug tests and writing the rest of §8.
+- Step 5 done on 3f644e8: root analyze and example analyze "No issues found"; root `flutter test` 277 pass, 0 skipped; example 7 pass; `flutter pub publish --dry-run` 0 warnings, 1 hint (version jump from 0.0.3; expected per owner decision), `.dev/` not in the archive.
+- Step 4 done: H merged (3f644e8). 4 bug tests un-skipped (progress 0.7, 3×200 px), all 11 interactive-back pass; overlays, stack ops, choreography claims, leaks/rebuild written; no new library bugs. `pushReplacement` train-hop belief **holds** (page two down keeps secondaryAnimation at 1.0; uncovered once on pop). **Design correction for the review round:** §8 and the §4 non-opaque row say `PageRouteBuilder(opaque: false)` over a `MaterialPageRoute` page covers it; it does not (Material only animates the page below for a Material next route or one with `delegatedTransition`). Tests pin the real behaviour, which matches the README.
 - Step 3 done: C2 merged (ee3de20). Post-merge: root analyze clean, root 215 pass. C2 ran H's repro with RUN_BUGS=true: route checks pass in all 4; the 4 still fail only on H's own "sibling has moved" check, which uses progress 0.5 / 3×100 px drags that stay inside the exit slice (S in 0–0.35). H must change them to 0.7 and 3×200 px when un-skipping (then 11/11 pass).
 - Step 2 done: F2 merged (f9a2280). Post-merge: root analyze "No issues found", root 183 pass. Slice R must also update README migration and delete 2 tests in `test/readme_snippets_test.dart` (deprecated "before" snippet, `RouteAwareWidget.routeObserver` install) — see `notes/slice-f-notes.md` → F2.
 - Step 1 done: G merged (76dae93). Post-merge: root analyze "No issues found", root 164 pass; example analyze clean, 7 pass.
