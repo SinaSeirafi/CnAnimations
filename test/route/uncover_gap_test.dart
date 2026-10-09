@@ -12,9 +12,9 @@
 // before the uncover slice (the exit slice replayed backwards) a pop had 7 of
 // 24 frames with neither page's elements showing, S in [0.375, 0.625], and
 // the back gesture 7 of 19 samples, S in [0.35, 0.65]. With the default
-// uncover slice: 1 frame (S = 0.625) and 2 samples (S = 0.65, 0.6). What is
-// left is S in (0.6, 0.65): the uncover slice ends at 0.6 and the top
-// element's own exit slice (0..0.35 of leaving) ends at A = 0.65.
+// uncover slice, Interval(0.3, 0.65): no pop frame, and only the back sample
+// at exactly S = 0.65, the single point where the top element's own exit
+// (0..0.35 of leaving) ends and the uncover slice begins.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -111,19 +111,19 @@ String _report(String what, List<_Frame> frames) {
 }
 
 /// The uncover slice the element applies while S falls from 1, no stagger.
-const Interval _uncoverSlice = Interval(0.25, 0.6, curve: Curves.easeIn);
+const Interval _uncoverSlice = Interval(0.3, 0.65, curve: Curves.easeIn);
 
 /// The steepest slope of either slice (easeIn over a 0.35 window is about
 /// 4.9), for per-frame continuity bounds.
 const double _maxSlope = 5.0;
 
-/// Every frame where neither page's elements show lies in the residual
-/// window between the end of the uncover slice (S = 0.6) and the end of the
-/// top element's own exit slice (A = 0.65).
+/// A frame where neither page's elements show can only sit at S = 0.65, the
+/// point where the top element's own exit slice ends (A = 0.65) and the
+/// uncover slice starts returning the element below.
 void _expectResidualOnly(List<_Frame> frames) {
   for (final _Frame f in frames) {
     if (f.dead) {
-      expect(f.s, inInclusiveRange(0.6 - eps, 0.65 + eps), reason: '$f');
+      expect(f.s, moreOrLessEquals(0.65, epsilon: 1e-6), reason: '$f');
     }
   }
 }
@@ -162,9 +162,8 @@ void main() {
         expect(frames.length, greaterThan(20));
         expect(opacityOf(tester, 'b'), 1.0);
         // Before the uncover slice (exit replayed backwards) 7 of 24 frames
-        // showed nothing, S in [0.375, 0.625]. Now at most one frame does.
-        expect(frames.where((_Frame f) => f.dead).length, lessThanOrEqualTo(1));
-        _expectResidualOnly(frames);
+        // showed nothing, S in [0.375, 0.625]. Now none does.
+        expect(frames.where((_Frame f) => f.dead), isEmpty);
       });
 
       testWidgets(
@@ -192,9 +191,10 @@ void main() {
               reason: '$f');
         }
         debugPrint(_report('back ${install.name}', frames));
-        // Before: 7 of 19 samples showed nothing, S in [0.35, 0.65].
+        // Before: 7 of 19 samples showed nothing, S in [0.35, 0.65]. Now
+        // only the sample at exactly S = 0.65 does.
         _expectResidualOnly(frames);
-        expect(frames.where((_Frame f) => f.dead).length, lessThanOrEqualTo(2));
+        expect(frames.where((_Frame f) => f.dead).length, lessThanOrEqualTo(1));
 
         // Cancel from S = 0.05: S climbs back to 1, still on the uncover
         // slice (locked by the rest it left), so the element below fades out

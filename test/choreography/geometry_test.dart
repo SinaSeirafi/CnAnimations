@@ -212,10 +212,10 @@ void main() {
     test('uncover slice shifts like the exit slice and uses exitCurve', () {
       final near = cnStaggeredUncover(t, 0);
       final far = cnStaggeredUncover(t, 1);
-      expect(near.begin, 0.25);
-      expect(near.end, 0.6);
-      expect(far.begin, closeTo(0.37, 1e-9));
-      expect(far.end, closeTo(0.72, 1e-9));
+      expect(near.begin, 0.3);
+      expect(near.end, 0.65);
+      expect(far.begin, closeTo(0.42, 1e-9));
+      expect(far.end, closeTo(0.77, 1e-9));
       expect(far.curve, Curves.easeIn);
       // uncover: exit reproduces the pre-0.9.0 behaviour (exit replayed).
       final replay = t.copyWith(uncover: t.exit);
@@ -242,7 +242,7 @@ void main() {
         exit: Interval(0.0, 0.35, curve: Curves.easeOut),
       );
       final curvedUncover = CnRouteTiming(
-        uncover: Interval(0.25, 0.6, curve: Curves.easeOut),
+        uncover: Interval(0.3, 0.65, curve: Curves.easeOut),
       );
       final curvedEnter = CnRouteTiming(
         enter: Interval(0.35, 1.0, curve: Curves.easeIn),

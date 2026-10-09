@@ -175,7 +175,7 @@ CnRouteChoreography(
 )
 ```
 
-Covered elements leave over `CnRouteTiming.exit` (default `Interval(0.0, 0.35)` of the cover progress) and come back over `CnRouteTiming.uncover` (default `Interval(0.25, 0.6)`) when the page above pops or is dragged back with predictive back or the iOS edge swipe. So they start returning as the top page finishes fading out, rather than after it is gone. Set `uncover:` to the `exit` slice to replay the exit backwards instead.
+Covered elements leave over `CnRouteTiming.exit` (default `Interval(0.0, 0.35)` of the cover progress) and come back over `CnRouteTiming.uncover` (default `Interval(0.3, 0.65)`, the same length) when the page above pops or is dragged back with predictive back or the iOS edge swipe. So they start returning as the top page's elements finish leaving, rather than after the top page is gone. Set `uncover:` to the `exit` slice to replay the exit backwards instead.
 
 Curves come from `CnRouteTiming.exitCurve` (also used for `uncover`) and `enterCurve`; curves set on the `exit` / `enter` / `uncover` `Interval`s are ignored. To follow your own progress instead of a route (a `PageView`, for example), pass `progress:` (and optionally `coverProgress:`) to the scope. Without any progress source, an element plays one timed entrance of `CnRouteTiming.fallbackDuration` (300 ms).
 

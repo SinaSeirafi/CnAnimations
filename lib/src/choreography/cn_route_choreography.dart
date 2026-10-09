@@ -35,7 +35,7 @@ class CnRouteTiming {
   const CnRouteTiming({
     this.exit = const Interval(0.0, 0.35),
     this.enter = const Interval(0.35, 1.0),
-    this.uncover = const Interval(0.25, 0.6),
+    this.uncover = const Interval(0.3, 0.65),
     this.exitStagger = 0.12,
     this.enterStagger = 0.25,
     this.exitCurve = Curves.easeIn,
@@ -69,9 +69,10 @@ class CnRouteTiming {
   /// It is read on the cover progress as-is, like [exit] on the way in: the
   /// element is fully covered above `end` and at rest below `begin`, so it
   /// starts returning when the cover progress falls past `end`. The default,
-  /// `Interval(0.25, 0.6)`, starts the return as the top page of the
-  /// fade-through route finishes fading out (its fade-out window is the top
-  /// 40 % of progress), instead of a quarter of the pop later. Use
+  /// `Interval(0.3, 0.65)`, as long as the default [exit], starts the return
+  /// as the top page's elements finish leaving (their exit ends at 65 % of
+  /// progress, while the fade-through page fades out over the top 40 %),
+  /// instead of a quarter of the pop later. Use
   /// `uncover: exit` (the default `exit` is `Interval(0.0, 0.35)`) to replay
   /// the exit slice backwards instead, as before 0.9.0.
   ///

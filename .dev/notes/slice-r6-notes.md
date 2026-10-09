@@ -4,7 +4,7 @@ From integration head b3c5f0b. Decisions: STATUS "Delegated" block, R6 (a) and R
 
 ## Approach
 
-- `CnRouteTiming.uncover` (default `Interval(0.25, 0.6)`), in `copyWith`, `==` and `hashCode`. It is read on the cover progress S as-is, in the same coordinates as `exit` on the way in, so `uncover: exit` gives back the pre-0.9.0 behaviour exactly.
+- `CnRouteTiming.uncover` (default `Interval(0.3, 0.65)`; first `Interval(0.25, 0.6)`, changed by the main thread, see below), in `copyWith`, `==` and `hashCode`. It is read on the cover progress S as-is, in the same coordinates as `exit` on the way in, so `uncover: exit` gives back the pre-0.9.0 behaviour exactly.
 - `cnStaggeredUncover` (geometry.dart): the same `f·exitStagger` shift, clamp and `exitCurve` as `cnStaggeredExit`. The R9 assert now also checks `uncover.curve`.
 - The element's cover animation is `CnDirectionalCurvedAnimation(cover, enter: cover slice, exit: uncover slice)`. The existing rest lock picks the slice: exit after S leaves 0, uncover after S leaves 1. No status check and no new state.
 - R8: `@Deprecated('Has no effect; removed in 1.0.0')` on the field and on the constructor parameter of both classes, in the same style as `CnSlide.reverseControllerValue`. `CnPageRoute` no longer forwards `timing`. The only remaining use is the test that pins the deprecated surface (`test/route/cn_page_route_test.dart`). `example/` never passed it.
@@ -35,8 +35,19 @@ The gap before was S ∈ [0.35, 0.65], wider than the reviewer's [0.35, 0.6]: th
 
 ## Verification
 
-Root `flutter analyze`: No issues found. Root `flutter test`: 289 pass (280 + 8 gap/edge tests + 1 geometry test). Example `flutter analyze`: No issues found. Example `flutter test`: 7 pass.
+Root `flutter analyze`: No issues found. Root `flutter test`: 289 pass (280 + 8 gap/edge tests + 1 geometry test), the same after the follow-up. Example `flutter analyze`: No issues found. Example `flutter test`: 7 pass.
 
 ## Gotcha
 
 Plain `dart format` now uses the tall style (language 3.7 since R1) and rewrites every file. The repo's style is `dart format --language-version=3.6`.
+
+## Follow-up: default changed to `Interval(0.3, 0.65)` (main thread decision)
+
+The uncover slice is now as long as `exit` (0.35), and its end meets the end of the top element's exit (A = 0.65). Re-measured with flat timing on both installs:
+
+| | Before uncover | `Interval(0.25, 0.6)` | `Interval(0.3, 0.65)` |
+| --- | --- | --- | --- |
+| Button pop, per frame | 7 of 24 | 1 of 24 (S = 0.625) | 0 of 24 |
+| Predictive back, 19 values | 7 of 19 | 2 of 19 (S = 0.65, 0.60) | 1 of 19, at S = 0.65 exactly |
+
+The one remaining point is S = 0.65, where the top element has just finished leaving and the element below has not yet started to return. It has zero width: a frame only shows nothing if it lands exactly there. The dimmest pop frame is still at 0.013 of max(visible). The gap test now asserts that no pop frame is dead and that any dead back sample is at S = 0.65. The edge-case tests (cancel, reversed push, push during pop) pass unchanged. Test comments for S = 0.3 and S = 0.25 were updated: both values are now at or below the uncover slice, so the siblings are fully back.

@@ -287,8 +287,8 @@ void main() {
           final Stack2 stack = await partedStack(tester, install);
           await sendBackGesture(tester, 'startBackGesture');
           await tester.pump();
-          // 0.7 puts S at 0.3, inside the uncover slice (0.25..0.6), so a
-          // parted sibling has visibly started to return.
+          // 0.7 puts S at 0.3, the start of the uncover slice (0.3..0.65), so
+          // a parted sibling has returned.
           await sendBackGesture(
             tester,
             'updateBackGestureProgress',
@@ -318,8 +318,8 @@ void main() {
             const Offset(5, 300),
           );
           await tester.pump();
-          // 3 x 200 px of an 800 px page puts S at 0.25, the start of the
-          // uncover slice (0.25..0.6), so a parted sibling has returned.
+          // 3 x 200 px of an 800 px page puts S at 0.25, below the uncover
+          // slice (0.3..0.65), so a parted sibling has returned.
           for (int i = 0; i < 3; i++) {
             await gesture.moveBy(const Offset(200, 0));
             await tester.pump();

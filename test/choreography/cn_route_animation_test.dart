@@ -29,7 +29,7 @@ double shownLeaving(double a) => 1.0 - exitSlice.transform(1.0 - a);
 double coveredAt(double s) => exitSlice.transform(s);
 
 /// The default uncover slice (review R6), with the exit curve.
-const Interval uncoverSlice = Interval(0.25, 0.6, curve: Curves.easeIn);
+const Interval uncoverSlice = Interval(0.3, 0.65, curve: Curves.easeIn);
 
 /// covered while S falls from 1 (the page above pops or is dragged back),
 /// including a cancelled gesture climbing back to 1.

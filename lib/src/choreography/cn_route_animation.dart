@@ -273,7 +273,7 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
   Interval _enterSlice = const Interval(0.35, 1.0);
   Interval _exitSlice = const Interval(0.0, 0.35);
   Interval _coverSlice = const Interval(0.0, 0.35);
-  Interval _uncoverSlice = const Interval(0.25, 0.6);
+  Interval _uncoverSlice = const Interval(0.3, 0.65);
   Interval _fallbackSlice = const Interval(0.0, 1.0);
 
   CnRouteTiming get _timing => widget.timing ?? _config.timing;
