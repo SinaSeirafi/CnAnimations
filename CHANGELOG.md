@@ -1,3 +1,26 @@
+## 0.9.0
+0.9.0 is the migration bridge: it adds the new navigation-driven APIs and keeps the old route-aware widgets as deprecated. `CnRouteAwareAnimation`, `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver` will be removed in 1.0.0.
+
+New
+* `CnRouteAnimation` and its element types: <!-- part 2: CnRouteAnimation bullet -->
+* `CnRouteChoreography`: optional scope for app-wide or per-page defaults. Configured with `CnRouteTiming`, `CnPartingSpec`, `CnScrollReveal`, `CnReducedMotionMode`, `CnSubjectDetection` and `CnSubjectBehavior` (all exported). Reduced motion is respected by default and can be opted out of.
+* `CnDirectionalCurvedAnimation`: curves a progress value by the rest value (0 or 1) it last left, so the same animation can use different curves going in and coming back.
+* `CnFadeThroughPageTransitionsBuilder` (for `pageTransitionsTheme`) and `CnPageRoute`: a fade-through route that keeps the page below still while its elements exit. Both take `timing` (default `CnRouteTiming.standard`); it is reserved for API parity, the page transition keeps its fixed intervals and 400 ms.
+* `animation:` parameter on `CnFade`, `CnSlide` and `CnScale` to drive them from an `Animation<double>`.
+
+Behavior notes
+* Element curves come from `CnRouteTiming.exitCurve` / `enterCurve`. Curves set on the `exit` / `enter` `Interval`s are ignored.
+* `CnRouteChoreography.select()` with no `CnRouteAnimation` above it asserts in debug and does nothing in release.
+* Route types: Flutter's `MaterialPageRoute<T>.canTransitionTo` compares generic types, so a `MaterialPageRoute<int>` below a route with a different `T` may not receive exits. Prefer the theme builder or `CnPageRoute`, which do not have this quirk.
+* A plain `PageRouteBuilder` over a `MaterialPageRoute` does not drive the lower page's exits; use `CnPageRoute` or the theme builder.
+
+Deprecations (all removed in 1.0.0)
+* `CnRouteAwareAnimation`: use `CnRouteAnimation`.
+* `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver`: no longer needed by the package.
+
+Dependencies
+* Added `meta`.
+
 ## 0.1.0
 Fixes
 * `CnRouteAwareAnimation(showPush: false)` was invisible (regression in 0.0.3). When the push animation is not played, the child is now fully shown.
