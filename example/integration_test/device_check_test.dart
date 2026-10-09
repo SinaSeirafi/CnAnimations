@@ -5,6 +5,11 @@
 // iOS the edge swipe-back is implemented in Flutter (CnBackGestureDetector),
 // so a synthesized drag goes through the same recognizer and route code a
 // finger would. Every check prints `CNREPORT` lines with the measured values.
+//
+// iOS only: on Android the back gesture comes from the system (predictive
+// back), which a synthesized drag cannot produce, so the suite skips there.
+import 'dart:io' show Platform;
+
 import 'package:cn_animations/cn_animations.dart';
 import 'package:example/main.dart';
 import 'package:example/pages/detail_page.dart';
@@ -72,6 +77,12 @@ void main() {
   // Every engine frame is drawn, as in the real app; the samplers below read
   // one value set per frame.
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
+
+  if (!Platform.isIOS) {
+    testWidgets('device check (iOS only)', (WidgetTester tester) async {},
+        skip: true);
+    return;
+  }
 
   Future<void> wait(WidgetTester tester, int ms) async {
     await Future<void>.delayed(Duration(milliseconds: ms));
