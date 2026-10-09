@@ -44,7 +44,7 @@ About 70% toward 0.9.0 and 65% toward 1.0.0, weighted by effort.
 | E: `animation:` param on the basic widgets; deprecations | Merged |
 | F1: exports, route timing param, 0.9.0 pubspec, CHANGELOG/README skeleton | Merged |
 | F2: README snippets, CHANGELOG bullet, snippet tests | Not started (branch created, no changes) |
-| G: example app (`example/**`) | WIP 7ffb772 |
+| G: example app (`example/**`) | Merged (85346d2 → merge 76dae93); example 7 tests, root 164 tests, both analyzes clean |
 | H: integration tests (`test/integration/**`) | WIP f8b0af5; interactive back done, rest of design §8 not started |
 | Full verification, Fable review, 1.0.0 removal | Not started |
 
@@ -65,6 +65,7 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found".
 
 ## Session 2 (2026-10-09, from ~14:05 Yerevan)
 
+- Step 1 done: G merged (76dae93). Post-merge: root analyze "No issues found", root 164 pass; example analyze clean, 7 pass.
 - Steps 1–3 started in parallel (disjoint files): G (sonnet, `example/**`), F2 (sonnet, README/CHANGELOG/`test/exports_test.dart`/`test/readme_snippets_test.dart`), C2 (opus, new worktree `…/cn_animations-wt/slice-c2`, branch `v1/slice-c2` from 0a0d763, owns `lib/src/route/**` and `test/route/**`).
 
 ## Next steps, in order
