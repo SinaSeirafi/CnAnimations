@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:cn_animations/cn_animations.dart';
 import 'package:cn_animations/route_aware_widget.dart' as legacy;
 import 'package:flutter/material.dart';
@@ -85,7 +86,6 @@ void main() {
   test('deprecated top-level routeObserver is the same instance', () {
     // Reachable only through its old import path, not the barrel.
     expect(
-      // ignore: deprecated_member_use_from_same_package
       identical(legacy.routeObserver, RouteAwareWidget.routeObserver),
       isTrue,
     );
@@ -301,16 +301,14 @@ void main() {
       navigatorKey,
       ValueListenableBuilder<bool>(
         valueListenable: onFirstRoute,
-        builder: (context, first, _) =>
-            first ? routeAware() : const SizedBox(),
+        builder: (context, first, _) => first ? routeAware() : const SizedBox(),
       ),
     ));
     navigator().push(PageRouteBuilder<void>(
       pageBuilder: (context, animation, secondaryAnimation) =>
           ValueListenableBuilder<bool>(
         valueListenable: onFirstRoute,
-        builder: (context, first, _) =>
-            first ? const SizedBox() : routeAware(),
+        builder: (context, first, _) => first ? const SizedBox() : routeAware(),
       ),
       transitionDuration: Duration.zero,
       reverseTransitionDuration: Duration.zero,

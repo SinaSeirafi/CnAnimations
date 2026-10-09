@@ -16,6 +16,8 @@ RouteObserver<PageRoute> get routeObserver => RouteAwareWidget.routeObserver;
 ///
 /// Inside routes that are not a [PageRoute] (dialogs, bottom sheets), only
 /// [onPush] is called, once.
+@Deprecated(
+    'No longer needed by cn_animations; keep it only for your own onPush* callbacks')
 class RouteAwareWidget extends StatefulWidget {
   const RouteAwareWidget({
     super.key,
@@ -30,6 +32,8 @@ class RouteAwareWidget extends StatefulWidget {
       RouteObserver<PageRoute>();
 
   /// Add this to `MaterialApp.navigatorObservers`.
+  @Deprecated(
+      'No longer needed by cn_animations; keep it only for your own onPush* callbacks')
   static RouteObserver<PageRoute> get routeObserver => _routeObserver;
 
   final Widget child;
@@ -50,6 +54,7 @@ class RouteAwareWidget extends StatefulWidget {
   State<RouteAwareWidget> createState() => _RouteAwareWidgetState();
 }
 
+// ignore: deprecated_member_use_from_same_package
 class _RouteAwareWidgetState extends State<RouteAwareWidget> with RouteAware {
   @override
   Widget build(BuildContext context) {
@@ -85,10 +90,12 @@ class _RouteAwareWidgetState extends State<RouteAwareWidget> with RouteAware {
 
     _hasResolvedRoute = true;
     _route = route;
+    // ignore: deprecated_member_use_from_same_package
     RouteAwareWidget.routeObserver.unsubscribe(this);
 
     if (route is PageRoute) {
       // Calls didPush once for this route.
+      // ignore: deprecated_member_use_from_same_package
       RouteAwareWidget.routeObserver.subscribe(this, route);
     } else {
       // Dialogs, bottom sheets and other non-page routes are not tracked by
@@ -99,6 +106,7 @@ class _RouteAwareWidgetState extends State<RouteAwareWidget> with RouteAware {
 
   @override
   void dispose() {
+    // ignore: deprecated_member_use_from_same_package
     RouteAwareWidget.routeObserver.unsubscribe(this);
 
     super.dispose();

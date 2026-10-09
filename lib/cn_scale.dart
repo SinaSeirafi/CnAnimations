@@ -13,12 +13,19 @@ class CnScale extends StatefulWidget {
   final int delayInMilliseconds;
   final AnimationController? controller;
 
+  /// A progress source owned by the app or a route. When non-null the widget
+  /// follows it and never starts its internal controller.
+  ///
+  /// Like [controller], it is never overridden by [respectReducedMotion].
+  /// Give at most one of [controller] and [animation].
+  final Animation<double>? animation;
+
   /// When true (default) and the platform asks to reduce motion
   /// ([MediaQuery.disableAnimations]), the final state is shown immediately.
   /// Set to false to animate regardless of that setting.
   ///
-  /// Applies only when [controller] is null. With an external [controller]
-  /// the widget always follows that controller.
+  /// Applies only when both [controller] and [animation] are null. With an
+  /// external progress source the widget always follows it.
   final bool respectReducedMotion;
 
   const CnScale({
@@ -32,8 +39,12 @@ class CnScale extends StatefulWidget {
     this.delay,
     this.delayInMilliseconds = 0,
     this.controller,
+    this.animation,
     this.respectReducedMotion = true,
-  });
+  }) : assert(
+          controller == null || animation == null,
+          'Provide either controller or animation, not both.',
+        );
 
   @override
   State<CnScale> createState() => _CnScaleState();
@@ -63,7 +74,9 @@ class _CnScaleState extends State<CnScale> with SingleTickerProviderStateMixin {
 
   /// Only the internal controller is snapped; an external [controller] means
   /// the app owns the motion, so it is always followed.
-  bool get _snapToEnd => widget.controller == null && _reduceMotion;
+  bool get _snapToEnd => _external == null && _reduceMotion;
+
+  Animation<double>? get _external => widget.controller ?? widget.animation;
 
   @override
   void didUpdateWidget(covariant CnScale oldWidget) {
@@ -73,8 +86,8 @@ class _CnScaleState extends State<CnScale> with SingleTickerProviderStateMixin {
       _controller.duration = widget.duration;
     }
 
-    if (widget.controller != oldWidget.controller) {
-      if (widget.controller == null) {
+    if (_external != (oldWidget.controller ?? oldWidget.animation)) {
+      if (_external == null) {
         _startInternalController();
       } else {
         _delayTimer?.cancel();
@@ -84,7 +97,7 @@ class _CnScaleState extends State<CnScale> with SingleTickerProviderStateMixin {
     if (widget.forward != oldWidget.forward ||
         widget.begin != oldWidget.begin ||
         widget.end != oldWidget.end ||
-        widget.controller != oldWidget.controller ||
+        _external != (oldWidget.controller ?? oldWidget.animation) ||
         widget.curve != oldWidget.curve) {
       _updateScaleAnimation();
     }
@@ -93,7 +106,7 @@ class _CnScaleState extends State<CnScale> with SingleTickerProviderStateMixin {
   void _updateScaleAnimation() {
     _curvedAnimation?.dispose();
     _curvedAnimation = CurvedAnimation(
-      parent: widget.controller ?? _controller,
+      parent: _external ?? _controller,
       curve: widget.curve ?? Curves.easeInOut,
     );
 
@@ -134,7 +147,7 @@ class _CnScaleState extends State<CnScale> with SingleTickerProviderStateMixin {
 
     _updateScaleAnimation();
 
-    if (widget.controller == null) _startInternalController();
+    if (_external == null) _startInternalController();
   }
 
   @override
