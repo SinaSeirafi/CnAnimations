@@ -1,7 +1,8 @@
 /// Geometry for choreography (design §3.4, §3.5, §5 RTL).
 ///
 /// Everything here is a side-effect-free function. [cnPlacement],
-/// [cnStaggeredExit], [cnStaggeredEnter] and [cnPartingOffset] are pure
+/// [cnStaggeredExit], [cnStaggeredUncover], [cnStaggeredEnter] and
+/// [cnPartingOffset] are pure
 /// arithmetic on rects and config values; [cnGlobalRect] and [cnViewportRect]
 /// only read the current layout of a render object.
 ///
@@ -88,13 +89,15 @@ CnPlacement cnPlacement({
 
 // `CnRouteTiming` is const, and a const constructor cannot read
 // `Interval.curve` in an assert, so the check lives where the slices are
-// built. The curves of `exit` / `enter` are ignored (review R9).
+// built. The curves of `exit` / `enter` / `uncover` are ignored (review R9).
 bool _linearIntervals(CnRouteTiming timing) =>
-    timing.exit.curve == Curves.linear && timing.enter.curve == Curves.linear;
+    timing.exit.curve == Curves.linear &&
+    timing.enter.curve == Curves.linear &&
+    timing.uncover.curve == Curves.linear;
 
 const String _curvedIntervalMessage =
-    'CnRouteTiming.exit and enter must be linear Intervals: their curves are '
-    'ignored. Set exitCurve / enterCurve instead.';
+    'CnRouteTiming.exit, enter and uncover must be linear Intervals: their '
+    'curves are ignored. Set exitCurve / enterCurve instead.';
 
 /// The element's exit slice for stagger factor [f] (design §3.4):
 /// `Interval(exit.begin + f·exitStagger, min(1, exit.end + f·exitStagger))`
@@ -105,6 +108,20 @@ Interval cnStaggeredExit(CnRouteTiming timing, double f) {
   return Interval(
     (timing.exit.begin + shift).clamp(0.0, 1.0),
     (timing.exit.end + shift).clamp(0.0, 1.0),
+    curve: timing.exitCurve,
+  );
+}
+
+/// The element's uncover slice for stagger factor [f] (review R6):
+/// [CnRouteTiming.uncover] shifted by `f·exitStagger`, with
+/// [CnRouteTiming.exitCurve]: the same shift and curve as [cnStaggeredExit].
+/// Both ends are clamped to 1.
+Interval cnStaggeredUncover(CnRouteTiming timing, double f) {
+  assert(_linearIntervals(timing), _curvedIntervalMessage);
+  final double shift = f.clamp(0.0, 1.0) * timing.exitStagger;
+  return Interval(
+    (timing.uncover.begin + shift).clamp(0.0, 1.0),
+    (timing.uncover.end + shift).clamp(0.0, 1.0),
     curve: timing.exitCurve,
   );
 }
