@@ -28,6 +28,9 @@ import 'dart:math' as math;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
+import '../choreography/cn_route_choreography.dart'
+    show kCnPointerSubjectWindow;
+
 // ---------------------------------------------------------------------------
 // Per-element slices of progress
 // ---------------------------------------------------------------------------
@@ -130,9 +133,6 @@ class CnRouteRecord {
 
   // -- Pointer-down -------------------------------------------------------
 
-  /// How long a pointer-down stays eligible to mark the subject.
-  static const Duration pointerWindow = Duration(milliseconds: 700);
-
   /// The most recent pointer-down on this page, if any.
   CnPointerDown? get lastPointerDown => _lastPointerDown;
   CnPointerDown? _lastPointerDown;
@@ -154,7 +154,7 @@ class CnRouteRecord {
   /// Call this during a frame (for example from the cover source's tick, when
   /// it leaves `0.0`); between frames the last frame's stamp may be stale,
   /// which makes the check lenient, never strict.
-  State? pointerSubject({Duration maxAge = pointerWindow}) {
+  State? pointerSubject({Duration maxAge = kCnPointerSubjectWindow}) {
     final CnPointerDown? down = _lastPointerDown;
     if (down == null || !down.owner.mounted) return null;
     final Duration? stamp = down.timeStamp;
@@ -180,6 +180,17 @@ class CnRouteRecord {
     _selection = null;
     return (selection != null && selection.mounted) ? selection : null;
   }
+
+  /// Forgets the selection if it is still [context]. An element calls this
+  /// when it is disposed, so the record does not keep it alive until the next
+  /// cover transition.
+  void clearSelection(BuildContext context) {
+    if (identical(_selection, context)) _selection = null;
+  }
+
+  /// Whether a selection is stored (it may no longer be mounted). For tests.
+  @visibleForTesting
+  bool get hasSelection => _selection != null;
 
   BuildContext? _selection;
 

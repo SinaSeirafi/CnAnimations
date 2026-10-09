@@ -78,13 +78,15 @@ class DetailPage extends StatelessWidget {
                 FilledButton.tonal(
                   onPressed: () => Navigator.push(
                     context,
-                    // A transparent overlay built from a plain PageRouteBuilder
-                    // does cover this page, so its elements exit. A CnPageRoute
-                    // (see Replace) does not need this workaround.
+                    // Counter-demo: a transparent overlay does not cover this
+                    // page, so its elements stay. Neither a theme-installed
+                    // Material page (this one) nor a CnPageRoute lets a plain
+                    // PageRouteBuilder drive its exits; only a page that is
+                    // itself a plain PageRouteBuilder would.
                     PageRouteBuilder<void>(
                       opaque: false,
                       barrierColor: Colors.black54,
-                      pageBuilder: (context, _, __) => Center(
+                      pageBuilder: (context, _, _) => Center(
                         child: Card(
                           child: Padding(
                             padding: const EdgeInsets.all(24),
@@ -95,11 +97,11 @@ class DetailPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      transitionsBuilder: (_, animation, __, child) =>
+                      transitionsBuilder: (_, animation, _, child) =>
                           FadeTransition(opacity: animation, child: child),
                     ),
                   ),
-                  child: const Text('Open transparent overlay'),
+                  child: const Text('Overlay (elements stay)'),
                 ),
                 OutlinedButton(
                   onPressed: () => Navigator.pushReplacement(

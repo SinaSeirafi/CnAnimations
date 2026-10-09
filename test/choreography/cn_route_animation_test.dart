@@ -1,5 +1,6 @@
 import 'package:cn_animations/src/choreography/cn_route_animation.dart';
 import 'package:cn_animations/src/choreography/cn_route_choreography.dart';
+import 'package:cn_animations/src/progress/route_progress.dart';
 import 'package:cn_animations/src/route/cn_fade_through_page_transitions_builder.dart';
 import 'package:cn_animations/src/route/cn_page_route.dart';
 import 'package:flutter/foundation.dart';
@@ -411,7 +412,7 @@ void main() {
         PageRouteBuilder<void>(
           transitionDuration: Duration.zero,
           reverseTransitionDuration: Duration.zero,
-          pageBuilder: (_, __, ___) => page(<Widget>[item('z')]),
+          pageBuilder: (_, _, _) => page(<Widget>[item('z')]),
         ),
       );
       await tester.pump();
@@ -425,7 +426,7 @@ void main() {
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          builder: (_, __) => Align(
+          builder: (_, _) => Align(
             alignment: Alignment.topLeft,
             child: item('n'),
           ),
@@ -446,7 +447,7 @@ void main() {
       // A rebuild does not replay it.
       await tester.pumpWidget(
         MaterialApp(
-          builder: (_, __) => Align(
+          builder: (_, _) => Align(
             alignment: Alignment.topLeft,
             child: item('n'),
           ),
@@ -792,7 +793,7 @@ void main() {
         CnPageRoute<void>(
           builder: (_) => ValueListenableBuilder<bool>(
             valueListenable: enabled,
-            builder: (_, bool on, __) => page(<Widget>[
+            builder: (_, bool on, _) => page(<Widget>[
               item('t', enabled: on),
             ]),
           ),
@@ -1096,6 +1097,52 @@ void main() {
       );
       await tester.pumpAndSettle();
       expectParted(tester, subject: 4);
+    });
+
+    testWidgets('disposing a selected element clears the stored selection',
+        (WidgetTester tester) async {
+      final GlobalKey keyA = GlobalKey();
+      final GlobalKey keyB = GlobalKey();
+      bool showA = true;
+      bool showB = true;
+      late StateSetter setPage;
+      late ModalRoute<dynamic> route;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                setPage = setState;
+                route = ModalRoute.of(context)!;
+                return Column(
+                  children: <Widget>[
+                    if (showA)
+                      CnRouteAnimation(
+                        child: SizedBox(key: keyA, height: 50),
+                      ),
+                    if (showB)
+                      CnRouteAnimation(
+                        child: SizedBox(key: keyB, height: 50),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      CnRouteChoreography.select(keyA.currentContext!);
+      final CnRouteRecord record = CnRouteRecord.maybeOf(route)!;
+      expect(record.hasSelection, isTrue);
+      // Disposing another element keeps A's selection.
+      setPage(() => showB = false);
+      await tester.pump();
+      expect(record.hasSelection, isTrue);
+      // Disposing the selected element releases it.
+      setPage(() => showA = false);
+      await tester.pump();
+      expect(record.hasSelection, isFalse);
     });
 
     testWidgets('subject: true marks the subject; select() beats it',

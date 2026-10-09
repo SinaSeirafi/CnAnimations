@@ -53,7 +53,7 @@ class _ExampleAppState extends State<ExampleApp> {
                 ? const CnScrollReveal()
                 : CnScrollReveal.off,
             subjectDetection: _settings.subjectDetection,
-            parting: CnPartingSpec(subject: _settings.subjectBehavior),
+            parting: CnPartingSpec(subjectBehavior: _settings.subjectBehavior),
             child: child!,
           ),
           home: const BasicsPage(),

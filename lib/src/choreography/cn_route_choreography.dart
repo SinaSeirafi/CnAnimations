@@ -46,9 +46,15 @@ class CnRouteTiming {
   /// Slice of progress during which an element leaves (push-over of this page,
   /// pop of this page, and interactive back). When the page above pops, the
   /// same slice plays in reverse to bring the element back (uncover).
+  ///
+  /// Only `begin` and `end` are used; the curve comes from [exitCurve]. A
+  /// curved `Interval` asserts in debug when an element uses this timing.
   final Interval exit;
 
   /// Slice during which an element arrives (push of this page).
+  ///
+  /// Only `begin` and `end` are used; the curve comes from [enterCurve]. A
+  /// curved `Interval` asserts in debug when an element uses this timing.
   final Interval enter;
 
   /// Maximum extra start delay added to [exit] for the element farthest from
@@ -153,7 +159,17 @@ enum CnSubjectDetection {
 }
 
 /// What the subject itself does while its siblings part.
-enum CnSubjectBehavior { stay, fade, grow }
+enum CnSubjectBehavior {
+  /// The subject stays put and fully visible.
+  stay,
+
+  /// The subject stays put and fades out as it is covered.
+  fade,
+
+  /// The subject stays put and grows to 1.04 times its size as it is
+  /// covered. The factor is fixed and not configurable.
+  grow,
+}
 
 /// How siblings move away from the tapped item.
 @immutable
@@ -162,7 +178,7 @@ class CnPartingSpec {
     this.distance = const Offset(0, 0.6),
     this.distanceGrowth = 0.5,
     this.fadeSiblings = true,
-    this.subject = CnSubjectBehavior.stay,
+    this.subjectBehavior = CnSubjectBehavior.stay,
   }) : assert(distanceGrowth >= 0);
 
   /// How far a sibling moves, as a fraction of the sibling's own size per
@@ -178,8 +194,8 @@ class CnPartingSpec {
   /// Whether siblings fade while they part.
   final bool fadeSiblings;
 
-  /// What the subject does.
-  final CnSubjectBehavior subject;
+  /// What the subject (the tapped item) does while its siblings part.
+  final CnSubjectBehavior subjectBehavior;
 
   @override
   bool operator ==(Object other) {
@@ -188,12 +204,12 @@ class CnPartingSpec {
         other.distance == distance &&
         other.distanceGrowth == distanceGrowth &&
         other.fadeSiblings == fadeSiblings &&
-        other.subject == subject;
+        other.subjectBehavior == subjectBehavior;
   }
 
   @override
   int get hashCode =>
-      Object.hash(distance, distanceGrowth, fadeSiblings, subject);
+      Object.hash(distance, distanceGrowth, fadeSiblings, subjectBehavior);
 }
 
 /// Scroll reveal: timed entrance for elements first built while the page is at

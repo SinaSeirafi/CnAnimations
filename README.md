@@ -38,16 +38,16 @@ No `RouteObserver` is needed. The element reads the route it sits on: it arrives
 ## Getting started
 If you only want to use basic animations, you're good to go!
 
-For navigation-driven choreography, use `CnPageRoute`, or add the builder to your theme:
+For navigation-driven choreography, use `CnPageRoute`, or add the builder to your theme for every platform:
 
 ```dart
 import 'package:cn_animations/cn_animations.dart';
 
 MaterialApp(
   theme: ThemeData(
-    pageTransitionsTheme: const PageTransitionsTheme(builders: {
-      TargetPlatform.android: CnFadeThroughPageTransitionsBuilder(),
-      TargetPlatform.iOS: CnFadeThroughPageTransitionsBuilder(),
+    pageTransitionsTheme: PageTransitionsTheme(builders: {
+      for (final platform in TargetPlatform.values)
+        platform: const CnFadeThroughPageTransitionsBuilder(),
     }),
   ),
 )
@@ -164,7 +164,7 @@ CnRouteChoreography(
   ),
   parting: const CnPartingSpec(
     distance: Offset(0, 0.6),
-    subject: CnSubjectBehavior.stay,
+    subjectBehavior: CnSubjectBehavior.stay,
   ),
   // Axis along which neighbours part (vertical for lists).
   axis: Axis.vertical,
@@ -197,7 +197,7 @@ CnRouteChoreography(
 )
 ```
 
-An external `controller:` or `animation:` (on the basic widgets, or `progress:` on the scope) belongs to your app and is never overridden by reduced motion.
+An external `controller:` or `animation:` on the basic widgets belongs to your app and is never overridden by reduced motion.
 
 #### Routes
 Install the fade-through transition for every route, or use `CnPageRoute` for individual routes. Both keep the page below still while its elements exit, then fade the new page in over 400 ms.
@@ -205,14 +205,16 @@ Install the fade-through transition for every route, or use `CnPageRoute` for in
 ```dart
 MaterialApp(
   theme: ThemeData(
-    pageTransitionsTheme: const PageTransitionsTheme(builders: {
-      TargetPlatform.android: CnFadeThroughPageTransitionsBuilder(),
-      TargetPlatform.iOS: CnFadeThroughPageTransitionsBuilder(),
+    pageTransitionsTheme: PageTransitionsTheme(builders: {
+      for (final platform in TargetPlatform.values)
+        platform: const CnFadeThroughPageTransitionsBuilder(),
     }),
   ),
   home: const HomePage(),
 )
 ```
+
+The theme builder is also the way to use the transition with `Navigator.pages` or go_router: their `MaterialPage`s build Material routes, which take the transition from the theme. There is no `CnPage` form of `CnPageRoute`.
 
 ```dart
 Navigator.of(context).push(
@@ -221,6 +223,12 @@ Navigator.of(context).push(
 ```
 
 Under Flutter's zoom or Cupertino transitions the page below is hidden by the transition itself, so element exits are mostly invisible; use one of the routes above to see them. Dialogs, bottom sheets, full-screen dialogs and non-opaque routes do not cover the page, so elements stay.
+
+Android predictive back needs `android:enableOnBackInvokedCallback="true"` on the `<application>` in your `AndroidManifest.xml`, as for Flutter's own predictive-back transition.
+
+The two installs cover a page under slightly different routes. A `CnPageRoute` page is covered by any opaque, non-full-screen-dialog `PageRoute`, including a plain `PageRouteBuilder(opaque: true)`. A `MaterialPageRoute` page under the theme builder follows Flutter's Material rule: it is covered only by Material routes (`MaterialPageRoute`, `CnPageRoute`) or routes with a delegated transition, so a plain `PageRouteBuilder` above it does not pull its elements out. If your app pushes its own `PageRouteBuilder`s, push the pages below them as `CnPageRoute`.
+
+A `CupertinoPageRoute<T>` page below a `CnPageRoute` receives exits only when both routes have the same type argument (`CupertinoPageRoute.canTransitionTo` compares them); `CnPageRoute` does not fix this. Give the routes matching type arguments, or use the theme builder.
 
 ### Route Aware Animation
 

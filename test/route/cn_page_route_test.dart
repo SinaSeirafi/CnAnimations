@@ -172,7 +172,7 @@ void main() {
 
       final prb = _Rec();
       nav.currentState!.push(PageRouteBuilder<void>(
-        pageBuilder: (_, __, ___) => _Probe(prb),
+        pageBuilder: (_, _, _) => _Probe(prb),
       ));
       await t.pumpAndSettle();
       nav.currentState!.push(
@@ -206,7 +206,7 @@ void main() {
       await t.pumpAndSettle();
       nav.currentState!.push(PageRouteBuilder<void>(
         opaque: false,
-        pageBuilder: (_, __, ___) => const SizedBox(),
+        pageBuilder: (_, _, _) => const SizedBox(),
         transitionDuration: const Duration(milliseconds: 300),
       ));
       await _pumpFrames(t);
@@ -258,7 +258,7 @@ void main() {
 
       showGeneralDialog<void>(
         context: ctx,
-        pageBuilder: (_, __, ___) => const Text('g'),
+        pageBuilder: (_, _, _) => const Text('g'),
       );
       await _pumpFrames(t);
       expect(cn.secondary.value, 0.0);
@@ -284,6 +284,18 @@ void main() {
       final r2 =
           CnPageRoute<void>(builder: (_) => const SizedBox(), timing: custom);
       expect(r2.timing, same(custom));
+    });
+  });
+
+  group('debugLabel', () {
+    test('appends the route name only when there is one', () {
+      final unnamed = CnPageRoute<void>(builder: (_) => const SizedBox());
+      expect(unnamed.debugLabel, 'CnPageRoute<void>');
+      final named = CnPageRoute<void>(
+        builder: (_) => const SizedBox(),
+        settings: const RouteSettings(name: '/detail'),
+      );
+      expect(named.debugLabel, 'CnPageRoute<void>(/detail)');
     });
   });
 }

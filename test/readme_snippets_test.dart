@@ -90,10 +90,10 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(
-            pageTransitionsTheme: const PageTransitionsTheme(
+            pageTransitionsTheme: PageTransitionsTheme(
               builders: {
-                TargetPlatform.android: CnFadeThroughPageTransitionsBuilder(),
-                TargetPlatform.iOS: CnFadeThroughPageTransitionsBuilder(),
+                for (final platform in TargetPlatform.values)
+                  platform: const CnFadeThroughPageTransitionsBuilder(),
               },
             ),
           ),
@@ -101,6 +101,14 @@ void main() {
         ),
       );
       expect(find.text('home page'), findsOneWidget);
+      // Installed for every platform, not only Android and iOS.
+      final theme = Theme.of(tester.element(find.text('home page')));
+      for (final platform in TargetPlatform.values) {
+        expect(
+          theme.pageTransitionsTheme.builders[platform],
+          isA<CnFadeThroughPageTransitionsBuilder>(),
+        );
+      }
     });
 
     testWidgets('CnPageRoute push', (tester) async {
@@ -248,7 +256,7 @@ void main() {
           ),
           parting: const CnPartingSpec(
             distance: Offset(0, 0.6),
-            subject: CnSubjectBehavior.stay,
+            subjectBehavior: CnSubjectBehavior.stay,
           ),
           axis: Axis.vertical,
           subjectDetection: CnSubjectDetection.pointer,

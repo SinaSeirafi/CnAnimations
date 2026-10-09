@@ -13,7 +13,9 @@ import 'cn_fade_through_page_transitions_builder.dart';
 /// Mixes in [MaterialRouteTransitionMixin] so Material routes beneath it
 /// recognize it by type, independent of the generic-type quirk in
 /// `MaterialRouteTransitionMixin.canTransitionTo` (`MaterialPageRoute<int>`
-/// beneath a route with a different `T`).
+/// beneath a route with a different `T`). `CupertinoPageRoute.canTransitionTo`
+/// has the same quirk and this route does not fix it: give Cupertino routes
+/// beneath it a matching type argument, or use the theme builder.
 class CnPageRoute<T> extends PageRoute<T> with MaterialRouteTransitionMixin<T> {
   /// Creates a fade-through page route.
   CnPageRoute({
@@ -77,6 +79,10 @@ class CnPageRoute<T> extends PageRoute<T> with MaterialRouteTransitionMixin<T> {
         child,
       );
 
+  /// The route's type, followed by its name in parentheses when it has one.
   @override
-  String get debugLabel => '${super.debugLabel}(${settings.name})';
+  String get debugLabel {
+    final String? name = settings.name;
+    return name == null ? super.debugLabel : '${super.debugLabel}($name)';
+  }
 }

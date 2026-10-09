@@ -1,25 +1,24 @@
 ## 0.9.0
 0.9.0 is the migration bridge: it adds the new navigation-driven APIs and keeps the old route-aware widgets as deprecated. `CnRouteAwareAnimation`, `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver` will be removed in 1.0.0.
 
+Requires Flutter 3.29 / Dart 3.7 or newer.
+
 New
 * `CnRouteAnimation`: wraps a page element so it enters with the page, exits when another page covers it and follows swipe-back and predictive-back gestures, driven by route progress and no `RouteObserver`. Parts around the tapped item (pointer detection on by default, 700 ms window; `subject:` and `CnRouteChoreography.select()` override). `enterOffset` defaults to `Offset(0, 0.1)` (from below) and `exitOffset` to `-enterOffset`. Also exports `CnElementProgress`, `CnElementRole` and `CnRouteAnimationBuilder` for the `builder:` form.
-* `CnRouteChoreography`: optional scope for app-wide or per-page defaults. Configured with `CnRouteTiming`, `CnPartingSpec`, `CnScrollReveal`, `CnReducedMotionMode`, `CnSubjectDetection` and `CnSubjectBehavior` (all exported). Reduced motion is respected by default (`fadeOnly`); opt out with `respectReducedMotion: false`, or show elements at rest with `reducedMotionMode: none`; precedence is widget, then scope, then default. An external `controller:` or `animation:` is never overridden.
+* `CnRouteChoreography`: optional scope for app-wide or per-page defaults. Configured with `CnRouteTiming`, `CnPartingSpec`, `CnScrollReveal`, `CnReducedMotionMode`, `CnSubjectDetection` and `CnSubjectBehavior` (all exported). Reduced motion is respected by default (`fadeOnly`); opt out with `respectReducedMotion: false`, or show elements at rest with `reducedMotionMode: none`; precedence is widget, then scope, then default.
 * `CnDirectionalCurvedAnimation`: curves a progress value by the rest value (0 or 1) it last left, so the same animation can use different curves going in and coming back.
 * `CnFadeThroughPageTransitionsBuilder` (for `pageTransitionsTheme`) and `CnPageRoute`: a fade-through route that keeps the page below still while its elements exit. Both take `timing` (default `CnRouteTiming.standard`); it is reserved for API parity, the page transition keeps its fixed intervals and 400 ms.
-* `animation:` parameter on `CnFade`, `CnSlide` and `CnScale` to drive them from an `Animation<double>`.
+* `animation:` parameter on `CnFade`, `CnSlide` and `CnScale` to drive them from an `Animation<double>`. An external `controller:` or `animation:` is never overridden by reduced motion.
 
 Behavior notes
-* Element curves come from `CnRouteTiming.exitCurve` / `enterCurve`. Curves set on the `exit` / `enter` `Interval`s are ignored.
+* Element curves come from `CnRouteTiming.exitCurve` / `enterCurve`. Curves set on the `exit` / `enter` `Interval`s are ignored, and assert in debug.
 * `CnRouteChoreography.select()` with no `CnRouteAnimation` above it asserts in debug and does nothing in release.
-* Route types: Flutter's `MaterialPageRoute<T>.canTransitionTo` compares generic types, so a `MaterialPageRoute<int>` below a route with a different `T` may not receive exits. Prefer the theme builder or `CnPageRoute`, which do not have this quirk.
+* Route types: Flutter's `MaterialPageRoute<T>.canTransitionTo` compares generic types, so a `MaterialPageRoute<int>` below a route with a different `T` may not receive exits. Prefer the theme builder or `CnPageRoute`, which do not have this quirk. The same applies to a `CupertinoPageRoute<T>` page, and `CnPageRoute` does not fix that case: give the routes matching type arguments or use the theme builder.
 * A plain `PageRouteBuilder` over a `MaterialPageRoute` does not drive the lower page's exits; use `CnPageRoute` or the theme builder.
 
 Deprecations (all removed in 1.0.0)
 * `CnRouteAwareAnimation`: use `CnRouteAnimation`.
 * `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver`: no longer needed by the package.
-
-Dependencies
-* Added `meta`.
 
 ## 0.1.0
 Fixes

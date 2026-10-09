@@ -287,9 +287,9 @@ void main() {
       expect(p.distance, const Offset(0, 0.6));
       expect(p.distanceGrowth, 0.5);
       expect(p.fadeSiblings, isTrue);
-      expect(p.subject, CnSubjectBehavior.stay);
+      expect(p.subjectBehavior, CnSubjectBehavior.stay);
       expect(
-        const CnPartingSpec(subject: CnSubjectBehavior.grow),
+        const CnPartingSpec(subjectBehavior: CnSubjectBehavior.grow),
         isNot(p),
       );
     });

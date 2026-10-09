@@ -86,10 +86,21 @@ CnPlacement cnPlacement({
   return (onScreen: onScreen, f: f, direction: direction);
 }
 
+// `CnRouteTiming` is const, and a const constructor cannot read
+// `Interval.curve` in an assert, so the check lives where the slices are
+// built. The curves of `exit` / `enter` are ignored (review R9).
+bool _linearIntervals(CnRouteTiming timing) =>
+    timing.exit.curve == Curves.linear && timing.enter.curve == Curves.linear;
+
+const String _curvedIntervalMessage =
+    'CnRouteTiming.exit and enter must be linear Intervals: their curves are '
+    'ignored. Set exitCurve / enterCurve instead.';
+
 /// The element's exit slice for stagger factor [f] (design §3.4):
 /// `Interval(exit.begin + f·exitStagger, min(1, exit.end + f·exitStagger))`
 /// with [CnRouteTiming.exitCurve]. Both ends are clamped to 1.
 Interval cnStaggeredExit(CnRouteTiming timing, double f) {
+  assert(_linearIntervals(timing), _curvedIntervalMessage);
   final double shift = f.clamp(0.0, 1.0) * timing.exitStagger;
   return Interval(
     (timing.exit.begin + shift).clamp(0.0, 1.0),
@@ -103,6 +114,7 @@ Interval cnStaggeredExit(CnRouteTiming timing, double f) {
 /// [CnRouteTiming.enterCurve]. The end is pinned so every element is at rest
 /// when the route is.
 Interval cnStaggeredEnter(CnRouteTiming timing, double f) {
+  assert(_linearIntervals(timing), _curvedIntervalMessage);
   final double shift = f.clamp(0.0, 1.0) * timing.enterStagger;
   return Interval(
     (timing.enter.begin + shift).clamp(0.0, 1.0),
