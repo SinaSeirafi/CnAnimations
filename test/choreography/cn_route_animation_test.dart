@@ -411,7 +411,7 @@ void main() {
         PageRouteBuilder<void>(
           transitionDuration: Duration.zero,
           reverseTransitionDuration: Duration.zero,
-          pageBuilder: (_, __, ___) => page(<Widget>[item('z')]),
+          pageBuilder: (_, _, _) => page(<Widget>[item('z')]),
         ),
       );
       await tester.pump();
@@ -425,7 +425,7 @@ void main() {
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          builder: (_, __) => Align(
+          builder: (_, _) => Align(
             alignment: Alignment.topLeft,
             child: item('n'),
           ),
@@ -446,7 +446,7 @@ void main() {
       // A rebuild does not replay it.
       await tester.pumpWidget(
         MaterialApp(
-          builder: (_, __) => Align(
+          builder: (_, _) => Align(
             alignment: Alignment.topLeft,
             child: item('n'),
           ),
@@ -792,7 +792,7 @@ void main() {
         CnPageRoute<void>(
           builder: (_) => ValueListenableBuilder<bool>(
             valueListenable: enabled,
-            builder: (_, bool on, __) => page(<Widget>[
+            builder: (_, bool on, _) => page(<Widget>[
               item('t', enabled: on),
             ]),
           ),

@@ -21,7 +21,7 @@ Route<T> pageRoute<T>(PageKind kind, WidgetBuilder builder) {
       return MaterialPageRoute<T>(builder: builder);
     case PageKind.pageRouteBuilder:
       return PageRouteBuilder<T>(
-        pageBuilder: (BuildContext context, _, __) => builder(context),
+        pageBuilder: (BuildContext context, _, _) => builder(context),
       );
     case PageKind.cnPageRoute:
       return CnPageRoute<T>(builder: builder);
@@ -37,7 +37,7 @@ final Map<String, void Function(BuildContext context)> overlays =
       ),
   'showGeneralDialog': (BuildContext context) => showGeneralDialog<void>(
         context: context,
-        pageBuilder: (_, __, ___) => const Center(child: Text('overlay')),
+        pageBuilder: (_, _, _) => const Center(child: Text('overlay')),
       ),
   'showModalBottomSheet': (BuildContext context) => showModalBottomSheet<void>(
         context: context,
@@ -146,7 +146,7 @@ void main() {
   group('counter-tests: non-opaque routes and the generic quirk', () {
     Route<void> transparent() => PageRouteBuilder<void>(
           opaque: false,
-          pageBuilder: (_, __, ___) => const Center(child: Text('overlay')),
+          pageBuilder: (_, _, _) => const Center(child: Text('overlay')),
         );
 
     /// Plain elements fully covered: at the mirrored exit offset, faded out.
@@ -254,7 +254,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       nav.currentState!.push(
-        PageRouteBuilder<void>(pageBuilder: (_, __, ___) => const SizedBox()),
+        PageRouteBuilder<void>(pageBuilder: (_, _, _) => const SizedBox()),
       );
       await tester.pumpAndSettle();
       expectAtRest(tester, log);

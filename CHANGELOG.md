@@ -1,6 +1,8 @@
 ## 0.9.0
 0.9.0 is the migration bridge: it adds the new navigation-driven APIs and keeps the old route-aware widgets as deprecated. `CnRouteAwareAnimation`, `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver` will be removed in 1.0.0.
 
+Requires Flutter 3.29 / Dart 3.7 or newer.
+
 New
 * `CnRouteAnimation`: wraps a page element so it enters with the page, exits when another page covers it and follows swipe-back and predictive-back gestures, driven by route progress and no `RouteObserver`. Parts around the tapped item (pointer detection on by default, 700 ms window; `subject:` and `CnRouteChoreography.select()` override). `enterOffset` defaults to `Offset(0, 0.1)` (from below) and `exitOffset` to `-enterOffset`. Also exports `CnElementProgress`, `CnElementRole` and `CnRouteAnimationBuilder` for the `builder:` form.
 * `CnRouteChoreography`: optional scope for app-wide or per-page defaults. Configured with `CnRouteTiming`, `CnPartingSpec`, `CnScrollReveal`, `CnReducedMotionMode`, `CnSubjectDetection` and `CnSubjectBehavior` (all exported). Reduced motion is respected by default (`fadeOnly`); opt out with `respectReducedMotion: false`, or show elements at rest with `reducedMotionMode: none`; precedence is widget, then scope, then default. An external `controller:` or `animation:` is never overridden.
@@ -17,9 +19,6 @@ Behavior notes
 Deprecations (all removed in 1.0.0)
 * `CnRouteAwareAnimation`: use `CnRouteAnimation`.
 * `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver`: no longer needed by the package.
-
-Dependencies
-* Added `meta`.
 
 ## 0.1.0
 Fixes

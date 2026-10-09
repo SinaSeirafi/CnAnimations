@@ -84,7 +84,7 @@ class DetailPage extends StatelessWidget {
                     PageRouteBuilder<void>(
                       opaque: false,
                       barrierColor: Colors.black54,
-                      pageBuilder: (context, _, __) => Center(
+                      pageBuilder: (context, _, _) => Center(
                         child: Card(
                           child: Padding(
                             padding: const EdgeInsets.all(24),
@@ -95,7 +95,7 @@ class DetailPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      transitionsBuilder: (_, animation, __, child) =>
+                      transitionsBuilder: (_, animation, _, child) =>
                           FadeTransition(opacity: animation, child: child),
                     ),
                   ),

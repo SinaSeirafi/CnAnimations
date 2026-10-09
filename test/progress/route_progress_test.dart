@@ -336,7 +336,7 @@ void main() {
         PageRouteBuilder<void>(
           transitionDuration: Duration.zero,
           reverseTransitionDuration: Duration.zero,
-          pageBuilder: (_, __, ___) => _GrowingPage(labels, log),
+          pageBuilder: (_, _, _) => _GrowingPage(labels, log),
         ),
       );
       await tester.pump();

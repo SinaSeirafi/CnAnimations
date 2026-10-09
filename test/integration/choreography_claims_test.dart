@@ -365,7 +365,7 @@ void main() {
 
     Widget growingPage(ValueNotifier<int> count) => ValueListenableBuilder<int>(
           valueListenable: count,
-          builder: (_, int n, __) => column(<Widget>[
+          builder: (_, int n, _) => column(<Widget>[
             for (int i = 0; i < n; i++) item('m$i'),
           ]),
         );
