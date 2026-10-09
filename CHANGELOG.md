@@ -4,14 +4,15 @@ Fixes
 * `CnRouteAwareAnimation` inside a dialog or bottom sheet was invisible. Non-page routes now count as pushed once.
 * Toggling `animate` (or all `show*` flags) off and back on threw `Bad state: Stream has already been listened to`.
 * `CnScale(forward: false)` did not animate. It now animates from `end` to `begin`, like `CnFade` and `CnSlide`.
-* Removing an external `controller` (switching it to null) left `CnFade`, `CnSlide` and `CnScale` stuck at the start value. The internal controller now plays, as on first build.
-* `duration` changes after the first build are applied (`CnFade`, `CnSlide`, `CnScale`, and `fadeDuration` / `slideDuration` of `CnRouteAwareAnimation`).
+* Removing an external `controller` (switching it to null) left `CnFade`, `CnSlide` and `CnScale` stuck at the start value. The internal controller now plays, as on first build, if it has not already completed.
+* `duration` changes after the first build are applied to the next run (`CnFade`, `CnSlide`, `CnScale`, and `fadeDuration` / `slideDuration` of `CnRouteAwareAnimation`).
 * `CurvedAnimation`s are disposed (they leaked listeners on the controller).
+* `CnRouteAwareAnimation(showPopNext: false)` stayed invisible after returning to the page. The page is now shown again, without animating.
 * Delayed callbacks are cancellable timers: a new navigation event cancels pending ones, so they cannot run out of order, and all are cancelled on dispose.
 
 Improvements
-* Reduced motion: when the platform asks to disable animations, widgets show their final state immediately. Opt out per widget with `respectReducedMotion: false`.
-* `route_aware_widget.dart` is exported from `package:cn_animations/cn_animations.dart`.
+* Reduced motion: when the platform asks to disable animations, `CnFade`, `CnSlide` and `CnScale` show their final state immediately, and `CnRouteAwareAnimation` jumps to each navigation event's end state instead of animating (custom `fadeEndSamePage` / `endSamePage` are kept, and the child's state survives toggling the setting). An external `controller` is never overridden: the app owns that motion. Opt out per widget with `respectReducedMotion: false`.
+* `RouteAwareWidget` is now exported from `package:cn_animations/cn_animations.dart`. If your app has its own class with that name, import with `hide RouteAwareWidget` or use an `as` prefix. The deprecated top-level `routeObserver` is not exported from the barrel; it is still available from `package:cn_animations/route_aware_widget.dart`.
 * New `RouteAwareWidget.routeObserver`. Use it in `navigatorObservers`.
 * `CnSlide.intervalBegin` / `intervalEnd` now work.
 * `CnFade.durationInMilliseconds` is honored (overrides `duration`).

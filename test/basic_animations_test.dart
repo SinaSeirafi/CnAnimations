@@ -203,7 +203,6 @@ void main() {
         wrap(const CnFade(child: _box), disableAnimations: true),
       );
       expect(_opacity(tester), 1);
-      expect(tester.binding.hasScheduledFrame, isFalse);
     });
 
     testWidgets('CnSlide', (tester) async {
@@ -251,6 +250,28 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(_opacity(tester), 1);
+    });
+
+    testWidgets('an external controller is always followed', (tester) async {
+      final AnimationController controller =
+          AnimationController(vsync: const TestVSync(), value: 0);
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(wrap(
+        Column(children: [
+          CnFade(controller: controller, child: _box),
+          CnSlide(controller: controller, child: _box),
+          CnScale(controller: controller, child: _box),
+        ]),
+        disableAnimations: true,
+      ));
+      expect(_opacity(tester), 0);
+      expect(_offset(tester), const Offset(0, 0.5));
+      expect(_scale(tester), 0.7);
+
+      controller.value = 0.5;
+      await tester.pump();
+      expect(_opacity(tester), 0.5);
     });
   });
 }

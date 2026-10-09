@@ -20,6 +20,9 @@ class CnFade extends StatefulWidget {
   /// When true (default) and the platform asks to reduce motion
   /// ([MediaQuery.disableAnimations]), the final state is shown immediately.
   /// Set to false to animate regardless of that setting.
+  ///
+  /// Applies only when [controller] is null. With an external [controller]
+  /// the widget always follows that controller.
   final bool respectReducedMotion;
 
   const CnFade({
@@ -45,7 +48,7 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return FadeTransition(
-      opacity: _reduceMotion
+      opacity: _snapToEnd
           ? AlwaysStoppedAnimation<double>(_finalValue)
           : _fadeAnimation,
       child: widget.child,
@@ -71,6 +74,10 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
   bool get _reduceMotion =>
       widget.respectReducedMotion &&
       (MediaQuery.maybeDisableAnimationsOf(context) ?? false);
+
+  /// Only the internal controller is snapped; an external [controller] means
+  /// the app owns the motion, so it is always followed.
+  bool get _snapToEnd => widget.controller == null && _reduceMotion;
 
   @override
   void didUpdateWidget(covariant CnFade oldWidget) {

@@ -1,4 +1,5 @@
 import 'package:cn_animations/cn_animations.dart';
+import 'package:cn_animations/route_aware_widget.dart' as legacy;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -6,22 +7,45 @@ import 'test_helpers.dart';
 
 const Key _raKey = Key('route-aware');
 
+/// [reduceMotion], when given, drives `disableAnimations` at runtime and
+/// overrides [disableAnimations].
 Widget _app(
   GlobalKey<NavigatorState> navigatorKey,
   Widget home, {
   bool disableAnimations = false,
+  ValueNotifier<bool>? reduceMotion,
 }) {
+  Widget withMotion(BuildContext context, bool disable, Widget child) {
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(disableAnimations: disable),
+      child: child,
+    );
+  }
+
   return MaterialApp(
     navigatorKey: navigatorKey,
     navigatorObservers: [RouteAwareWidget.routeObserver],
-    builder: (context, child) => MediaQuery(
-      data: MediaQuery.of(context).copyWith(
-        disableAnimations: disableAnimations,
-      ),
-      child: child!,
-    ),
+    builder: (context, child) => reduceMotion == null
+        ? withMotion(context, disableAnimations, child!)
+        : ValueListenableBuilder<bool>(
+            valueListenable: reduceMotion,
+            builder: (context, value, _) => withMotion(context, value, child!),
+          ),
     home: home,
   );
+}
+
+/// Keeps its State across rebuilds, so tests can detect a remount.
+class _Stateful extends StatefulWidget {
+  const _Stateful();
+
+  @override
+  State<_Stateful> createState() => _StatefulState();
+}
+
+class _StatefulState extends State<_Stateful> {
+  @override
+  Widget build(BuildContext context) => const Text('stateful');
 }
 
 /// A page route without a transition, so timings are exact. Not opaque, so
@@ -59,8 +83,12 @@ void main() {
   NavigatorState navigator() => navigatorKey.currentState!;
 
   test('deprecated top-level routeObserver is the same instance', () {
-    // ignore: deprecated_member_use_from_same_package
-    expect(identical(routeObserver, RouteAwareWidget.routeObserver), isTrue);
+    // Reachable only through its old import path, not the barrel.
+    expect(
+      // ignore: deprecated_member_use_from_same_package
+      identical(legacy.routeObserver, RouteAwareWidget.routeObserver),
+      isTrue,
+    );
   });
 
   testWidgets('bug 1: showPush: false renders the child fully visible',
@@ -213,6 +241,97 @@ void main() {
     expect(_raOffset(tester), const Offset(0, -0.1));
   });
 
+  group('pushNext / popNext round trips end visible', () {
+    Future<void> roundTrip(WidgetTester tester, Widget animation) async {
+      await tester.pumpWidget(_app(navigatorKey, animation));
+      await tester.pumpAndSettle();
+
+      navigator().push(_plainRoute());
+      await tester.pumpAndSettle();
+      expect(_raOpacity(tester), 0);
+
+      navigator().pop();
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('showPopNext: false shows the page again without animating',
+        (tester) async {
+      await roundTrip(
+        tester,
+        const CnRouteAwareAnimation(
+          key: _raKey,
+          showPopNext: false,
+          child: Text('A'),
+        ),
+      );
+      expect(_raOpacity(tester), 1);
+      expect(_raOffset(tester), Offset.zero);
+    });
+
+    testWidgets('showPush: false', (tester) async {
+      await roundTrip(
+        tester,
+        const CnRouteAwareAnimation(
+          key: _raKey,
+          showPush: false,
+          child: Text('A'),
+        ),
+      );
+      expect(_raOpacity(tester), 1);
+      expect(_raOffset(tester), Offset.zero);
+    });
+  });
+
+  testWidgets('RouteAwareWidget resubscribes when moved to another route',
+      (tester) async {
+    final ValueNotifier<bool> onFirstRoute = ValueNotifier<bool>(true);
+    addTearDown(onFirstRoute.dispose);
+    final GlobalKey routeAwareKey = GlobalKey();
+    int pushes = 0;
+    int pushNexts = 0;
+
+    Widget routeAware() => RouteAwareWidget(
+          key: routeAwareKey,
+          onPush: () => pushes++,
+          onPushNext: () => pushNexts++,
+          child: const Text('ra'),
+        );
+
+    await tester.pumpWidget(_app(
+      navigatorKey,
+      ValueListenableBuilder<bool>(
+        valueListenable: onFirstRoute,
+        builder: (context, first, _) =>
+            first ? routeAware() : const SizedBox(),
+      ),
+    ));
+    navigator().push(PageRouteBuilder<void>(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          ValueListenableBuilder<bool>(
+        valueListenable: onFirstRoute,
+        builder: (context, first, _) =>
+            first ? const SizedBox() : routeAware(),
+      ),
+      transitionDuration: Duration.zero,
+      reverseTransitionDuration: Duration.zero,
+      opaque: false,
+    ));
+    await tester.pumpAndSettle();
+    expect(pushes, 1);
+    expect(pushNexts, 1);
+
+    // Reparent into the second route in one frame.
+    onFirstRoute.value = false;
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(pushes, 2);
+
+    // Only the new route's events arrive now.
+    navigator().push(_plainRoute());
+    await tester.pumpAndSettle();
+    expect(pushNexts, 2);
+  });
+
   group('bug 8: delayed route callbacks', () {
     testWidgets('a newer event cancels the pending callbacks of older ones',
         (tester) async {
@@ -261,16 +380,77 @@ void main() {
   });
 
   group('reduced motion', () {
-    testWidgets('respected by default: child is shown as-is', (tester) async {
+    testWidgets('respected by default: push shows the end state at once',
+        (tester) async {
       await tester.pumpWidget(_app(
         navigatorKey,
         const CnRouteAwareAnimation(key: _raKey, child: Text('A')),
         disableAnimations: true,
       ));
 
-      expect(_inside(_raKey, FadeTransition), findsNothing);
-      expect(_inside(_raKey, SlideTransition), findsNothing);
+      expect(_raOpacity(tester), 1);
+      expect(_raOffset(tester), Offset.zero);
       expect(effectiveOpacity(tester, find.text('A')), 1);
+    });
+
+    testWidgets('a custom resting state (fadeEndSamePage) is honored',
+        (tester) async {
+      await tester.pumpWidget(_app(
+        navigatorKey,
+        const CnRouteAwareAnimation(
+          key: _raKey,
+          fadeEndSamePage: 0.4,
+          child: Text('A'),
+        ),
+        disableAnimations: true,
+      ));
+
+      expect(_raOpacity(tester), 0.4);
+    });
+
+    testWidgets('pushNext snaps to the next values, popNext snaps back',
+        (tester) async {
+      await tester.pumpWidget(_app(
+        navigatorKey,
+        const CnRouteAwareAnimation(key: _raKey, child: Text('A')),
+        disableAnimations: true,
+      ));
+      await tester.pumpAndSettle();
+
+      navigator().push(_plainRoute());
+      await tester.pump();
+      expect(_raOpacity(tester), 0);
+      expect(_raOffset(tester), const Offset(0, -0.1));
+
+      navigator().pop();
+      await tester.pump();
+      expect(_raOpacity(tester), 1);
+      expect(_raOffset(tester), Offset.zero);
+    });
+
+    testWidgets('toggling at runtime keeps the child State and does not replay',
+        (tester) async {
+      final ValueNotifier<bool> reduceMotion = ValueNotifier<bool>(false);
+      addTearDown(reduceMotion.dispose);
+
+      await tester.pumpWidget(_app(
+        navigatorKey,
+        const CnRouteAwareAnimation(key: _raKey, child: _Stateful()),
+        reduceMotion: reduceMotion,
+      ));
+      await tester.pumpAndSettle();
+      final State before = tester.state(find.byType(_Stateful));
+
+      reduceMotion.value = true;
+      await tester.pump();
+      expect(tester.state(find.byType(_Stateful)), same(before));
+      expect(_raOpacity(tester), 1);
+
+      reduceMotion.value = false;
+      await tester.pump();
+      expect(tester.state(find.byType(_Stateful)), same(before));
+      expect(_raOpacity(tester), 1);
+      expect(tester.binding.hasScheduledFrame, isFalse);
     });
 
     testWidgets('respectReducedMotion: false animates anyway', (tester) async {

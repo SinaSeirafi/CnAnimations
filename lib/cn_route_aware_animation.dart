@@ -99,7 +99,9 @@ class CnRouteAwareAnimation extends StatefulWidget {
   final int slideDelayInMilliseconds;
 
   /// When true (default) and the platform asks to reduce motion
-  /// ([MediaQuery.disableAnimations]), the final state is shown immediately.
+  /// ([MediaQuery.disableAnimations]), navigation events jump straight to
+  /// their end state instead of animating. The widget tree is the same in
+  /// both modes, so toggling the setting keeps the child's state.
   /// Set to false to animate regardless of that setting.
   final bool respectReducedMotion;
 
@@ -111,13 +113,14 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
     with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
+    _reduceMotion = widget.respectReducedMotion &&
+        (MediaQuery.maybeDisableAnimationsOf(context) ?? false);
+
     if (!widget.animate ||
         (!widget.showPush &&
             !widget.showPop &&
             !widget.showPushNext &&
-            !widget.showPopNext) ||
-        (widget.respectReducedMotion &&
-            (MediaQuery.maybeDisableAnimationsOf(context) ?? false))) {
+            !widget.showPopNext)) {
       return widget.child;
     }
 
@@ -146,6 +149,9 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
         if (widget.showPopNext) {
           _emitNext();
           _controllersReverse();
+        } else {
+          // Nothing else would bring this page back after pushNext.
+          _controllersShown();
         }
       },
       // onPush can run while this subtree is building (from
@@ -197,7 +203,6 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
       controller: controller,
       fadeStartValue: fadeStart,
       fadeEndValue: fadeEnd,
-      respectReducedMotion: widget.respectReducedMotion,
       child: child,
     );
   }
@@ -214,7 +219,6 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
       controller: controller,
       begin: begin,
       end: end,
-      respectReducedMotion: widget.respectReducedMotion,
       child: child,
     );
   }
@@ -226,6 +230,8 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
 
   void _controllersForward() {
     _cancelTimers();
+    if (_reduceMotion) return _setControllerValues(1);
+
     _setControllerValues(0);
     _fadeTimer =
         _handleDelay(widget.fadeDelayInMilliseconds, fadeController.forward);
@@ -235,6 +241,8 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
 
   void _controllersReverse() {
     _cancelTimers();
+    if (_reduceMotion) return _setControllerValues(0);
+
     _setControllerValues(1);
     _fadeTimer =
         _handleDelay(widget.fadeDelayInMilliseconds, fadeController.reverse);
@@ -268,6 +276,10 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
     _fadeTimer?.cancel();
     _slideTimer?.cancel();
   }
+
+  /// Read from [MediaQuery] in build. Under reduced motion, navigation events
+  /// jump the controllers to their target instead of animating.
+  bool _reduceMotion = false;
 
   late AnimationController fadeController;
 

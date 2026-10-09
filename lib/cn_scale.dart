@@ -16,6 +16,9 @@ class CnScale extends StatefulWidget {
   /// When true (default) and the platform asks to reduce motion
   /// ([MediaQuery.disableAnimations]), the final state is shown immediately.
   /// Set to false to animate regardless of that setting.
+  ///
+  /// Applies only when [controller] is null. With an external [controller]
+  /// the widget always follows that controller.
   final bool respectReducedMotion;
 
   const CnScale({
@@ -40,7 +43,7 @@ class _CnScaleState extends State<CnScale> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return ScaleTransition(
-      scale: _reduceMotion
+      scale: _snapToEnd
           ? AlwaysStoppedAnimation<double>(_finalValue)
           : _scaleAnimation,
       child: widget.child,
@@ -57,6 +60,10 @@ class _CnScaleState extends State<CnScale> with SingleTickerProviderStateMixin {
   bool get _reduceMotion =>
       widget.respectReducedMotion &&
       (MediaQuery.maybeDisableAnimationsOf(context) ?? false);
+
+  /// Only the internal controller is snapped; an external [controller] means
+  /// the app owns the motion, so it is always followed.
+  bool get _snapToEnd => widget.controller == null && _reduceMotion;
 
   @override
   void didUpdateWidget(covariant CnScale oldWidget) {
