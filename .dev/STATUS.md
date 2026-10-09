@@ -27,6 +27,11 @@ All work branches below (everything except `master`) were **pushed to origin on 
 - **Pointer subject detection** is on by default (700 ms window).
 - **Direction follows the Material convention.** `enterOffset` defaults to `Offset(0, 0.1)` (from below), and `exitOffset` defaults to `-enterOffset`, so covered content moves up and returns from above. The owner noted there are no existing users to keep continuity for.
 - **No push or publish** without the owner's explicit go-ahead.
+- **Delegated to the main thread (owner, 2026-10-09: "decide best and move forward"):**
+  - R2: (a) docs only. Reduced motion does apply to a scope `progress:`. A scope progress stands in for navigation, which is exactly what reduced motion targets, and `respectReducedMotion: false` on the scope is the opt-out. `controller:` / `animation:` on the basic widgets stay app-owned.
+  - R6: (a) add a separate `uncover` slice to `CnRouteTiming` (default `Interval(0.3, 0.65)`; first set to `Interval(0.25, 0.6)`, which measurement showed left one dead frame per pop; 0.65 is where the top element's exit ends, and the length matches the exit slice), used when S is falling (pop and interactive back), so the page below's elements start returning while the top page is still fading. Additive; decided before 1.0.0 because changing the default later is a visual change.
+  - R8: (a) the no-op `timing` on `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute` is deprecated in 0.9.0 ("has no effect; removed in 1.0.0") and removed by slice R.
+  - R11: (a) keep the protected `route.controller` access (it matches Cupertino's own code and its settle feel). Revisit only if Flutter changes it.
 - **pub.dev on 2026-10-09:** the latest published version is 0.0.3 (2023-01-30), with 28 downloads in the last 30 days, 0 likes and 140/160 points.
 
 ## Progress
@@ -51,7 +56,8 @@ About 70% toward 0.9.0 and 65% toward 1.0.0, weighted by effort.
 | Fable review (step 6) | Done: `.dev/review-0.9.0.md`, 0 P0 / 4 P1 / 6 P2 / 10 P3 |
 | Review fix round | Merged (2f9d0ca, e3da2ad, 98b70e2 → merge eadd57b); see `notes/review-fixes-notes.md` |
 | Owner device check (step 7) | **Waiting for the owner** |
-| 1.0.0 removal (slice R) | Not started |
+| R6/R8 (slice r6) | Merged (71e9b16, 1663ead, e0298ee → merge 3bea114) |
+| 1.0.0 removal (slice R) | Not started; must also remove the deprecated route `timing` (R8) |
 
 ## Known bugs (found by slice H; fixed by C2 in ee3de20, pending H un-skip and device check)
 
@@ -73,7 +79,8 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 ## Session 2 (2026-10-09, from ~14:05 Yerevan)
 
 - Step 6 fix round merged (eadd57b). Post-merge: root and example analyze "No issues found"; root 280 pass (3 new: R9, R18, R19); example 7 pass; dry-run 0 warnings, 1 expected hint. R9 deviation: the assert lives in `cnStaggeredExit`/`cnStaggeredEnter` (a const constructor can't read `Interval.curve`). R10: `CnPartingSpec.subject` → `subjectBehavior`. R12: `CnRouteRecord.pointerWindow` removed; record uses `kCnPointerSubjectWindow`.
-- **Now at step 7 (stop): owner device check**, plus owner decisions on R2 (b), R6, R8, R11.
+- R6/R8 merged (3bea114). Dead pop frames (neither page's elements visible), button pop per frame: 7/24 → 0/24. Predictive back, 19 samples: 7 → 1, and that one is the zero-width point S = 0.65. Post-merge: root and example analyze clean; root 289 pass, example 7 pass. The emulator checks ran on d1bd682, before R6, so re-run the iOS integration test on the merged tree.
+- **Step 7:** the owner allowed emulator runs. Two opus agents are running in parallel: Android on the `Pixel_API_36` emulator (worktree `device-android`, adb-driven real predictive back, no code changes) and iOS on the iPhone 17 Pro simulator, iOS 26.5 (worktree `device-ios`, adds `example/integration_test/**`). Reports go to the session scratchpad and will be summarized here. Owner decisions on R2 (b), R6, R8 and R11 are still pending.
 - Step 6 review done: `.dev/review-0.9.0.md` (Fable, read-only on fd993cf). Fix round (opus, branch `v1/review-fixes`) takes R1–R5, R7, R9, R10, R12–R20. Held for the owner: R2 code option (b) (fix round applies docs option (a)), R6 pop dead zone (feel, device check), R8 no-op `timing` (tied to R6), R11 iOS swipe via protected `controller` vs public back-gesture API (decide after device check).
 - Step 5 done on 3f644e8: root analyze and example analyze "No issues found"; root `flutter test` 277 pass, 0 skipped; example 7 pass; `flutter pub publish --dry-run` 0 warnings, 1 hint (version jump from 0.0.3; expected per owner decision), `.dev/` not in the archive.
 - Step 4 done: H merged (3f644e8). 4 bug tests un-skipped (progress 0.7, 3×200 px), all 11 interactive-back pass; overlays, stack ops, choreography claims, leaks/rebuild written; no new library bugs. `pushReplacement` train-hop belief **holds** (page two down keeps secondaryAnimation at 1.0; uncovered once on pop). **Design correction for the review round:** §8 and the §4 non-opaque row say `PageRouteBuilder(opaque: false)` over a `MaterialPageRoute` page covers it; it does not (Material only animates the page below for a Material next route or one with `delegatedTransition`). Tests pin the real behaviour, which matches the README.

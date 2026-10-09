@@ -20,15 +20,17 @@ class CnFadeThroughPageTransitionsBuilder extends PageTransitionsBuilder {
   /// `ColorScheme.surface` of the surrounding theme.
   const CnFadeThroughPageTransitionsBuilder({
     this.backgroundColor,
+    @Deprecated('Has no effect; removed in 1.0.0')
     this.timing = CnRouteTiming.standard,
   });
 
   /// Color painted behind the incoming page.
   final Color? backgroundColor;
 
-  /// Reserved for API parity with the element choreography. The page
-  /// transition itself keeps its fixed fade-through intervals and 400 ms
-  /// duration; element timing is read from the scope and the widgets.
+  /// Has no effect: the page transition keeps its fixed fade-through
+  /// intervals and 400 ms duration. Element timing is read from the
+  /// `CnRouteChoreography` scope and the widgets. Removed in 1.0.0.
+  @Deprecated('Has no effect; removed in 1.0.0')
   final CnRouteTiming timing;
 
   /// Fade-in window of route progress.

@@ -209,6 +209,22 @@ void main() {
       expect(far.curve, Curves.easeIn);
     });
 
+    test('uncover slice shifts like the exit slice and uses exitCurve', () {
+      final near = cnStaggeredUncover(t, 0);
+      final far = cnStaggeredUncover(t, 1);
+      expect(near.begin, 0.3);
+      expect(near.end, 0.65);
+      expect(far.begin, closeTo(0.42, 1e-9));
+      expect(far.end, closeTo(0.77, 1e-9));
+      expect(far.curve, Curves.easeIn);
+      // uncover: exit reproduces the pre-0.9.0 behaviour (exit replayed).
+      final replay = t.copyWith(uncover: t.exit);
+      expect(cnStaggeredUncover(replay, 0.5).begin,
+          cnStaggeredExit(replay, 0.5).begin);
+      expect(cnStaggeredUncover(replay, 0.5).end,
+          cnStaggeredExit(replay, 0.5).end);
+    });
+
     test('enter slice shifts its start and pins its end to 1', () {
       final near = cnStaggeredEnter(t, 0);
       final far = cnStaggeredEnter(t, 1);
@@ -219,9 +235,14 @@ void main() {
       expect(far.curve, Curves.easeOutCubic);
     });
 
-    test('curved exit / enter Intervals assert (their curve is ignored)', () {
+    test(
+        'curved exit / enter / uncover Intervals assert (their curve is '
+        'ignored)', () {
       final curvedExit = CnRouteTiming(
         exit: Interval(0.0, 0.35, curve: Curves.easeOut),
+      );
+      final curvedUncover = CnRouteTiming(
+        uncover: Interval(0.3, 0.65, curve: Curves.easeOut),
       );
       final curvedEnter = CnRouteTiming(
         enter: Interval(0.35, 1.0, curve: Curves.easeIn),
@@ -237,6 +258,10 @@ void main() {
       expect(() => cnStaggeredEnter(curvedExit, 0), assertsWithHint);
       expect(() => cnStaggeredExit(curvedEnter, 0), assertsWithHint);
       expect(() => cnStaggeredEnter(curvedEnter, 0), assertsWithHint);
+      expect(() => cnStaggeredUncover(curvedExit, 0), assertsWithHint);
+      expect(() => cnStaggeredUncover(curvedUncover, 0), assertsWithHint);
+      expect(() => cnStaggeredExit(curvedUncover, 0), assertsWithHint);
+      expect(() => cnStaggeredEnter(curvedUncover, 0), assertsWithHint);
       // Linear Intervals (the default curve) pass.
       final linear = CnRouteTiming(exit: Interval(0.1, 0.4));
       expect(cnStaggeredExit(linear, 0).begin, 0.1);
@@ -249,7 +274,12 @@ void main() {
         final f = cnPlacement(element: _row(i), viewport: _listViewport).f;
         final exit = cnStaggeredExit(t, f);
         final enter = cnStaggeredEnter(t, f);
+        final uncover = cnStaggeredUncover(t, f);
         expect(exit.begin, lessThanOrEqualTo(t.exit.begin + t.exitStagger));
+        expect(uncover.end,
+            lessThanOrEqualTo(t.uncover.end + t.exitStagger + 1e-9));
+        expect(uncover.transform(1.0), 1.0);
+        expect(uncover.transform(0.0), 0.0);
         expect(enter.begin, lessThanOrEqualTo(t.enter.begin + t.enterStagger));
         expect(enter.transform(1.0), 1.0);
         expect(exit.transform(1.0), 1.0);
@@ -259,6 +289,7 @@ void main() {
     test('slices are clamped to 1', () {
       const late = CnRouteTiming(
         exit: Interval(0.5, 0.95),
+        uncover: Interval(0.6, 0.9),
         enter: Interval(0.9, 1.0),
         exitStagger: 0.2,
         enterStagger: 0.2,
@@ -267,6 +298,9 @@ void main() {
       final enter = cnStaggeredEnter(late, 1);
       expect(exit.begin, closeTo(0.7, 1e-9));
       expect(exit.end, 1.0);
+      final uncover = cnStaggeredUncover(late, 1);
+      expect(uncover.begin, closeTo(0.8, 1e-9));
+      expect(uncover.end, 1.0);
       expect(enter.begin, 1.0);
       expect(enter.end, 1.0);
     });

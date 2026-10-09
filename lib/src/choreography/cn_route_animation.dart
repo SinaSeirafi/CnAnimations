@@ -230,7 +230,7 @@ final Expando<List<_CnRouteAnimationState>> _forcedSubjects =
 
 enum _Fallback { entrance, reveal }
 
-enum _Slot { enter, exit, cover }
+enum _Slot { enter, exit, cover, uncover }
 
 bool _isRest(double v) => v <= 0.0 || v >= 1.0;
 
@@ -273,6 +273,7 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
   Interval _enterSlice = const Interval(0.35, 1.0);
   Interval _exitSlice = const Interval(0.0, 0.35);
   Interval _coverSlice = const Interval(0.0, 0.35);
+  Interval _uncoverSlice = const Interval(0.3, 0.65);
   Interval _fallbackSlice = const Interval(0.0, 1.0);
 
   CnRouteTiming get _timing => widget.timing ?? _config.timing;
@@ -344,9 +345,15 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
     final Animation<double>? cover = next.cover;
     if (cover != null) {
       _lastCover = cover.value;
-      final Curve slice = _SliceCurve(this, _Slot.cover);
-      _cover = CnDirectionalCurvedAnimation(cover, enter: slice, exit: slice)
-        ..addListener(_handleCoverTick);
+      // Rest-locked like the primary: the exit slice after the cover leaves 0
+      // (a page pushed over this one), the uncover slice after it leaves 1
+      // (the page above pops or is dragged back), so a reversal or a
+      // cancelled gesture keeps its slice and never jumps (review R6).
+      _cover = CnDirectionalCurvedAnimation(
+        cover,
+        enter: _SliceCurve(this, _Slot.cover),
+        exit: _SliceCurve(this, _Slot.uncover),
+      )..addListener(_handleCoverTick);
     }
     if (!_classified) {
       _classified = true;
@@ -641,6 +648,7 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
     _enterSlice = cnStaggeredEnter(timing, _primaryF);
     _exitSlice = cnStaggeredExit(timing, _primaryF);
     _coverSlice = cnStaggeredExit(timing, _coverF);
+    _uncoverSlice = cnStaggeredUncover(timing, _coverF);
     _fallbackSlice = Interval(
       _primaryF.clamp(0.0, 1.0) * timing.enterStagger,
       1.0,
@@ -658,6 +666,10 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
         return 1.0 - _exitSlice.transform(1.0 - t);
       case _Slot.cover:
         return _coverSlice.transform(t);
+      case _Slot.uncover:
+        // Read on the cover progress as-is, like the cover slice: the
+        // element returns as the progress falls from uncover.end.
+        return _uncoverSlice.transform(t);
     }
   }
 

@@ -504,8 +504,14 @@ void main() {
           final double s = below.secondaryAnimation!.value;
           // h1 is the tapped subject; h0 a sibling that still fades.
           expect(opacityOf(tester, 'h1'), 1.0);
+          // Pushed: the cover left 0 (exit slice). Popping: it left 1
+          // (uncover slice).
+          final double covered =
+              top.animation!.status == AnimationStatus.reverse
+                  ? uncoveredAt(s)
+                  : coveredAt(s);
           expect(opacityOf(tester, 'h0'),
-              moreOrLessEquals(1 - coveredAt(s), epsilon: eps));
+              moreOrLessEquals(1 - covered, epsilon: eps));
           final double a = top.animation!.value;
           final double expected =
               top.animation!.status == AnimationStatus.reverse
