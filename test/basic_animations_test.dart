@@ -12,10 +12,8 @@ double _opacity(WidgetTester tester) =>
 double _scale(WidgetTester tester) =>
     tester.widget<ScaleTransition>(find.byType(ScaleTransition)).scale.value;
 
-Offset _offset(WidgetTester tester) => tester
-    .widget<SlideTransition>(find.byType(SlideTransition))
-    .position
-    .value;
+Offset _offset(WidgetTester tester) =>
+    tester.widget<SlideTransition>(find.byType(SlideTransition)).position.value;
 
 void main() {
   group('bug 4: CnScale(forward: false)', () {
@@ -123,7 +121,11 @@ void main() {
       final tracker = CurvedAnimationTracker()..start();
       addTearDown(tracker.stop);
 
-      for (final Curve curve in [Curves.linear, Curves.easeIn, Curves.easeOut]) {
+      for (final Curve curve in [
+        Curves.linear,
+        Curves.easeIn,
+        Curves.easeOut
+      ]) {
         await tester.pumpWidget(wrap(build(curve)));
       }
       await tester.pumpWidget(const SizedBox());
@@ -272,6 +274,106 @@ void main() {
       controller.value = 0.5;
       await tester.pump();
       expect(_opacity(tester), 0.5);
+    });
+  });
+
+  group('animation: parameter', () {
+    late AnimationController source;
+
+    setUp(() {
+      source = AnimationController(
+        vsync: const TestVSync(),
+        duration: const Duration(milliseconds: 100),
+      );
+    });
+
+    tearDown(() => source.dispose());
+
+    Widget all(
+        {Animation<double>? animation, AnimationController? controller}) {
+      return Column(children: [
+        CnFade(animation: animation, controller: controller, child: _box),
+        CnSlide(animation: animation, controller: controller, child: _box),
+        CnScale(animation: animation, controller: controller, child: _box),
+      ]);
+    }
+
+    testWidgets('follows the animation and starts no internal ticker',
+        (tester) async {
+      await tester.pumpWidget(wrap(all(animation: source)));
+      expect(_opacity(tester), 0);
+      expect(_offset(tester), const Offset(0, 0.5));
+      expect(_scale(tester), 0.7);
+
+      // Past the default delays: an internal controller would be running.
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(tester.binding.transientCallbackCount, 0);
+      expect(_opacity(tester), 0);
+
+      source.value = 1;
+      await tester.pump();
+      expect(_opacity(tester), 1);
+      expect(_offset(tester), Offset.zero);
+      expect(_scale(tester), 1.0);
+    });
+
+    testWidgets('reduced motion does not override it', (tester) async {
+      await tester.pumpWidget(
+        wrap(all(animation: source), disableAnimations: true),
+      );
+      expect(_opacity(tester), 0);
+      expect(_scale(tester), 0.7);
+
+      source.value = 0.5;
+      await tester.pump();
+      expect(_opacity(tester), 0.5);
+    });
+
+    testWidgets('switching between animation, controller and null',
+        (tester) async {
+      final AnimationController other =
+          AnimationController(vsync: const TestVSync(), value: 1);
+      addTearDown(other.dispose);
+
+      await tester.pumpWidget(wrap(all(animation: source)));
+      expect(_opacity(tester), 0);
+
+      await tester.pumpWidget(wrap(all(controller: other)));
+      expect(_opacity(tester), 1);
+
+      await tester.pumpWidget(wrap(all(animation: source)));
+      expect(_opacity(tester), 0);
+
+      await tester.pumpWidget(wrap(all()));
+      await tester.pumpAndSettle();
+      expect(_opacity(tester), 1);
+      expect(_offset(tester), Offset.zero);
+      expect(_scale(tester), 1.0);
+
+      await tester.pumpWidget(wrap(all(animation: source)));
+      expect(_opacity(tester), 0);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(tester.binding.transientCallbackCount, 0);
+    });
+
+    testWidgets('disposes its CurvedAnimations', (tester) async {
+      final tracker = CurvedAnimationTracker()..start();
+      addTearDown(tracker.stop);
+
+      await tester.pumpWidget(wrap(all(animation: source)));
+      await tester.pumpWidget(wrap(all()));
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
+
+      expect(tracker.leaked, isEmpty);
+    });
+
+    test('giving both controller and animation asserts', () {
+      expect(
+        () => CnFade(controller: source, animation: source, child: _box),
+        throwsAssertionError,
+      );
     });
   });
 }

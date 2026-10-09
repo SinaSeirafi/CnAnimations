@@ -7,6 +7,18 @@ import 'cn_animations.dart';
 /// ### Setup
 /// Requires adding RouteObserver in Material App to work
 /// Otherwise only push will work
+///
+/// ### Migrating to `CnRouteAnimation`
+/// - `beginSamePage` -> `enterOffset`
+/// - `endNextPage` -> `exitOffset`
+/// - `showFadeAnimation` -> `fade`
+/// - `animate` -> `enabled`
+/// - `showPush` / `showPop` -> `enter`
+/// - `showPushNext` / `showPopNext` -> `cover`
+/// - `respectReducedMotion` -> `respectReducedMotion`
+/// - `fadeDuration`, `slideDuration` and the `*Delay*` values -> `CnRouteTiming`
+///   (slices of the route transition, not durations)
+@Deprecated('Use CnRouteAnimation; it needs no RouteObserver')
 class CnRouteAwareAnimation extends StatefulWidget {
   const CnRouteAwareAnimation({
     super.key,
@@ -109,6 +121,7 @@ class CnRouteAwareAnimation extends StatefulWidget {
   State<CnRouteAwareAnimation> createState() => _CnRouteAwareAnimationState();
 }
 
+// ignore: deprecated_member_use_from_same_package
 class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
     with TickerProviderStateMixin {
   @override
@@ -124,6 +137,7 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
       return widget.child;
     }
 
+    // ignore: deprecated_member_use_from_same_package
     return RouteAwareWidget(
       onPush: () {
         if (widget.showPush) {
@@ -314,6 +328,7 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   void didUpdateWidget(covariant CnRouteAwareAnimation oldWidget) {
     super.didUpdateWidget(oldWidget);
 

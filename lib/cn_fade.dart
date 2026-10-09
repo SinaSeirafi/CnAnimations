@@ -17,12 +17,19 @@ class CnFade extends StatefulWidget {
   final Duration? delay;
   final AnimationController? controller;
 
+  /// A progress source owned by the app or a route. When non-null the widget
+  /// follows it and never starts its internal controller.
+  ///
+  /// Like [controller], it is never overridden by [respectReducedMotion].
+  /// Give at most one of [controller] and [animation].
+  final Animation<double>? animation;
+
   /// When true (default) and the platform asks to reduce motion
   /// ([MediaQuery.disableAnimations]), the final state is shown immediately.
   /// Set to false to animate regardless of that setting.
   ///
-  /// Applies only when [controller] is null. With an external [controller]
-  /// the widget always follows that controller.
+  /// Applies only when both [controller] and [animation] are null. With an
+  /// external progress source the widget always follows it.
   final bool respectReducedMotion;
 
   const CnFade({
@@ -36,9 +43,13 @@ class CnFade extends StatefulWidget {
     this.delay,
     this.delayInMilliseconds = 10,
     this.controller,
+    this.animation,
     this.respectReducedMotion = true,
     this.curve,
-  });
+  }) : assert(
+          controller == null || animation == null,
+          'Provide either controller or animation, not both.',
+        );
 
   @override
   State<CnFade> createState() => _CnFadeState();
@@ -77,7 +88,9 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
 
   /// Only the internal controller is snapped; an external [controller] means
   /// the app owns the motion, so it is always followed.
-  bool get _snapToEnd => widget.controller == null && _reduceMotion;
+  bool get _snapToEnd => _external == null && _reduceMotion;
+
+  Animation<double>? get _external => widget.controller ?? widget.animation;
 
   @override
   void didUpdateWidget(covariant CnFade oldWidget) {
@@ -85,8 +98,8 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
 
     if (_controller.duration != _duration) _controller.duration = _duration;
 
-    if (widget.controller != oldWidget.controller) {
-      if (widget.controller == null) {
+    if (_external != (oldWidget.controller ?? oldWidget.animation)) {
+      if (_external == null) {
         _startInternalController();
       } else {
         _delayTimer?.cancel();
@@ -96,7 +109,7 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
     if (widget.forward != oldWidget.forward ||
         widget.fadeStartValue != oldWidget.fadeStartValue ||
         widget.fadeEndValue != oldWidget.fadeEndValue ||
-        widget.controller != oldWidget.controller ||
+        _external != (oldWidget.controller ?? oldWidget.animation) ||
         widget.curve != oldWidget.curve) {
       _updateFadeAnimation();
     }
@@ -105,7 +118,7 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
   void _updateFadeAnimation() {
     _curvedAnimation?.dispose();
     _curvedAnimation = CurvedAnimation(
-      parent: widget.controller ?? _controller,
+      parent: _external ?? _controller,
       curve: widget.curve ?? Curves.easeInOut,
     );
 
@@ -143,7 +156,7 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
 
     _updateFadeAnimation();
 
-    if (widget.controller == null) _startInternalController();
+    if (_external == null) _startInternalController();
   }
 
   @override
