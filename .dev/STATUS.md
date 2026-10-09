@@ -36,7 +36,7 @@ All work branches below (everything except `master`) were **pushed to origin on 
 
 ## Progress
 
-About 70% toward 0.9.0 and 65% toward 1.0.0, weighted by effort.
+About 97% toward 0.9.0 and 95% toward 1.0.0, weighted by effort (as of the end of session 2). What remains is the owner's physical-device feel check and the step 9 push/publish go-ahead.
 
 | Stage | State |
 | --- | --- |
@@ -58,7 +58,8 @@ About 70% toward 0.9.0 and 65% toward 1.0.0, weighted by effort.
 | Device check (step 7) | Done on emulators (owner offered them): Android Pixel_API_36 and iOS iPhone 17 Pro sim. Real finger feel, 120 Hz and timing remain for the owner on a physical device (not blocking a local tag) |
 | R6/R8 (slice r6) | Merged (71e9b16, 1663ead, e0298ee → merge 3bea114) |
 | Local tag `v0.9.0` (step 8) | Created on 869bb94 (annotated, not pushed) |
-| 1.0.0 removal (slice R) | In flight (sonnet, worktree `slice-r`, branch `v1/slice-r` from `v0.9.0`), including the deprecated route `timing` (R8) |
+| 1.0.0 removal (slice R) | Merged (cbfd0d9, 0251d2c → merge f50f8be); version 1.0.0; root 268 pass (21 removed with the symbols) |
+| Push / PR / publish (step 9) | **Waiting for the owner** |
 
 ## Known bugs (found by slice H; fixed by C2 in ee3de20, pending H un-skip and device check)
 
@@ -81,6 +82,8 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 
 - Step 6 fix round merged (eadd57b). Post-merge: root and example analyze "No issues found"; root 280 pass (3 new: R9, R18, R19); example 7 pass; dry-run 0 warnings, 1 expected hint. R9 deviation: the assert lives in `cnStaggeredExit`/`cnStaggeredEnter` (a const constructor can't read `Interval.curve`). R10: `CnPartingSpec.subject` → `subjectBehavior`. R12: `CnRouteRecord.pointerWindow` removed; record uses `kCnPointerSubjectWindow`.
 - iOS simulator check (iPhone 17 Pro, iOS 26.5, on d1bd682, before R6): the example builds and runs on Flutter 3.32.7 + Xcode 26.6. 22 device tests in `example/integration_test` (commit 5f8d440 on `v1/device-ios`) pass, with no exceptions and no package bugs. Swipe-back scrubs on both installs, commit/cancel/fling work, `fullscreenDialog` doesn't swipe, and elements part around the tapped item and return from above. The pre-R6 dead zone was confirmed (progress 0.662→0.463). The example's Hero doesn't fly on swipe-back because it lacks `transitionOnUserGestures: true`; the package handles it when the flag is set. Follow-up running on the same branch: merge R6, re-measure, Hero flag plus a README sentence, commit a minimal Podfile (the generated one names a missing `RunnerTests` target). Timing was not measured (host load; profile mode can't run on the simulator).
+- Step 8 done. Slice R merged (f50f8be): removed `CnRouteAwareAnimation`, `RouteAwareWidget` (+ `.routeObserver`), the top-level `routeObserver`, `CnFade.durationInMilliseconds`, `CnSlide.reverseControllerValue`, and the route `timing`. Deleted `lib/cn_route_aware_animation.dart`, `lib/route_aware_widget.dart` and their tests. CHANGELOG 1.0.0 "Breaking: removed" entry; README migration says "removed in 1.0.0". Post-merge: root/example analyze clean, root 268, example 7, apk builds, dry-run 0 warnings 0 hints. The removed names remain only in the README migration text and the 0.9.0 CHANGELOG history.
+- **Now at step 9 (stop): ask the owner** before pushing, merging to `master`, opening a PR, or `pub publish`. Publishing order: 0.9.0 from tag `v0.9.0` (869bb94), then 1.0.0 from `feat/v1-choreography`. No `v1.0.0` tag yet.
 - Step 8: tagged `v0.9.0` locally on 869bb94; slice R started.
 - Android follow-up merged (1e7039c, 8938926 → merge c7fc729): `example/android` regenerated (Kotlin DSL Gradle) and builds with `flutter build apk --debug/--profile`; `enableOnBackInvokedCallback`, label and `com.example.example` kept. On the emulator with R6: no empty screen at any hold, including the old worst case (450–650 px, no subject). The Hero flies during predictive back on both routes. Commit and cancel re-confirmed. The main thread made `example/integration_test` iOS-only (fac67c7; on Android it registers 1 skipped test, verified on the emulator). Post-merge on fac67c7: root/example analyze clean, root 289, example 7, apk builds, dry-run 0 warnings, tree clean. Artefacts (GIFs, holds) are in the session scratchpad `device-check/{android,ios}/`.
 - Android emulator check (Pixel_API_36, Android 16, on d1bd682, before R6; real system predictive back via adb motion events; logcat shows `mAnimationCallback=true`): predictive back scrubs, commits and cancels on both installs. Elements part around the tapped item and return from above. Push/pop direction is correct, and there are no exceptions. The pre-R6 pop gap was confirmed (1–2 slow-mo frames). The Hero flies on push and pop but not on predictive back (example flag; fixed since). **Finding: `example/android` does not build on Flutter 3.32.7** (Gradle 7.4 can't run on Java 21; on JDK 17 the imperative `app_plugin_loader` apply is rejected). The agent ran `example/lib` in a throwaway host app. Follow-up running on `v1/device-android`: merge bcb5f60, regenerate `example/android` keeping `enableOnBackInvokedCallback`, and re-check R6 and the Hero on the emulator. Timing was not measured (host load).
