@@ -274,16 +274,27 @@ void main() {
     });
   });
 
-  group('timing parameter', () {
-    test('defaults to standard and is passed through', () {
+  // Review R8: `timing` never did anything on the routes. It is deprecated
+  // in 0.9.0 and removed in 1.0.0; this group pins the deprecated surface
+  // and goes with it.
+  group('deprecated timing parameter', () {
+    test('still accepted and stored, with no effect on the transition', () {
+      // ignore: deprecated_member_use_from_same_package
       expect(const CnFadeThroughPageTransitionsBuilder().timing,
           CnRouteTiming.standard);
       final route = CnPageRoute<void>(builder: (_) => const SizedBox());
+      // ignore: deprecated_member_use_from_same_package
       expect(route.timing, CnRouteTiming.standard);
       const custom = CnRouteTiming(exitStagger: 0.5);
-      final r2 =
-          CnPageRoute<void>(builder: (_) => const SizedBox(), timing: custom);
+      final r2 = CnPageRoute<void>(
+        builder: (_) => const SizedBox(),
+        // ignore: deprecated_member_use_from_same_package
+        timing: custom,
+      );
+      // ignore: deprecated_member_use_from_same_package
       expect(r2.timing, same(custom));
+      expect(r2.transitionDuration, route.transitionDuration);
+      expect(r2.reverseTransitionDuration, route.reverseTransitionDuration);
     });
   });
 

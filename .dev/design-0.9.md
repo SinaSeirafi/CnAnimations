@@ -36,6 +36,7 @@ class CnRouteTiming {
   const CnRouteTiming({
     this.exit = const Interval(0.0, 0.35),
     this.enter = const Interval(0.35, 1.0),
+    this.uncover = const Interval(0.25, 0.6), // added after review R6
     this.exitStagger = 0.12,
     this.enterStagger = 0.25,
     this.exitCurve = Curves.easeIn,
@@ -49,6 +50,10 @@ class CnRouteTiming {
   /// Slice during which an element arrives (push of this page, return after the
   /// page above pops).
   final Interval enter;
+  /// Slice of the cover progress over which a covered element returns while
+  /// that progress falls from 1 (pop or back gesture of the page above), with
+  /// exitStagger / exitCurve. Review R6; see §3.7.
+  final Interval uncover;
   /// Maximum extra start delay added to [exit] for the element farthest from the
   /// anchor (tapped item, or the viewport's leading edge). Bounds total time.
   final double exitStagger;
@@ -304,6 +309,8 @@ Verified by running code (probe E): the first route of a `Navigator` and every r
 
 `CnFadeThroughPageTransitionsBuilder.buildTransitions` renders the incoming page as `FadeTransition(opacity: CnDirectionalCurvedAnimation(animation, enter: Interval(0.3, 1.0), exit: Interval(0.6, 1.0)))` with a small lift (`SlideTransition` from `Offset(0, 0.02)`), over `backgroundColor ?? ColorScheme.surface`. So during a push the page below is fully visible for the first ~30 % while its elements exit (0–35 % + stagger), and during a pop the top page is gone within the first 40 % while the page below's elements return over `exit` reversed (they move while `secondaryAnimation ∈ [0, 0.47]`, i.e. the last ~55 % of the pop, after the top page has faded).
 
+**Corrected after review R6 (0.9.0, slice R6).** Replaying `exit` backwards left a gap: the top element's own exit ends at A = 0.65 and the page below only started returning at S = 0.35 (0.47 for the farthest elements), so with flat timing about a quarter of a pop (S ∈ [0.35, 0.65]; 7 of 24 frames at 60 Hz) and of a back gesture showed neither page's elements. `CnRouteTiming.uncover` (default `Interval(0.25, 0.6)`, read on S as-is, stagger and curve as `exit`) now applies while S falls from 1 (pop, predictive back, iOS swipe), rest-locked like the other slices (`CnDirectionalCurvedAnimation`, `exit` after S leaves 0, `uncover` after it leaves 1), so a cancelled gesture or a reversal never switches slice mid-flight. Measured (flat timing, `test/route/uncover_gap_test.dart`): the gap shrinks to S ∈ (0.6, 0.65), 1 frame of a pop. Closing it fully would need `uncover.end ≥ 0.65`.
+
 `delegatedTransition` is non-null and returns `child` unchanged (a no-op `DelegatedTransitionBuilder`). This is load-bearing, verified by running code (probes E2/G): `MaterialRouteTransitionMixin.canTransitionTo` returns true only if the next route is also a Material route *or* has a non-null `delegatedTransition`. A plain `PageRouteBuilder` (0.0.3's example route) pushed over a `MaterialPageRoute` leaves that page's `secondaryAnimation` dismissed — its elements would never exit. With the no-op delegate the page below animates its secondary and keeps its own (Zoom/Cupertino) secondary transition suppressed, which is what we want: our elements do the exit, the page itself holds still.
 
 Two ways to install, same transition: `theme.pageTransitionsTheme` (every `MaterialPageRoute`, named routes and router packages included), or `CnPageRoute` per push. `CnPageRoute` mixes in `MaterialRouteTransitionMixin` and overrides `buildTransitions` to call the builder directly (ignoring the theme), so Material routes below recognize it by type and not only through the delegate — this matters because of a Flutter generic-type quirk (§5). `CnPageRoute.canTransitionTo(next)` is `next is PageRoute && next.opaque && !next.fullscreenDialog`: dialogs, sheets, and transparent overlay routes do not pull the page's elements out (verified: probe G `cn-under-transparentPRB` stays dismissed, `cn-under-cn` animates).
@@ -317,8 +324,8 @@ Two ways to install, same transition: `theme.pageTransitionsTheme` (every `Mater
 | Page pushed (`push`) | 0→1 forward | 0 | n/a (no cover) | n/a | enters over `enter` slice, staggered from viewport top | enters once via timed fallback (no route); follows `progress:` if given |
 | First route / restored / zero-duration push | 1 before first frame (probe E) | 0 | n/a | n/a | initial mount → timed fallback entrance, staggered; late mounts → rest (or scroll reveal if on) | same |
 | Another page pushed over (opaque `PageRoute`, Material/Cupertino/Cn) | 1 | 0→1 forward (probe E2 `prb-under-material`, G) | stays (or fade/grow) | moves away from subject along axis, nearer first, fades if `fadeSiblings` | slides to `exitOffset` and fades, staggered from top | no cover source → nothing |
-| That page pops (button) | 1 | 1→0 reverse (probe E `a-popUntil`) | returns to rest (no-op) | returns along the same vector, reversed | returns | nothing |
-| That page is swipe-backed / predictive-backed | 1 | 1→x, status `forward` while dragging (probes C, D) | returns proportionally; gesture cancel re-exits smoothly | same, rest-locked on the exit curve both ways | same | nothing |
+| That page pops (button) | 1 | 1→0 reverse (probe E `a-popUntil`) | returns to rest (no-op) | returns along the same vector, over `uncover` (R6) | returns | nothing |
+| That page is swipe-backed / predictive-backed | 1 | 1→x, status `forward` while dragging (probes C, D) | returns proportionally; gesture cancel re-exits smoothly | same, rest-locked on the `uncover` slice both ways (R6) | same | nothing |
 | This page pops (button) | 1→0 reverse | 0 | n/a | n/a | exits over the `exit` slice (fast), fades | nothing (widget is being disposed) |
 | This page swipe-backed / predictive-backed | 1→x forward while dragging, then `reverse` on commit (probes C, D) | 0 | n/a | n/a | exit curve locked while leaving 1; scrubs with the finger; cancel reverses the exit | nothing |
 | `showDialog`, `showGeneralDialog`, `showModalBottomSheet`, `showCupertinoDialog`, `showCupertinoModalPopup` over this page | 1 | stays 0 (probes A, A2, B1, B2) | nothing | nothing | nothing | nothing |

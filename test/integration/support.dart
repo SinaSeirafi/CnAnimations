@@ -25,8 +25,16 @@ double shownEntering(double a) => enterSlice.transform(a);
 /// shown while this page leaves (A falling from 1), no stagger.
 double shownLeaving(double a) => 1.0 - exitSlice.transform(1.0 - a);
 
-/// covered for cover and uncover, no stagger.
+/// covered while S rises from 0 (cover), or falls back to 0 without having
+/// reached 1 (a reversed push), no stagger.
 double coveredAt(double s) => exitSlice.transform(s);
+
+/// The default uncover slice (review R6) with the exit curve.
+const Interval uncoverSlice = Interval(0.25, 0.6, curve: Curves.easeIn);
+
+/// covered while S falls from 1 (uncover: pop, interactive back, and a
+/// cancelled back gesture climbing back to 1), no stagger.
+double uncoveredAt(double s) => uncoverSlice.transform(s);
 
 const double eps = 1e-6;
 

@@ -108,7 +108,8 @@ class Sampler {
       }
     }
     if (exact) {
-      final double c = coveredAt(sv);
+      // The cover left 1, so the uncover slice applies both ways.
+      final double c = uncoveredAt(sv);
       expect(
           sibling0.last, moreOrLessEquals(stack.parted0.dy * c, epsilon: eps));
       expect(
@@ -118,7 +119,7 @@ class Sampler {
   }
 
   /// No jumps: each frame's change is bounded by the route's own change
-  /// times the steepest slope of the exit slice (easeIn over 0.35 ≈ 4.9,
+  /// times the steepest slope of the uncover slice (easeIn over 0.35 ≈ 4.9,
   /// times a parting distance ≤ 0.9).
   void expectContinuity() {
     for (int i = 1; i < s.length; i++) {
@@ -216,7 +217,7 @@ void main() {
   for (final Install install in Install.values) {
     group('predictive back API, ${install.name}', () {
       testWidgets(
-          'scrub then cancel: parted siblings track the exit curve every '
+          'scrub then cancel: parted siblings track the uncover curve every '
           'frame and the cancel returns smoothly', (WidgetTester tester) async {
         final Stack2 stack = await partedStack(tester, install);
         final Sampler sampler = Sampler(tester, stack, exact: true);
@@ -286,8 +287,8 @@ void main() {
           final Stack2 stack = await partedStack(tester, install);
           await sendBackGesture(tester, 'startBackGesture');
           await tester.pump();
-          // 0.7 puts S at 0.3, inside the exit slice (0..0.35), so a parted
-          // sibling has visibly started to return.
+          // 0.7 puts S at 0.3, inside the uncover slice (0.25..0.6), so a
+          // parted sibling has visibly started to return.
           await sendBackGesture(
             tester,
             'updateBackGestureProgress',
@@ -317,8 +318,8 @@ void main() {
             const Offset(5, 300),
           );
           await tester.pump();
-          // 3 x 200 px of an 800 px page puts S at 0.25, inside the exit
-          // slice (0..0.35), so a parted sibling has started to return.
+          // 3 x 200 px of an 800 px page puts S at 0.25, the start of the
+          // uncover slice (0.25..0.6), so a parted sibling has returned.
           for (int i = 0; i < 3; i++) {
             await gesture.moveBy(const Offset(200, 0));
             await tester.pump();

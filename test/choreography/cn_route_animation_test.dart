@@ -24,8 +24,16 @@ double shownEntering(double a) => enterSlice.transform(a);
 /// from the start of leaving.
 double shownLeaving(double a) => 1.0 - exitSlice.transform(1.0 - a);
 
-/// covered for cover and uncover (the same slice, run either way).
+/// covered while S rises from 0 (a page pushed over this one), or falls back
+/// to 0 without having reached 1 (that push reversed).
 double coveredAt(double s) => exitSlice.transform(s);
+
+/// The default uncover slice (review R6), with the exit curve.
+const Interval uncoverSlice = Interval(0.25, 0.6, curve: Curves.easeIn);
+
+/// covered while S falls from 1 (the page above pops or is dragged back),
+/// including a cancelled gesture climbing back to 1.
+double uncoveredAt(double s) => uncoverSlice.transform(s);
 
 /// Every platform uses the fade-through, so the page below holds still and
 /// geometry is untransformed.
@@ -285,7 +293,8 @@ void main() {
       for (int i = 0; i < 12; i++) {
         await tester.pump(const Duration(milliseconds: 30));
         final double s = home.secondaryAnimation!.value;
-        final double covered = coveredAt(s);
+        // S falls from 1: the uncover slice, not the exit slice backwards.
+        final double covered = uncoveredAt(s);
         expect(opacityOf(tester, 'h'),
             moreOrLessEquals(1 - covered, epsilon: eps));
         expect(
@@ -1021,8 +1030,8 @@ void main() {
       await tester.pumpAndSettle();
       nav.currentState!.pop();
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-      // Still parted, part-way back.
+      await tester.pump(const Duration(milliseconds: 200));
+      // Still parted, part-way back (S = 0.5, inside the uncover slice).
       expect(offsetOf(tester, 'p0').dy, lessThan(0));
       expect(offsetOf(tester, 'p8').dy, greaterThan(0));
       await tester.pumpAndSettle();
@@ -1358,8 +1367,10 @@ void main() {
             moreOrLessEquals(shownLeaving(a), epsilon: eps));
         final double s = home.secondaryAnimation!.value;
         expect(s, moreOrLessEquals(a, epsilon: eps));
+        // The cover left 1, so the uncover slice applies both ways, while
+        // dragging and while a cancel climbs back to 1.
         expect(opacityOf(tester, 'h'),
-            moreOrLessEquals(1 - coveredAt(s), epsilon: eps));
+            moreOrLessEquals(1 - uncoveredAt(s), epsilon: eps));
       }
 
       top.handleStartBackGesture(progress: 0.95);
@@ -1377,7 +1388,7 @@ void main() {
         greaterThan(0.05),
       );
       // The page below starts to return once the cover drops under the
-      // exit slice.
+      // uncover slice's end.
       top.handleUpdateBackGestureProgress(progress: 0.3);
       await tester.pump();
       check();
@@ -1447,7 +1458,9 @@ void main() {
       );
       await tester.pump();
       final List<double> samples = <double>[];
-      for (final double dx in <double>[100, 150, 150, 100]) {
+      // 20 x 25 px: steps small enough that the per-frame bound below
+      // measures continuity, not the finger's step size.
+      for (final double dx in List<double>.filled(20, 25)) {
         await gesture.moveBy(Offset(dx, 0));
         await tester.pump();
         expect(nav.currentState!.userGestureInProgress, isTrue);

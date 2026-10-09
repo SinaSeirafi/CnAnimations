@@ -185,7 +185,7 @@ void main() {
           await tester.pump(const Duration(milliseconds: 16));
           uncover.add(a.secondaryAnimation!.value);
           expect(opacityOf(tester, 'a0'),
-              moreOrLessEquals(1 - coveredAt(uncover.last), epsilon: eps));
+              moreOrLessEquals(1 - uncoveredAt(uncover.last), epsilon: eps));
         }
         for (int i = 1; i < uncover.length; i++) {
           expect(uncover[i], lessThanOrEqualTo(uncover[i - 1]));
@@ -229,7 +229,7 @@ void main() {
                 reason: 'driven by the top popped route');
           }
           expect(opacity.last,
-              moreOrLessEquals(1 - coveredAt(s.last), epsilon: eps));
+              moreOrLessEquals(1 - uncoveredAt(s.last), epsilon: eps));
         }
         expect(tester.takeException(), isNull);
         expect(drivenFrames, greaterThan(3));
