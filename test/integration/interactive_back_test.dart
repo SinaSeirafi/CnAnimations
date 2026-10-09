@@ -307,19 +307,23 @@ void main() {
           final Stack2 stack = await partedStack(tester, install);
           await sendBackGesture(tester, 'startBackGesture');
           await tester.pump();
+          // 0.7 puts S at 0.3, inside the exit slice (0..0.35), so a parted
+          // sibling has visibly started to return.
           await sendBackGesture(
             tester,
             'updateBackGestureProgress',
-            progress: 0.5,
+            progress: 0.7,
           );
           await tester.pump();
-          expect(stack.top.animation!.value, lessThan(1.0),
-              reason: 'nothing routes the system gesture to the route');
+          expect(stack.top.animation!.value, moreOrLessEquals(0.3),
+              reason: 'the system gesture reaches the route');
+          expect(stack.nav.currentState!.userGestureInProgress, isTrue);
           expect(offsetOf(tester, 's0').dy, greaterThan(stack.parted0.dy));
+          await sendBackGesture(tester, 'cancelBackGesture');
+          await tester.pumpAndSettle();
+          expect(offsetOf(tester, 's0').dy, moreOrLessEquals(stack.parted0.dy));
+          expect(stack.top.isCurrent, isTrue);
         },
-        // BUG: the Cn fade-through has no predictive-back hookup; the system
-        // gesture is ignored and commit becomes a plain 400 ms pop.
-        skip: !runBugs,
       );
 
       testWidgets(
@@ -334,19 +338,21 @@ void main() {
             const Offset(5, 300),
           );
           await tester.pump();
+          // 3 x 200 px of an 800 px page puts S at 0.25, inside the exit
+          // slice (0..0.35), so a parted sibling has started to return.
           for (int i = 0; i < 3; i++) {
-            await gesture.moveBy(const Offset(100, 0));
+            await gesture.moveBy(const Offset(200, 0));
             await tester.pump();
           }
           expect(stack.nav.currentState!.userGestureInProgress, isTrue);
-          expect(stack.top.animation!.value, lessThan(1.0));
+          expect(stack.top.animation!.value, moreOrLessEquals(0.25));
           expect(offsetOf(tester, 's0').dy, greaterThan(stack.parted0.dy));
+          // Released past half: the page pops and the siblings rest.
           await gesture.up();
           await tester.pumpAndSettle();
+          expect(stack.top.isActive, isFalse);
+          expect(offsetOf(tester, 's0'), Offset.zero);
         },
-        // BUG: the Cn fade-through has no Cupertino back-swipe detector;
-        // an iOS edge drag does nothing.
-        skip: !runBugs,
       );
     }
   });

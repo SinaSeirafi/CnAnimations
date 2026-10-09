@@ -30,11 +30,6 @@ double coveredAt(double s) => exitSlice.transform(s);
 
 const double eps = 1e-6;
 
-/// Tests that pin a known bug are skipped unless run with
-/// `flutter test --dart-define=RUN_BUGS=true` (each carries a `// BUG:` line;
-/// details in the slice-H notes).
-const bool runBugs = bool.fromEnvironment('RUN_BUGS');
-
 const List<TargetPlatform> _allPlatforms = TargetPlatform.values;
 
 /// The fade-through installed for every platform, on [platform].
