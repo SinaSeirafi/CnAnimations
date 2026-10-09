@@ -175,7 +175,9 @@ CnRouteChoreography(
 )
 ```
 
-Curves come from `CnRouteTiming.exitCurve` and `enterCurve`; curves set on the `exit` / `enter` `Interval`s are ignored. To follow your own progress instead of a route (a `PageView`, for example), pass `progress:` (and optionally `coverProgress:`) to the scope. Without any progress source, an element plays one timed entrance of `CnRouteTiming.fallbackDuration` (300 ms).
+Covered elements leave over `CnRouteTiming.exit` (default `Interval(0.0, 0.35)` of the cover progress) and come back over `CnRouteTiming.uncover` (default `Interval(0.3, 0.65)`, the same length) when the page above pops or is dragged back with predictive back or the iOS edge swipe. So they start returning as the top page's elements finish leaving, rather than after the top page is gone. Set `uncover:` to the `exit` slice to replay the exit backwards instead.
+
+Curves come from `CnRouteTiming.exitCurve` (also used for `uncover`) and `enterCurve`; curves set on the `exit` / `enter` / `uncover` `Interval`s are ignored. To follow your own progress instead of a route (a `PageView`, for example), pass `progress:` (and optionally `coverProgress:`) to the scope. Without any progress source, an element plays one timed entrance of `CnRouteTiming.fallbackDuration` (300 ms).
 
 #### Reduced motion
 When the platform asks to disable animations, reduced motion is respected by default, in `fadeOnly` mode: opacity still follows the route, translation and scale are dropped. `CnReducedMotionMode.none` shows elements at rest instead. To opt out entirely, set `respectReducedMotion: false`. Precedence is widget, then scope, then the default (`true`, `fadeOnly`).
@@ -225,6 +227,8 @@ Navigator.of(context).push(
 Under Flutter's zoom or Cupertino transitions the page below is hidden by the transition itself, so element exits are mostly invisible; use one of the routes above to see them. Dialogs, bottom sheets, full-screen dialogs and non-opaque routes do not cover the page, so elements stay.
 
 Android predictive back needs `android:enableOnBackInvokedCallback="true"` on the `<application>` in your `AndroidManifest.xml`, as for Flutter's own predictive-back transition.
+
+A `Hero` follows the iOS swipe-back and Android predictive back only when it sets `transitionOnUserGestures: true`, as with Flutter's own transitions; without it the hero stays on its page during the gesture and flies only on push and button pops.
 
 The two installs cover a page under slightly different routes. A `CnPageRoute` page is covered by any opaque, non-full-screen-dialog `PageRoute`, including a plain `PageRouteBuilder(opaque: true)`. A `MaterialPageRoute` page under the theme builder follows Flutter's Material rule: it is covered only by Material routes (`MaterialPageRoute`, `CnPageRoute`) or routes with a delegated transition, so a plain `PageRouteBuilder` above it does not pull its elements out. If your app pushes its own `PageRouteBuilder`s, push the pages below them as `CnPageRoute`.
 

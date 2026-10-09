@@ -24,10 +24,10 @@ class CnPageRoute<T> extends PageRoute<T> with MaterialRouteTransitionMixin<T> {
     super.fullscreenDialog,
     this.maintainState = true,
     this.backgroundColor,
+    @Deprecated('Has no effect; removed in 1.0.0')
     this.timing = CnRouteTiming.standard,
   }) : _transitions = CnFadeThroughPageTransitionsBuilder(
           backgroundColor: backgroundColor,
-          timing: timing,
         );
 
   /// Builds the page content.
@@ -39,7 +39,9 @@ class CnPageRoute<T> extends PageRoute<T> with MaterialRouteTransitionMixin<T> {
   /// Color painted behind the incoming page; defaults to the theme surface.
   final Color? backgroundColor;
 
-  /// Reserved for API parity; see [CnFadeThroughPageTransitionsBuilder.timing].
+  /// Has no effect; see [CnFadeThroughPageTransitionsBuilder.timing]. Removed
+  /// in 1.0.0.
+  @Deprecated('Has no effect; removed in 1.0.0')
   final CnRouteTiming timing;
 
   final CnFadeThroughPageTransitionsBuilder _transitions;

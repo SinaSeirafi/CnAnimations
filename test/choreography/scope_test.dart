@@ -266,6 +266,8 @@ void main() {
       expect(t.exit.end, 0.35);
       expect(t.enter.begin, 0.35);
       expect(t.enter.end, 1.0);
+      expect(t.uncover.begin, 0.3);
+      expect(t.uncover.end, 0.65);
       expect(t.exitStagger, 0.12);
       expect(t.enterStagger, 0.25);
       expect(t.exitCurve, Curves.easeIn);
@@ -280,6 +282,12 @@ void main() {
       expect(changed.exitStagger, 0.08);
       expect(changed.enterStagger, 0.25);
       expect(changed, isNot(t));
+      final uncover = t.copyWith(uncover: Interval(0.0, 0.35));
+      expect(uncover.uncover.end, 0.35);
+      expect(uncover.exit.end, 0.35);
+      expect(uncover, isNot(t));
+      expect(uncover.hashCode, isNot(t.hashCode));
+      expect(t.copyWith(uncover: Interval(0.3, 0.65)), t);
     });
 
     test('CnPartingSpec defaults and equality', () {

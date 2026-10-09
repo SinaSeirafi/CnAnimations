@@ -7,11 +7,12 @@ New
 * `CnRouteAnimation`: wraps a page element so it enters with the page, exits when another page covers it and follows swipe-back and predictive-back gestures, driven by route progress and no `RouteObserver`. Parts around the tapped item (pointer detection on by default, 700 ms window; `subject:` and `CnRouteChoreography.select()` override). `enterOffset` defaults to `Offset(0, 0.1)` (from below) and `exitOffset` to `-enterOffset`. Also exports `CnElementProgress`, `CnElementRole` and `CnRouteAnimationBuilder` for the `builder:` form.
 * `CnRouteChoreography`: optional scope for app-wide or per-page defaults. Configured with `CnRouteTiming`, `CnPartingSpec`, `CnScrollReveal`, `CnReducedMotionMode`, `CnSubjectDetection` and `CnSubjectBehavior` (all exported). Reduced motion is respected by default (`fadeOnly`); opt out with `respectReducedMotion: false`, or show elements at rest with `reducedMotionMode: none`; precedence is widget, then scope, then default.
 * `CnDirectionalCurvedAnimation`: curves a progress value by the rest value (0 or 1) it last left, so the same animation can use different curves going in and coming back.
-* `CnFadeThroughPageTransitionsBuilder` (for `pageTransitionsTheme`) and `CnPageRoute`: a fade-through route that keeps the page below still while its elements exit. Both take `timing` (default `CnRouteTiming.standard`); it is reserved for API parity, the page transition keeps its fixed intervals and 400 ms.
+* `CnRouteTiming.uncover` (default `Interval(0.3, 0.65)` of the cover progress, as long as `exit`): when the page above pops or is dragged back (predictive back, iOS edge swipe), covered elements return over this slice instead of the exit slice played backwards. They start returning as the top page's elements finish leaving, so a pop no longer has a stretch of about a quarter of its length where neither page's elements show. It shares `exitStagger` and `exitCurve` with `exit`; set `uncover:` to the `exit` slice for the old behaviour.
+* `CnFadeThroughPageTransitionsBuilder` (for `pageTransitionsTheme`) and `CnPageRoute`: a fade-through route that keeps the page below still while its elements exit. The transition has fixed intervals and runs 400 ms.
 * `animation:` parameter on `CnFade`, `CnSlide` and `CnScale` to drive them from an `Animation<double>`. An external `controller:` or `animation:` is never overridden by reduced motion.
 
 Behavior notes
-* Element curves come from `CnRouteTiming.exitCurve` / `enterCurve`. Curves set on the `exit` / `enter` `Interval`s are ignored, and assert in debug.
+* Element curves come from `CnRouteTiming.exitCurve` / `enterCurve`. Curves set on the `exit` / `enter` / `uncover` `Interval`s are ignored, and assert in debug.
 * `CnRouteChoreography.select()` with no `CnRouteAnimation` above it asserts in debug and does nothing in release.
 * Route types: Flutter's `MaterialPageRoute<T>.canTransitionTo` compares generic types, so a `MaterialPageRoute<int>` below a route with a different `T` may not receive exits. Prefer the theme builder or `CnPageRoute`, which do not have this quirk. The same applies to a `CupertinoPageRoute<T>` page, and `CnPageRoute` does not fix that case: give the routes matching type arguments or use the theme builder.
 * A plain `PageRouteBuilder` over a `MaterialPageRoute` does not drive the lower page's exits; use `CnPageRoute` or the theme builder.
@@ -19,6 +20,7 @@ Behavior notes
 Deprecations (all removed in 1.0.0)
 * `CnRouteAwareAnimation`: use `CnRouteAnimation`.
 * `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver`: no longer needed by the package.
+* `timing` on `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute`: it has no effect. Element timing comes from `CnRouteChoreography` and `CnRouteAnimation`.
 
 ## 0.1.0
 Fixes

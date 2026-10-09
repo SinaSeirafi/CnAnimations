@@ -35,6 +35,7 @@ class CnRouteTiming {
   const CnRouteTiming({
     this.exit = const Interval(0.0, 0.35),
     this.enter = const Interval(0.35, 1.0),
+    this.uncover = const Interval(0.3, 0.65),
     this.exitStagger = 0.12,
     this.enterStagger = 0.25,
     this.exitCurve = Curves.easeIn,
@@ -43,9 +44,12 @@ class CnRouteTiming {
   })  : assert(exitStagger >= 0 && exitStagger <= 1),
         assert(enterStagger >= 0 && enterStagger <= 1);
 
-  /// Slice of progress during which an element leaves (push-over of this page,
-  /// pop of this page, and interactive back). When the page above pops, the
-  /// same slice plays in reverse to bring the element back (uncover).
+  /// Slice of progress during which an element leaves: when a page is pushed
+  /// over this one (measured on the cover progress as it rises from 0), and
+  /// when this page pops or is swiped back (measured from the start of
+  /// leaving). A push over this page that is popped before it finishes plays
+  /// this slice backwards. Bringing the element back after the page above
+  /// pops uses [uncover] instead.
   ///
   /// Only `begin` and `end` are used; the curve comes from [exitCurve]. A
   /// curved `Interval` asserts in debug when an element uses this timing.
@@ -57,16 +61,45 @@ class CnRouteTiming {
   /// curved `Interval` asserts in debug when an element uses this timing.
   final Interval enter;
 
-  /// Maximum extra start delay added to [exit] for the element farthest from
-  /// the anchor (tapped item, or the viewport's leading edge). Bounds total
-  /// time.
+  /// Slice of the cover progress during which a covered element comes back,
+  /// used while the cover progress falls from 1: the page above pops, or is
+  /// dragged back by an interactive back gesture (Android predictive back,
+  /// the iOS edge swipe).
+  ///
+  /// It is read on the cover progress as-is, like [exit] on the way in: the
+  /// element is fully covered above `end` and at rest below `begin`, so it
+  /// starts returning when the cover progress falls past `end`. The default,
+  /// `Interval(0.3, 0.65)`, as long as the default [exit], starts the return
+  /// as the top page's elements finish leaving (their exit ends at 65 % of
+  /// progress, while the fade-through page fades out over the top 40 %),
+  /// instead of a quarter of the pop later. Use
+  /// `uncover: exit` (the default `exit` is `Interval(0.0, 0.35)`) to replay
+  /// the exit slice backwards instead, as before 0.9.0.
+  ///
+  /// The choice between [exit] and [uncover] is locked by the rest the cover
+  /// progress left, not by the animation's status: after leaving 0 (a push
+  /// over this page) [exit] applies until the progress rests again, even if
+  /// the push is reversed; after leaving 1 (a pop or back gesture) [uncover]
+  /// applies, even if the gesture is cancelled and the progress climbs back
+  /// to 1. So a reversal never jumps between the two slices.
+  ///
+  /// Stagger works as for [exit]: each element's slice is shifted later by up
+  /// to [exitStagger] by its distance from the anchor. The curve comes from
+  /// [exitCurve], so on the way back the element decelerates into place. Only
+  /// `begin` and `end` are used; a curved `Interval` asserts in debug when an
+  /// element uses this timing.
+  final Interval uncover;
+
+  /// Maximum extra start delay added to [exit] (and the matching shift of
+  /// [uncover]) for the element farthest from the anchor (tapped item, or the
+  /// viewport's leading edge). Bounds total time.
   final double exitStagger;
 
   /// Maximum extra start delay added to [enter] for the element farthest from
   /// the anchor.
   final double enterStagger;
 
-  /// Curve applied within each element's exit slice.
+  /// Curve applied within each element's [exit] and [uncover] slices.
   final Curve exitCurve;
 
   /// Curve applied within each element's enter slice.
@@ -84,6 +117,7 @@ class CnRouteTiming {
   CnRouteTiming copyWith({
     Interval? exit,
     Interval? enter,
+    Interval? uncover,
     double? exitStagger,
     double? enterStagger,
     Curve? exitCurve,
@@ -93,6 +127,7 @@ class CnRouteTiming {
     return CnRouteTiming(
       exit: exit ?? this.exit,
       enter: enter ?? this.enter,
+      uncover: uncover ?? this.uncover,
       exitStagger: exitStagger ?? this.exitStagger,
       enterStagger: enterStagger ?? this.enterStagger,
       exitCurve: exitCurve ?? this.exitCurve,
@@ -111,6 +146,7 @@ class CnRouteTiming {
     return other is CnRouteTiming &&
         _sameInterval(other.exit, exit) &&
         _sameInterval(other.enter, enter) &&
+        _sameInterval(other.uncover, uncover) &&
         other.exitStagger == exitStagger &&
         other.enterStagger == enterStagger &&
         other.exitCurve == exitCurve &&
@@ -126,6 +162,9 @@ class CnRouteTiming {
         enter.begin,
         enter.end,
         enter.curve,
+        uncover.begin,
+        uncover.end,
+        uncover.curve,
         exitStagger,
         enterStagger,
         exitCurve,
