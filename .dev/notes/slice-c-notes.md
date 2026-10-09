@@ -1,0 +1,2 @@
+- start: choosing timing option (a): omit timing param; F adds it
+- wrote 3 lib files (option a: no timing param, TODO for F)

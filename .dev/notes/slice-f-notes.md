@@ -1,0 +1,2 @@
+- F: version now 0.9.0 per coordinator (bridge release)
+- F done; deprecation strings in E's files lack 'removed in 1.0.0' wording (note for coordinator)
