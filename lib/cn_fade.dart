@@ -7,7 +7,7 @@ class CnFade extends StatefulWidget {
   final Duration duration;
 
   /// Overrides [duration] when non-null.
-  @Deprecated('Use duration instead')
+  @Deprecated('Use duration instead; removed in 1.0.0')
   final int? durationInMilliseconds;
   final bool forward;
   final Curve? curve;
@@ -36,7 +36,8 @@ class CnFade extends StatefulWidget {
     super.key,
     required this.child,
     this.duration = const Duration(milliseconds: 500),
-    @Deprecated('Use duration instead') this.durationInMilliseconds,
+    @Deprecated('Use duration instead; removed in 1.0.0')
+    this.durationInMilliseconds,
     this.forward = true,
     this.fadeStartValue = 0,
     this.fadeEndValue = 1,

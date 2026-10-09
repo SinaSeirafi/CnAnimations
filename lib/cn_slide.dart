@@ -34,7 +34,7 @@ class CnSlide extends StatefulWidget {
   /// external progress source the widget always follows it.
   final bool respectReducedMotion;
 
-  @Deprecated('Has no effect and will be removed in a future release')
+  @Deprecated('Has no effect; removed in 1.0.0')
   final bool reverseControllerValue;
 
   const CnSlide({
@@ -51,7 +51,7 @@ class CnSlide extends StatefulWidget {
     this.controller,
     this.animation,
     this.respectReducedMotion = true,
-    @Deprecated('Has no effect and will be removed in a future release')
+    @Deprecated('Has no effect; removed in 1.0.0')
     this.reverseControllerValue = false,
     super.key,
   }) : assert(

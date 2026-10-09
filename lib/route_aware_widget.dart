@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Kept for backwards compatibility. Returns the same instance as
 /// [RouteAwareWidget.routeObserver].
-@Deprecated('Use RouteAwareWidget.routeObserver')
+@Deprecated('No longer needed by cn_animations; removed in 1.0.0')
 RouteObserver<PageRoute> get routeObserver => RouteAwareWidget.routeObserver;
 
 /// ## Setup
@@ -17,7 +17,7 @@ RouteObserver<PageRoute> get routeObserver => RouteAwareWidget.routeObserver;
 /// Inside routes that are not a [PageRoute] (dialogs, bottom sheets), only
 /// [onPush] is called, once.
 @Deprecated(
-    'No longer needed by cn_animations; keep it only for your own onPush* callbacks')
+    'No longer needed by cn_animations; removed in 1.0.0. If you rely on its onPush* callbacks, copy it into your app')
 class RouteAwareWidget extends StatefulWidget {
   const RouteAwareWidget({
     super.key,
@@ -33,7 +33,7 @@ class RouteAwareWidget extends StatefulWidget {
 
   /// Add this to `MaterialApp.navigatorObservers`.
   @Deprecated(
-      'No longer needed by cn_animations; keep it only for your own onPush* callbacks')
+      'No longer needed by cn_animations; removed in 1.0.0. If you rely on its onPush* callbacks, copy it into your app')
   static RouteObserver<PageRoute> get routeObserver => _routeObserver;
 
   final Widget child;

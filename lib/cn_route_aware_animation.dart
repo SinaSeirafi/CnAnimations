@@ -18,7 +18,7 @@ import 'cn_animations.dart';
 /// - `respectReducedMotion` -> `respectReducedMotion`
 /// - `fadeDuration`, `slideDuration` and the `*Delay*` values -> `CnRouteTiming`
 ///   (slices of the route transition, not durations)
-@Deprecated('Use CnRouteAnimation; it needs no RouteObserver')
+@Deprecated('Use CnRouteAnimation; it needs no RouteObserver. Removed in 1.0.0')
 class CnRouteAwareAnimation extends StatefulWidget {
   const CnRouteAwareAnimation({
     super.key,
