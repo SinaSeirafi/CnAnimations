@@ -39,7 +39,8 @@ About 70% toward 0.9.0 and 65% toward 1.0.0, weighted by effort.
 | Design (Fable): `.dev/design-0.9.md`, with the owner decisions at its end | Done |
 | A: directional curve and route progress (`lib/src/progress/`) | Merged |
 | B: scope, config, geometry (`lib/src/choreography/cn_route_choreography.dart`, `geometry.dart`) | Merged |
-| C: fade-through builder and `CnPageRoute` (`lib/src/route/`) | Merged; **has the back-gesture bug below** |
+| C: fade-through builder and `CnPageRoute` (`lib/src/route/`) | Merged |
+| C2: back-gesture wiring (`lib/src/route/cn_back_gesture_detector.dart`) | Merged (310644c → merge ee3de20); 32 new tests; root 215 pass, analyze clean. Not device-checked. |
 | D: `CnRouteAnimation` (`lib/src/choreography/cn_route_animation.dart`) | Merged |
 | E: `animation:` param on the basic widgets; deprecations | Merged |
 | F1: exports, route timing param, 0.9.0 pubspec, CHANGELOG/README skeleton | Merged |
@@ -48,7 +49,7 @@ About 70% toward 0.9.0 and 65% toward 1.0.0, weighted by effort.
 | H: integration tests (`test/integration/**`) | WIP f8b0af5; interactive back done, rest of design §8 not started |
 | Full verification, Fable review, 1.0.0 removal | Not started |
 
-## Known bugs (found by slice H; fix before 0.9.0)
+## Known bugs (found by slice H; fixed by C2 in ee3de20, pending H un-skip and device check)
 
 1. **P0: Android predictive back never reaches the Cn routes.**
    - Only Flutter's `PredictiveBackPageTransitionsBuilder` registers the observer that forwards `flutter/backgesture` to `TransitionRoute.handleStartBackGesture` (flutter `material/predictive_back_page_transitions_builder.dart:117-123`).
@@ -61,10 +62,13 @@ About 70% toward 0.9.0 and 65% toward 1.0.0, weighted by effort.
 - **Why this matters:** the headline promise, that elements follow your finger on swipe-back and predictive back, currently holds only with Flutter's stock page transitions, not with the package's own recommended route.
 - **Fix direction:** on Android, wrap the fade-through child in the predictive-back observer, by delegating to or reproducing `PredictiveBackPageTransitionsBuilder`'s gesture wiring. On iOS, wrap it in the Cupertino back-gesture detector. Keep the fade-through visuals. Un-skip the 4 tests. Model: **opus** (gesture and route lifecycle subtlety).
 
-Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found".
+Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is described in `.dev/notes/slice-c2-notes.md`.
+
+**Open before 0.9.0:** `pubspec.yaml` declares `flutter: ">=3.10.0"`, but the route code uses much newer APIs (route back-gesture methods). Raise the lower bound to the real minimum before publishing (step 5 verification or the review fix round).
 
 ## Session 2 (2026-10-09, from ~14:05 Yerevan)
 
+- Step 3 done: C2 merged (ee3de20). Post-merge: root analyze clean, root 215 pass. C2 ran H's repro with RUN_BUGS=true: route checks pass in all 4; the 4 still fail only on H's own "sibling has moved" check, which uses progress 0.5 / 3×100 px drags that stay inside the exit slice (S in 0–0.35). H must change them to 0.7 and 3×200 px when un-skipping (then 11/11 pass).
 - Step 2 done: F2 merged (f9a2280). Post-merge: root analyze "No issues found", root 183 pass. Slice R must also update README migration and delete 2 tests in `test/readme_snippets_test.dart` (deprecated "before" snippet, `RouteAwareWidget.routeObserver` install) — see `notes/slice-f-notes.md` → F2.
 - Step 1 done: G merged (76dae93). Post-merge: root analyze "No issues found", root 164 pass; example analyze clean, 7 pass.
 - Steps 1–3 started in parallel (disjoint files): G (sonnet, `example/**`), F2 (sonnet, README/CHANGELOG/`test/exports_test.dart`/`test/readme_snippets_test.dart`), C2 (opus, new worktree `…/cn_animations-wt/slice-c2`, branch `v1/slice-c2` from 0a0d763, owns `lib/src/route/**` and `test/route/**`).
