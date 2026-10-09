@@ -27,6 +27,11 @@ All work branches below (everything except `master`) were **pushed to origin on 
 - **Pointer subject detection** is on by default (700 ms window).
 - **Direction follows the Material convention.** `enterOffset` defaults to `Offset(0, 0.1)` (from below), and `exitOffset` defaults to `-enterOffset`, so covered content moves up and returns from above. The owner noted there are no existing users to keep continuity for.
 - **No push or publish** without the owner's explicit go-ahead.
+- **Delegated to the main thread (owner, 2026-10-09: "decide best and move forward"):**
+  - R2: (a) docs only. Reduced motion does apply to a scope `progress:`. A scope progress stands in for navigation, which is exactly what reduced motion targets, and `respectReducedMotion: false` on the scope is the opt-out. `controller:` / `animation:` on the basic widgets stay app-owned.
+  - R6: (a) add a separate `uncover` slice to `CnRouteTiming` (default `Interval(0.25, 0.6)`), used when S is falling (pop and interactive back), so the page below's elements start returning while the top page is still fading. Additive; decided before 1.0.0 because changing the default later is a visual change.
+  - R8: (a) the no-op `timing` on `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute` is deprecated in 0.9.0 ("has no effect; removed in 1.0.0") and removed by slice R.
+  - R11: (a) keep the protected `route.controller` access (it matches Cupertino's own code and its settle feel). Revisit only if Flutter changes it.
 - **pub.dev on 2026-10-09:** the latest published version is 0.0.3 (2023-01-30), with 28 downloads in the last 30 days, 0 likes and 140/160 points.
 
 ## Progress
