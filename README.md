@@ -20,7 +20,14 @@ Elements of a page animate with the page transition itself: they leave when anot
 
 Pair it with `CnPageRoute` or `CnFadeThroughPageTransitionsBuilder`, and tune it app-wide with `CnRouteChoreography`.
 
-<!-- part 2: CnRouteAnimation usage snippets -->
+```dart
+CnRouteAnimation(
+  child: Card(child: ListTile(title: Text('Item'))),
+)
+```
+
+No `RouteObserver` is needed. The element reads the route it sits on: it arrives with the page, leaves when another page covers it, returns when that page is popped, and follows a swipe-back or predictive-back gesture.
+
 
 ### Route aware animation (deprecated)
 `CnRouteAwareAnimation` and `RouteAwareWidget` react to navigation events through a `RouteObserver`. They still work in 0.9.0 and will be removed in 1.0.0. See "Migrating from 0.1.0".
@@ -88,6 +95,133 @@ CnScale(
 ) 
 ```
 
+Pass an `Animation<double>` instead of a controller to follow any progress value. The widget never starts or disposes it, and reduced motion never overrides it. Give at most one of `controller` and `animation`.
+
+```dart
+CnFade(
+  animation: animation,
+  child: child,
+)
+```
+
+### Navigation-driven animation (CnRouteAnimation)
+
+Wrap the elements of a page. Each one enters with the page and exits when another page covers it.
+
+```dart
+CnRouteAnimation(
+  // Where the element enters from, as a fraction of its own size.
+  // Default Offset(0, 0.1): from below (the Material convention).
+  enterOffset: const Offset(0, 0.1),
+  // Where it goes when covered. Default is -enterOffset (covered content
+  // moves up and comes back from above).
+  exitOffset: const Offset(0, -0.1),
+  scale: 0.95,
+  child: child,
+)
+```
+
+Switch parts off per element: `fade: false`, `enter: false` (ignore this page's own enter and exit), `cover: false` (ignore being covered), `enabled: false` (always shown). For full control use `builder`, which receives `shown` and `covered` progress values between 0 and 1:
+
+```dart
+CnRouteAnimation(
+  builder: (context, progress, child) => Opacity(
+    opacity: progress.shown * (1 - progress.covered),
+    child: child,
+  ),
+  child: child,
+)
+```
+
+#### Parting around the tapped item
+In a list or grid, the item you tap stays put while its neighbours part away from it, nearer ones first. The tapped item is detected from the pointer-down: this is on by default and applies to a push within 700 ms of the tap. Nothing else is needed:
+
+```dart
+ListView.builder(
+  itemBuilder: (context, i) => CnRouteAnimation(
+    child: ListTile(
+      title: Text('Item $i'),
+      onTap: () => Navigator.of(context).push(
+        CnPageRoute<void>(builder: (_) => const DetailPage()),
+      ),
+    ),
+  ),
+)
+```
+
+Use `subject: false` on an element that must never be the subject, `subject: true` to always make it the subject, or `CnRouteChoreography.select(context)` to choose it in code (for example before a programmatic push). Switch detection to `CnSubjectDetection.manual` or `.off` in the scope below.
+
+#### Configuring app-wide or per page
+`CnRouteChoreography` is an optional scope. Every field is optional; inner scopes override outer ones field by field, and a widget parameter overrides the scope.
+
+```dart
+CnRouteChoreography(
+  timing: const CnRouteTiming(
+    exitCurve: Curves.easeIn,
+    enterCurve: Curves.easeOutCubic,
+    exitStagger: 0.12,
+    enterStagger: 0.25,
+  ),
+  parting: const CnPartingSpec(
+    distance: Offset(0, 0.6),
+    subject: CnSubjectBehavior.stay,
+  ),
+  // Axis along which neighbours part (vertical for lists).
+  axis: Axis.vertical,
+  subjectDetection: CnSubjectDetection.pointer,
+  // Elements built later on a page at rest (scrolled into view) reveal once.
+  scrollReveal: const CnScrollReveal(),
+  child: child,
+)
+```
+
+Curves come from `CnRouteTiming.exitCurve` and `enterCurve`; curves set on the `exit` / `enter` `Interval`s are ignored. To follow your own progress instead of a route (a `PageView`, for example), pass `progress:` (and optionally `coverProgress:`) to the scope. Without any progress source, an element plays one timed entrance of `CnRouteTiming.fallbackDuration` (300 ms).
+
+#### Reduced motion
+When the platform asks to disable animations, reduced motion is respected by default, in `fadeOnly` mode: opacity still follows the route, translation and scale are dropped. `CnReducedMotionMode.none` shows elements at rest instead. To opt out entirely, set `respectReducedMotion: false`. Precedence is widget, then scope, then the default (`true`, `fadeOnly`).
+
+```dart
+// App-wide: show elements at rest when animations are disabled.
+CnRouteChoreography(
+  reducedMotionMode: CnReducedMotionMode.none,
+  child: child,
+)
+
+// App-wide opt-out, and a single widget that opts back in.
+CnRouteChoreography(
+  respectReducedMotion: false,
+  child: CnRouteAnimation(
+    respectReducedMotion: true,
+    child: child,
+  ),
+)
+```
+
+An external `controller:` or `animation:` (on the basic widgets, or `progress:` on the scope) belongs to your app and is never overridden by reduced motion.
+
+#### Routes
+Install the fade-through transition for every route, or use `CnPageRoute` for individual routes. Both keep the page below still while its elements exit, then fade the new page in over 400 ms.
+
+```dart
+MaterialApp(
+  theme: ThemeData(
+    pageTransitionsTheme: const PageTransitionsTheme(builders: {
+      TargetPlatform.android: CnFadeThroughPageTransitionsBuilder(),
+      TargetPlatform.iOS: CnFadeThroughPageTransitionsBuilder(),
+    }),
+  ),
+  home: const HomePage(),
+)
+```
+
+```dart
+Navigator.of(context).push(
+  CnPageRoute<void>(builder: (_) => const DetailPage()),
+);
+```
+
+Under Flutter's zoom or Cupertino transitions the page below is hidden by the transition itself, so element exits are mostly invisible; use one of the routes above to see them. Dialogs, bottom sheets, full-screen dialogs and non-opaque routes do not cover the page, so elements stay.
+
 ### Route Aware Animation
 
 If you simply add it on top of your widget, it will do a basic fade and slide upon all navigation events. 
@@ -118,7 +252,39 @@ CnRouteAwareAnimation(
 ## Migrating from 0.1.0
 0.9.0 keeps every 0.1.0 widget working. The route-aware widgets are deprecated and will be removed in 1.0.0, so migrate now:
 
-1. Replace `CnRouteAwareAnimation` with `CnRouteAnimation`. <!-- part 2: parameter mapping table -->
+1. Replace `CnRouteAwareAnimation` with `CnRouteAnimation`:
+
+   | `CnRouteAwareAnimation` | `CnRouteAnimation` |
+   | --- | --- |
+   | `beginSamePage` | `enterOffset` (default is now `Offset(0, 0.1)`, from below) |
+   | `endNextPage` | `exitOffset` (default `-enterOffset`) |
+   | `showFadeAnimation` | `fade` |
+   | `showPush`, `showPop` | `enter` |
+   | `showPushNext`, `showPopNext` | `cover` |
+   | `animate` | `enabled` |
+   | `fadeDuration`, `slideDuration`, delays | `timing` (scope or widget); route transitions run 400 ms |
+   | `respectReducedMotion` | `respectReducedMotion` (plus `reducedMotionMode`) |
+
+   Before and after:
+
+   ```dart
+   // 0.1.0 (deprecated, removed in 1.0.0)
+   CnRouteAwareAnimation(
+     beginSamePage: const Offset(0, -0.1),
+     endNextPage: const Offset(0, 0.1),
+     child: child,
+   )
+
+   // 0.9.0
+   CnRouteAnimation(
+     enterOffset: const Offset(0, -0.1),
+     exitOffset: const Offset(0, 0.1),
+     child: child,
+   )
+   ```
+
 2. Delete `navigatorObservers: [RouteAwareWidget.routeObserver]` unless you use `RouteAwareWidget` yourself.
 3. If you used a custom `PageRouteBuilder` fade route, switch to `CnPageRoute` or the theme builder. A plain `PageRouteBuilder` over a `MaterialPageRoute` never drives the lower page's exits.
 4. If you relied on items animating as they were scrolled into view, set `scrollReveal: const CnScrollReveal()` on the `CnRouteChoreography` scope.
+5. Also deprecated, and removed in 1.0.0: `RouteAwareWidget`, `RouteAwareWidget.routeObserver`, the top-level `routeObserver`, `CnFade.durationInMilliseconds` (use `duration`) and `CnSlide.reverseControllerValue` (no effect).
+

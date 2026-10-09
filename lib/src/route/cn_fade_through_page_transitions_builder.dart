@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../choreography/cn_route_choreography.dart' show CnRouteTiming;
 import '../progress/cn_directional_curved_animation.dart';
+import 'cn_back_gesture_detector.dart';
 
 /// Fade-through transition designed for the element choreography: the page
 /// below stays fully visible for the first part of a push while its elements
 /// exit, then the incoming page fades and lifts in over the rest. On pop the
 /// top page is gone within the first 40 % so the page below can bring its
 /// elements back. 400 ms both ways.
+///
+/// Interactive back works as with the stock builders: Android predictive back
+/// and, when [ThemeData.platform] is iOS or macOS, the Cupertino edge
+/// swipe-back (not for `fullscreenDialog` routes). Both move the route's
+/// progress with the finger, so the page and its elements scrub; releasing
+/// settles back or pops.
 class CnFadeThroughPageTransitionsBuilder extends PageTransitionsBuilder {
   /// Creates the builder. [backgroundColor] defaults to
   /// `ColorScheme.surface` of the surrounding theme.
@@ -65,7 +72,7 @@ class CnFadeThroughPageTransitionsBuilder extends PageTransitionsBuilder {
     return _CnFadeThrough(
       animation: animation,
       color: backgroundColor ?? Theme.of(context).colorScheme.surface,
-      child: child,
+      child: CnBackGestureDetector<T>(route: route, child: child),
     );
   }
 }

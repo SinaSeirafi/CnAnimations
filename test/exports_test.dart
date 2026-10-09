@@ -3,7 +3,6 @@
 import 'dart:io';
 
 import 'package:cn_animations/cn_animations.dart';
-import 'package:flutter/animation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -28,9 +27,30 @@ void main() {
       CnRouteChoreography,
       CnFadeThroughPageTransitionsBuilder,
       CnPageRoute,
+      CnRouteAnimation,
+      CnElementProgress,
+      CnElementRole,
     ];
     expect(types, everyElement(isNotNull));
     expect(CnRouteTiming.standard, isA<CnRouteTiming>());
+    // Typedef and enum values.
+    Widget builder(BuildContext c, CnElementProgress p, Widget? w) =>
+        w ?? const SizedBox();
+    final CnRouteAnimationBuilder typed = builder;
+    expect(typed, isNotNull);
+    expect(
+      CnElementRole.values,
+      containsAll(<CnElementRole>[
+        CnElementRole.subject,
+        CnElementRole.sibling,
+        CnElementRole.plain,
+      ]),
+    );
+    expect(CnElementProgress.rest.shown, 1.0);
+    expect(CnReducedMotionMode.values, hasLength(2));
+    expect(CnSubjectDetection.values, hasLength(3));
+    expect(CnSubjectBehavior.values, hasLength(3));
+    expect(CnScrollReveal.off.enabled, isFalse);
     expect(
       CnDirectionalCurvedAnimation(
         const AlwaysStoppedAnimation<double>(0.5),

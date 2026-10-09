@@ -6,6 +6,10 @@ import 'cn_fade_through_page_transitions_builder.dart';
 /// Standalone route using [CnFadeThroughPageTransitionsBuilder], for apps that
 /// do not want to touch their theme.
 ///
+/// Interactive back (Android predictive back, the iOS edge swipe) works as
+/// described on [CnFadeThroughPageTransitionsBuilder]; this route uses the
+/// same gesture wiring.
+///
 /// Mixes in [MaterialRouteTransitionMixin] so Material routes beneath it
 /// recognize it by type, independent of the generic-type quirk in
 /// `MaterialRouteTransitionMixin.canTransitionTo` (`MaterialPageRoute<int>`

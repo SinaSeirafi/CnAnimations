@@ -28,33 +28,25 @@ void _expectHomeButtonsVisible(WidgetTester tester) {
   }
 }
 
-/// The home Column is taller than the default 800x600 test surface.
-void _useTallSurface(WidgetTester tester) {
-  tester.view.physicalSize = const Size(800, 1200);
-  tester.view.devicePixelRatio = 1;
-  addTearDown(tester.view.reset);
-}
-
 void main() {
-  testWidgets('home buttons are visible after launch', (tester) async {
-    _useTallSurface(tester);
+  testWidgets('home content is visible after launch', (tester) async {
     app.main();
     await tester.pumpAndSettle();
 
     _expectHomeButtonsVisible(tester);
   });
 
-  testWidgets('home buttons are visible again after a round trip',
+  testWidgets('home content is visible again after a round trip',
       (tester) async {
-    _useTallSurface(tester);
     app.main();
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Fade'));
+    await tester.ensureVisible(find.text('List'));
+    await tester.tap(find.text('List'));
     await tester.pumpAndSettle();
-    expect(find.text('Back'), findsOneWidget);
+    expect(find.text('Item 0'), findsOneWidget);
 
-    await tester.tap(find.text('Back'));
+    await tester.pageBack();
     await tester.pumpAndSettle();
 
     _expectHomeButtonsVisible(tester);
