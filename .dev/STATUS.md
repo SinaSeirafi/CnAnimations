@@ -63,6 +63,10 @@ About 70% toward 0.9.0 and 65% toward 1.0.0, weighted by effort.
 
 Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found".
 
+## Session 2 (2026-10-09, from ~14:05 Yerevan)
+
+- Steps 1–3 started in parallel (disjoint files): G (sonnet, `example/**`), F2 (sonnet, README/CHANGELOG/`test/exports_test.dart`/`test/readme_snippets_test.dart`), C2 (opus, new worktree `…/cn_animations-wt/slice-c2`, branch `v1/slice-c2` from 0a0d763, owns `lib/src/route/**` and `test/route/**`).
+
 ## Next steps, in order
 
 Run each step as a delegated agent, working in its slice worktree and committing on its branch. The main thread merges into `feat/v1-choreography` and re-runs `flutter analyze` plus the full `flutter test` after each merge. Checkpoint this file after every step.
