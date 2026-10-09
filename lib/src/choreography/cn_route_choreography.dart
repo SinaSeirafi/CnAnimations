@@ -44,11 +44,11 @@ class CnRouteTiming {
         assert(enterStagger >= 0 && enterStagger <= 1);
 
   /// Slice of progress during which an element leaves (push-over of this page,
-  /// pop of this page, and interactive back).
+  /// pop of this page, and interactive back). When the page above pops, the
+  /// same slice plays in reverse to bring the element back (uncover).
   final Interval exit;
 
-  /// Slice during which an element arrives (push of this page, return after
-  /// the page above pops).
+  /// Slice during which an element arrives (push of this page).
   final Interval enter;
 
   /// Maximum extra start delay added to [exit] for the element farthest from
@@ -206,14 +206,12 @@ class CnScrollReveal {
     this.duration,
     this.curve,
     this.offset = const Offset(0, 0.1),
-    this.once = true,
   }) : enabled = true;
 
   const CnScrollReveal._off()
       : duration = null,
         curve = null,
         offset = Offset.zero,
-        once = true,
         enabled = false;
 
   /// Scroll reveal disabled. The default.
@@ -229,10 +227,10 @@ class CnScrollReveal {
   final Curve? curve;
 
   /// Start offset of the reveal, as a fraction of the element's size.
+  ///
+  /// Each element state reveals at most once; an item scrolled away and
+  /// disposed by a lazy list reveals again when it is rebuilt.
   final Offset offset;
-
-  /// Whether an element reveals at most once per element state.
-  final bool once;
 
   @override
   bool operator ==(Object other) {
@@ -241,12 +239,11 @@ class CnScrollReveal {
         other.enabled == enabled &&
         other.duration == duration &&
         other.curve == curve &&
-        other.offset == offset &&
-        other.once == once;
+        other.offset == offset;
   }
 
   @override
-  int get hashCode => Object.hash(enabled, duration, curve, offset, once);
+  int get hashCode => Object.hash(enabled, duration, curve, offset);
 }
 
 // ---------------------------------------------------------------------------

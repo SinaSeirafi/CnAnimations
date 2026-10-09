@@ -163,8 +163,11 @@ class CnRouteAnimation extends StatefulWidget {
   /// `Offset(0, 0.1)`. The x component is logical (flipped for RTL).
   final Offset enterOffset;
 
-  /// Where the element goes when the page is covered and there is no subject.
-  /// Defaults to [enterOffset].
+  /// Where the element goes when the page is covered and there is no subject,
+  /// as a fraction of its own size. Null (the default) mirrors [enterOffset]:
+  /// `-enterOffset`, so with the defaults covered content moves up while the
+  /// incoming page rises from below, and comes back down from above on
+  /// uncover (the Material shared-axis convention).
   final Offset? exitOffset;
 
   /// Whether opacity changes at all (enter, exit and cover).
@@ -740,7 +743,7 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
       case CnElementRole.sibling:
         return cnPartingOffset(_config.parting, _direction, _coverF);
       case CnElementRole.plain:
-        return widget.exitOffset ?? widget.enterOffset;
+        return widget.exitOffset ?? -widget.enterOffset;
     }
   }
 

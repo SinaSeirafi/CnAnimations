@@ -246,8 +246,8 @@ void main() {
     });
 
     testWidgets(
-        'cover then uncover: plain elements slide to exitOffset and '
-        'back over the exit slice', (WidgetTester tester) async {
+        'cover then uncover: plain elements move up to the mirrored exitOffset '
+        'and return from above', (WidgetTester tester) async {
       final GlobalKey<NavigatorState> nav = await pumpApp(
         tester,
         page(<Widget>[item('h')]),
@@ -267,7 +267,7 @@ void main() {
             moreOrLessEquals(1 - covered, epsilon: eps));
         expect(
           offsetOf(tester, 'h'),
-          offsetMoreOrLessEquals(Offset(0, 0.1 * covered), epsilon: eps),
+          offsetMoreOrLessEquals(Offset(0, -0.1 * covered), epsilon: eps),
         );
         if (covered > 0.05 && covered < 0.95) sawMidway = true;
       }
@@ -275,7 +275,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(home.secondaryAnimation!.value, 1.0);
       expect(opacityOf(tester, 'h'), 0.0);
-      expect(offsetOf(tester, 'h'), const Offset(0, 0.1));
+      // Default exitOffset mirrors enterOffset: covered content moves up.
+      expect(offsetOf(tester, 'h'), const Offset(0, -0.1));
 
       nav.currentState!.pop();
       await tester.pump();
@@ -288,14 +289,36 @@ void main() {
             moreOrLessEquals(1 - covered, epsilon: eps));
         expect(
           offsetOf(tester, 'h'),
-          offsetMoreOrLessEquals(Offset(0, 0.1 * covered), epsilon: eps),
+          offsetMoreOrLessEquals(Offset(0, -0.1 * covered), epsilon: eps),
         );
-        if (covered > 0.05 && covered < 0.95) sawMidway = true;
+        if (covered > 0.05 && covered < 0.95) {
+          sawMidway = true;
+          // Returning from above.
+          expect(offsetOf(tester, 'h').dy, lessThan(0));
+        }
       }
       expect(sawMidway, isTrue);
       await tester.pumpAndSettle();
       expect(opacityOf(tester, 'h'), 1.0);
       expect(offsetOf(tester, 'h'), Offset.zero);
+    });
+
+    testWidgets('an explicit exitOffset wins over the mirrored default',
+        (WidgetTester tester) async {
+      final GlobalKey<NavigatorState> nav = await pumpApp(
+        tester,
+        const CnRouteAnimation(
+          key: ValueKey<String>('x'),
+          exitOffset: Offset(0.2, 0),
+          child: SizedBox(height: 50),
+        ),
+      );
+      await tester.pumpAndSettle();
+      nav.currentState!.push(
+        CnPageRoute<void>(builder: (_) => const SizedBox()),
+      );
+      await tester.pumpAndSettle();
+      expect(offsetOf(tester, 'x'), const Offset(0.2, 0));
     });
 
     testWidgets('a dialog over the page does not cover it',
@@ -957,8 +980,8 @@ void main() {
       for (int i = 0; i < 9; i++) {
         expect(
           offsetOf(tester, 'p$i'),
-          offsetMoreOrLessEquals(const Offset(0, 0.1), epsilon: eps),
-          reason: 'p$i exits as a plain element',
+          offsetMoreOrLessEquals(const Offset(0, -0.1), epsilon: eps),
+          reason: 'p$i exits as a plain element (up)',
         );
       }
     }

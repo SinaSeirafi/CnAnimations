@@ -298,7 +298,6 @@ void main() {
       const on = CnScrollReveal();
       expect(on.enabled, isTrue);
       expect(on.offset, const Offset(0, 0.1));
-      expect(on.once, isTrue);
       expect(on.duration, isNull);
       expect(on.curve, isNull);
       expect(CnScrollReveal.off.enabled, isFalse);
