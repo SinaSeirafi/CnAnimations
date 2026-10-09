@@ -248,7 +248,7 @@ void main() {
           ),
           parting: const CnPartingSpec(
             distance: Offset(0, 0.6),
-            subject: CnSubjectBehavior.stay,
+            subjectBehavior: CnSubjectBehavior.stay,
           ),
           axis: Axis.vertical,
           subjectDetection: CnSubjectDetection.pointer,

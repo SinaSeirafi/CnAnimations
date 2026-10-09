@@ -286,4 +286,16 @@ void main() {
       expect(r2.timing, same(custom));
     });
   });
+
+  group('debugLabel', () {
+    test('appends the route name only when there is one', () {
+      final unnamed = CnPageRoute<void>(builder: (_) => const SizedBox());
+      expect(unnamed.debugLabel, 'CnPageRoute<void>');
+      final named = CnPageRoute<void>(
+        builder: (_) => const SizedBox(),
+        settings: const RouteSettings(name: '/detail'),
+      );
+      expect(named.debugLabel, 'CnPageRoute<void>(/detail)');
+    });
+  });
 }

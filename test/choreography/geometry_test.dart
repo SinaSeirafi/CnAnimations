@@ -219,6 +219,29 @@ void main() {
       expect(far.curve, Curves.easeOutCubic);
     });
 
+    test('curved exit / enter Intervals assert (their curve is ignored)', () {
+      final curvedExit = CnRouteTiming(
+        exit: Interval(0.0, 0.35, curve: Curves.easeOut),
+      );
+      final curvedEnter = CnRouteTiming(
+        enter: Interval(0.35, 1.0, curve: Curves.easeIn),
+      );
+      Matcher assertsWithHint = throwsA(
+        isA<AssertionError>().having(
+          (e) => e.message,
+          'message',
+          contains('Set exitCurve / enterCurve instead'),
+        ),
+      );
+      expect(() => cnStaggeredExit(curvedExit, 0), assertsWithHint);
+      expect(() => cnStaggeredEnter(curvedExit, 0), assertsWithHint);
+      expect(() => cnStaggeredExit(curvedEnter, 0), assertsWithHint);
+      expect(() => cnStaggeredEnter(curvedEnter, 0), assertsWithHint);
+      // Linear Intervals (the default curve) pass.
+      final linear = CnRouteTiming(exit: Interval(0.1, 0.4));
+      expect(cnStaggeredExit(linear, 0).begin, 0.1);
+    });
+
     test('stagger is bounded by geometry, not list length', () {
       // 200 rows; whatever the index, the start never exceeds the bound and
       // every slice is complete at progress 1.

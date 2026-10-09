@@ -164,7 +164,7 @@ CnRouteChoreography(
   ),
   parting: const CnPartingSpec(
     distance: Offset(0, 0.6),
-    subject: CnSubjectBehavior.stay,
+    subjectBehavior: CnSubjectBehavior.stay,
   ),
   // Axis along which neighbours part (vertical for lists).
   axis: Axis.vertical,

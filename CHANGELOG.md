@@ -11,7 +11,7 @@ New
 * `animation:` parameter on `CnFade`, `CnSlide` and `CnScale` to drive them from an `Animation<double>`.
 
 Behavior notes
-* Element curves come from `CnRouteTiming.exitCurve` / `enterCurve`. Curves set on the `exit` / `enter` `Interval`s are ignored.
+* Element curves come from `CnRouteTiming.exitCurve` / `enterCurve`. Curves set on the `exit` / `enter` `Interval`s are ignored, and assert in debug.
 * `CnRouteChoreography.select()` with no `CnRouteAnimation` above it asserts in debug and does nothing in release.
 * Route types: Flutter's `MaterialPageRoute<T>.canTransitionTo` compares generic types, so a `MaterialPageRoute<int>` below a route with a different `T` may not receive exits. Prefer the theme builder or `CnPageRoute`, which do not have this quirk.
 * A plain `PageRouteBuilder` over a `MaterialPageRoute` does not drive the lower page's exits; use `CnPageRoute` or the theme builder.

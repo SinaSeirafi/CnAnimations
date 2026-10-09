@@ -122,7 +122,7 @@ class CnElementProgress {
 /// **Parting.** A pointer-down on an element (within 700 ms of the push),
 /// `CnRouteChoreography.select(context)` or `subject: true` makes it the
 /// subject of the next cover transition. The subject stays (see
-/// [CnPartingSpec.subject]); other elements on the page part away from it
+/// [CnPartingSpec.subjectBehavior]); other elements on the page part away from it
 /// along the scope's axis, nearer ones first, and same-row grid cells part
 /// sideways. Without a subject every element slides to [exitOffset] and
 /// fades. Stagger and distance come from layout geometry, so
@@ -321,6 +321,8 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
 
   @override
   void dispose() {
+    // Release a pending select() of this element (review R19).
+    _record?.clearSelection(context);
     _unbind();
     timedFallback?.removeListener(_hub.notify);
     _hub.dispose();
@@ -708,7 +710,7 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
     switch (_role) {
       case CnElementRole.subject:
         coverFactor = (!_insideSubject &&
-                _config.parting.subject == CnSubjectBehavior.fade)
+                _config.parting.subjectBehavior == CnSubjectBehavior.fade)
             ? 1.0 - covered
             : 1.0;
       case CnElementRole.sibling:
@@ -756,7 +758,7 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
     }
     if (_role == CnElementRole.subject &&
         !_insideSubject &&
-        _config.parting.subject == CnSubjectBehavior.grow) {
+        _config.parting.subjectBehavior == CnSubjectBehavior.grow) {
       scale *= 1.0 + 0.04 * _covered;
     }
     return scale;
