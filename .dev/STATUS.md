@@ -4,7 +4,7 @@ Last updated: 2026-10-09, when the first working session stopped. This file is t
 
 ## Where everything is
 
-All work is **local only**. Nothing has been pushed to GitHub or published to pub.dev. Pushing and publishing need the owner's explicit go-ahead.
+All work branches below (everything except `master`) were **pushed to origin on 2026-10-09 as a backup**, at the owner's request. `master` on origin is unchanged at 0.0.3. Nothing is published to pub.dev. Future pushes of new commits to these branches are fine as backups, but `master` must not be touched, and publishing needs the owner's go-ahead.
 
 | Branch | Worktree | Head | State |
 | --- | --- | --- | --- |
@@ -79,7 +79,7 @@ Run each step as a delegated agent, working in its slice worktree and committing
 6. **Fable review** of the merged 0.9.0 (read-only), weighing the design against the code, the docs against the behavior, and API ergonomics, plus next-step suggestions. Then an **Opus** fix round for confirmed findings. One review round.
 7. **Owner check on a device:** run `example/` on Android and iOS. This is the only way to judge feel: predictive back, Hero, 120 Hz, and the exit direction. Ask the owner.
 8. **Tag 0.9.0 locally**, then **slice R** (sonnet): remove the deprecated symbols listed under owner decisions, their tests and the old example usage; set version 1.0.0; write the CHANGELOG entry; update README migration to "removed in 1.0.0". Run full verification again.
-9. **Ask the owner** before any `git push` or `pub publish`. Publishing order: 0.9.0, then 1.0.0.
+9. **Ask the owner** before merging to `master`, opening a PR, or running `pub publish`. Publishing order: 0.9.0, then 1.0.0.
 
 ## Scheduled after the package (owner request, not started)
 
