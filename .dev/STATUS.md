@@ -68,6 +68,7 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 
 ## Session 2 (2026-10-09, from ~14:05 Yerevan)
 
+- Step 4 in flight: integration merged into `v1/slice-h` (7e16df4); H (opus) un-skipping the 4 bug tests and writing the rest of §8.
 - Step 3 done: C2 merged (ee3de20). Post-merge: root analyze clean, root 215 pass. C2 ran H's repro with RUN_BUGS=true: route checks pass in all 4; the 4 still fail only on H's own "sibling has moved" check, which uses progress 0.5 / 3×100 px drags that stay inside the exit slice (S in 0–0.35). H must change them to 0.7 and 3×200 px when un-skipping (then 11/11 pass).
 - Step 2 done: F2 merged (f9a2280). Post-merge: root analyze "No issues found", root 183 pass. Slice R must also update README migration and delete 2 tests in `test/readme_snippets_test.dart` (deprecated "before" snippet, `RouteAwareWidget.routeObserver` install) — see `notes/slice-f-notes.md` → F2.
 - Step 1 done: G merged (76dae93). Post-merge: root analyze "No issues found", root 164 pass; example analyze clean, 7 pass.
