@@ -33,7 +33,8 @@ const double eps = 1e-6;
 const List<TargetPlatform> _allPlatforms = TargetPlatform.values;
 
 /// The fade-through installed for every platform, on [platform].
-ThemeData fadeThroughTheme({TargetPlatform platform = TargetPlatform.android}) =>
+ThemeData fadeThroughTheme(
+        {TargetPlatform platform = TargetPlatform.android}) =>
     ThemeData(
       platform: platform,
       pageTransitionsTheme: PageTransitionsTheme(
@@ -44,6 +45,32 @@ ThemeData fadeThroughTheme({TargetPlatform platform = TargetPlatform.android}) =
       ),
     );
 
+/// The two ways to install the fade-through (design §3.7).
+enum Install { cnPageRoute, themeOverMaterial }
+
+Route<T> routeFor<T>(Install install, WidgetBuilder builder) {
+  switch (install) {
+    case Install.cnPageRoute:
+      return CnPageRoute<T>(builder: builder);
+    case Install.themeOverMaterial:
+      return MaterialPageRoute<T>(builder: builder);
+  }
+}
+
+/// CnPageRoute must work without touching the theme, so its variant runs
+/// under the stock theme.
+ThemeData themeFor(
+  Install install, {
+  TargetPlatform platform = TargetPlatform.android,
+}) {
+  switch (install) {
+    case Install.cnPageRoute:
+      return ThemeData(platform: platform);
+    case Install.themeOverMaterial:
+      return fadeThroughTheme(platform: platform);
+  }
+}
+
 Finder _own<T>(String label) => find
     .descendant(
       of: find.byKey(ValueKey<String>(label), skipOffstage: false),
@@ -51,8 +78,10 @@ Finder _own<T>(String label) => find
     )
     .first;
 
-bool exists(String label) =>
-    find.byKey(ValueKey<String>(label), skipOffstage: false).evaluate().isNotEmpty;
+bool exists(String label) => find
+    .byKey(ValueKey<String>(label), skipOffstage: false)
+    .evaluate()
+    .isNotEmpty;
 
 /// The element's own opacity.
 double opacityOf(WidgetTester tester, String label) =>
@@ -61,6 +90,10 @@ double opacityOf(WidgetTester tester, String label) =>
 /// The element's own slide, as a fraction of its size.
 Offset offsetOf(WidgetTester tester, String label) =>
     tester.widget<SlideTransition>(_own<SlideTransition>(label)).position.value;
+
+/// The element's own scale.
+double scaleOf(WidgetTester tester, String label) =>
+    tester.widget<ScaleTransition>(_own<ScaleTransition>(label)).scale.value;
 
 ModalRoute<Object?> routeOf(WidgetTester tester, String label) => ModalRoute.of(
       tester.element(find.byKey(ValueKey<String>(label), skipOffstage: false)),

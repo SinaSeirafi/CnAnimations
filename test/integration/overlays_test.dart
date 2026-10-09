@@ -78,7 +78,7 @@ Widget overlayPage(ProgressLog log, void Function(BuildContext) onTap) =>
     );
 
 /// The theme form needs the theme; the other two run on the stock theme.
-ThemeData themeFor(PageKind kind) => kind == PageKind.materialWithTheme
+ThemeData pageTheme(PageKind kind) => kind == PageKind.materialWithTheme
     ? fadeThroughTheme()
     : ThemeData(platform: TargetPlatform.android);
 
@@ -91,7 +91,7 @@ Future<GlobalKey<NavigatorState>> pushPage(
   final GlobalKey<NavigatorState> nav = await pumpApp(
     tester,
     const SizedBox(),
-    theme: themeFor(kind),
+    theme: pageTheme(kind),
   );
   nav.currentState!.push(pageRoute<void>(kind, page));
   await tester.pumpAndSettle();
@@ -198,7 +198,8 @@ void main() {
       expectAtRest(tester, log);
     });
 
-    testWidgets('PageRouteBuilder(opaque: false) over a CnPageRoute page does '
+    testWidgets(
+        'PageRouteBuilder(opaque: false) over a CnPageRoute page does '
         'not cover it', (WidgetTester tester) async {
       final ProgressLog log = ProgressLog();
       final GlobalKey<NavigatorState> nav = await pushPage(

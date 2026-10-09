@@ -14,31 +14,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support.dart';
 
-enum Install { cnPageRoute, themeOverMaterial }
-
-Route<void> routeFor(Install install, WidgetBuilder builder) {
-  switch (install) {
-    case Install.cnPageRoute:
-      return CnPageRoute<void>(builder: builder);
-    case Install.themeOverMaterial:
-      return MaterialPageRoute<void>(builder: builder);
-  }
-}
-
-/// CnPageRoute must work without touching the theme, so its variant runs
-/// under the stock theme.
-ThemeData themeFor(
-  Install install, {
-  TargetPlatform platform = TargetPlatform.android,
-}) {
-  switch (install) {
-    case Install.cnPageRoute:
-      return ThemeData(platform: platform);
-    case Install.themeOverMaterial:
-      return fadeThroughTheme(platform: platform);
-  }
-}
-
 /// Five 60 px items; tapping one pushes a page holding element 't'.
 Widget listPage(Install install, CnRouteTiming timing) => Builder(
       builder: (BuildContext context) => column(<Widget>[
@@ -49,7 +24,7 @@ Widget listPage(Install install, CnRouteTiming timing) => Builder(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => Navigator.of(context).push(
-                routeFor(install, (_) => column(<Widget>[item('t')])),
+                routeFor<void>(install, (_) => column(<Widget>[item('t')])),
               ),
               child: SizedBox(height: 60, child: Text('s$i')),
             ),
@@ -82,7 +57,8 @@ Future<Stack2> partedStack(
     const SizedBox(),
     theme: theme ?? themeFor(install, platform: platform),
   );
-  nav.currentState!.push(routeFor(install, (_) => listPage(install, timing)));
+  nav.currentState!
+      .push(routeFor<void>(install, (_) => listPage(install, timing)));
   await tester.pumpAndSettle();
   await tester.tap(find.text('s2'));
   await tester.pumpAndSettle();
@@ -127,13 +103,16 @@ class Sampler {
       if (exact) {
         // This page leaves on the exit curve whatever the status (forward
         // while dragging and cancelling, reverse after commit).
-        expect(topOpacity.last, moreOrLessEquals(shownLeaving(a), epsilon: eps));
+        expect(
+            topOpacity.last, moreOrLessEquals(shownLeaving(a), epsilon: eps));
       }
     }
     if (exact) {
       final double c = coveredAt(sv);
-      expect(sibling0.last, moreOrLessEquals(stack.parted0.dy * c, epsilon: eps));
-      expect(sibling4.last, moreOrLessEquals(stack.parted4.dy * c, epsilon: eps));
+      expect(
+          sibling0.last, moreOrLessEquals(stack.parted0.dy * c, epsilon: eps));
+      expect(
+          sibling4.last, moreOrLessEquals(stack.parted4.dy * c, epsilon: eps));
       expect(opacityOf(tester, 's0'), moreOrLessEquals(1 - c, epsilon: eps));
     }
   }

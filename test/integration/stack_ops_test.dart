@@ -3,26 +3,10 @@
 //
 // Every test runs with both route installs. Values are sampled every frame
 // against the flat-timing formulas from support.dart.
-import 'package:cn_animations/cn_animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support.dart';
-
-enum Install { cnPageRoute, themeOverMaterial }
-
-Route<void> routeFor(Install install, WidgetBuilder builder) {
-  switch (install) {
-    case Install.cnPageRoute:
-      return CnPageRoute<void>(builder: builder);
-    case Install.themeOverMaterial:
-      return MaterialPageRoute<void>(builder: builder);
-  }
-}
-
-ThemeData themeFor(Install install) => install == Install.cnPageRoute
-    ? ThemeData(platform: TargetPlatform.android)
-    : fadeThroughTheme();
 
 /// [n] tappable 60 px elements named '$prefix$i'; a tap on one calls
 /// [onTap] with the page's context.
@@ -72,7 +56,8 @@ void main() {
         );
         await tester.pumpAndSettle();
         final ModalRoute<Object?> home = routeOf(tester, 'h0');
-        nav.currentState!.push(routeFor(install, (_) => listPage('x', 1)));
+        nav.currentState!
+            .push(routeFor<void>(install, (_) => listPage('x', 1)));
         await tester.pump();
         final ModalRoute<Object?> top = routeOf(tester, 'x0');
         while (top.animation!.value < 0.4) {
@@ -92,7 +77,8 @@ void main() {
           final double c = coveredAt(sv);
           expect(offsetOf(tester, 'h0'),
               offsetMoreOrLessEquals(Offset(0, -0.1 * c), epsilon: eps));
-          expect(opacityOf(tester, 'h0'), moreOrLessEquals(1 - c, epsilon: eps));
+          expect(
+              opacityOf(tester, 'h0'), moreOrLessEquals(1 - c, epsilon: eps));
           a.add(av);
           shown.add(opacityOf(tester, 'x0'));
           below.add(opacityOf(tester, 'h0'));
@@ -124,18 +110,19 @@ void main() {
           const SizedBox(),
           theme: themeFor(install),
         );
-        nav.currentState!.push(routeFor(install, (_) => listPage('a', 3)));
+        nav.currentState!
+            .push(routeFor<void>(install, (_) => listPage('a', 3)));
         await tester.pumpAndSettle();
         final ModalRoute<Object?> a = routeOf(tester, 'a0');
         nav.currentState!.push(
-          routeFor(
+          routeFor<void>(
             install,
             (_) => listPage(
               'b',
               5,
               onTap: (BuildContext context) =>
                   Navigator.of(context).pushReplacement(
-                routeFor(install, (_) => listPage('c', 2)),
+                routeFor<void>(install, (_) => listPage('c', 2)),
               ),
             ),
           ),
@@ -215,11 +202,13 @@ void main() {
           const SizedBox(),
           theme: themeFor(install),
         );
-        nav.currentState!.push(routeFor(install, (_) => listPage('a', 3)));
+        nav.currentState!
+            .push(routeFor<void>(install, (_) => listPage('a', 3)));
         await tester.pumpAndSettle();
         final ModalRoute<Object?> a = routeOf(tester, 'a0');
         for (final String prefix in <String>['b', 'c', 'd']) {
-          nav.currentState!.push(routeFor(install, (_) => listPage(prefix, 2)));
+          nav.currentState!
+              .push(routeFor<void>(install, (_) => listPage(prefix, 2)));
           await tester.pumpAndSettle();
         }
         final ModalRoute<Object?> d = routeOf(tester, 'd0');
@@ -239,7 +228,8 @@ void main() {
             expect(s.last, moreOrLessEquals(d.animation!.value, epsilon: eps),
                 reason: 'driven by the top popped route');
           }
-          expect(opacity.last, moreOrLessEquals(1 - coveredAt(s.last), epsilon: eps));
+          expect(opacity.last,
+              moreOrLessEquals(1 - coveredAt(s.last), epsilon: eps));
         }
         expect(tester.takeException(), isNull);
         expect(drivenFrames, greaterThan(3));
