@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '_directional_curve_copy.dart';
+import '../choreography/cn_route_choreography.dart' show CnRouteTiming;
+import '../progress/cn_directional_curved_animation.dart';
 
 /// Fade-through transition designed for the element choreography: the page
 /// below stays fully visible for the first part of a push while its elements
@@ -10,11 +11,18 @@ import '_directional_curve_copy.dart';
 class CnFadeThroughPageTransitionsBuilder extends PageTransitionsBuilder {
   /// Creates the builder. [backgroundColor] defaults to
   /// `ColorScheme.surface` of the surrounding theme.
-  // TODO(slice F): add `timing = CnRouteTiming.standard` once CnRouteTiming is merged.
-  const CnFadeThroughPageTransitionsBuilder({this.backgroundColor});
+  const CnFadeThroughPageTransitionsBuilder({
+    this.backgroundColor,
+    this.timing = CnRouteTiming.standard,
+  });
 
   /// Color painted behind the incoming page.
   final Color? backgroundColor;
+
+  /// Reserved for API parity with the element choreography. The page
+  /// transition itself keeps its fixed fade-through intervals and 400 ms
+  /// duration; element timing is read from the scope and the widgets.
+  final CnRouteTiming timing;
 
   /// Fade-in window of route progress.
   static const Interval _enter = Interval(0.3, 1.0);
@@ -78,7 +86,7 @@ class _CnFadeThrough extends StatefulWidget {
 }
 
 class _CnFadeThroughState extends State<_CnFadeThrough> {
-  late DirectionalCurveCopy _curved;
+  late CnDirectionalCurvedAnimation _curved;
 
   @override
   void initState() {
@@ -86,7 +94,7 @@ class _CnFadeThroughState extends State<_CnFadeThrough> {
     _curved = _make();
   }
 
-  DirectionalCurveCopy _make() => DirectionalCurveCopy(
+  CnDirectionalCurvedAnimation _make() => CnDirectionalCurvedAnimation(
         widget.animation,
         enter: CnFadeThroughPageTransitionsBuilder._enter,
         exit: CnFadeThroughPageTransitionsBuilder._exit,

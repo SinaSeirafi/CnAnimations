@@ -1,3 +1,4 @@
+import 'package:cn_animations/src/choreography/cn_route_choreography.dart';
 import 'package:cn_animations/src/route/cn_fade_through_page_transitions_builder.dart';
 import 'package:cn_animations/src/route/cn_page_route.dart';
 import 'package:flutter/material.dart';
@@ -103,10 +104,12 @@ void main() {
       );
       final route = CnPageRoute<void>(builder: (_) => const SizedBox());
       expect(route.transitionDuration, const Duration(milliseconds: 400));
-      expect(route.reverseTransitionDuration, const Duration(milliseconds: 400));
+      expect(
+          route.reverseTransitionDuration, const Duration(milliseconds: 400));
     });
 
-    testWidgets('installed via pageTransitionsTheme, a MaterialPageRoute uses it',
+    testWidgets(
+        'installed via pageTransitionsTheme, a MaterialPageRoute uses it',
         (t) async {
       final home = _Rec();
       final nav = await _app(
@@ -134,7 +137,8 @@ void main() {
   });
 
   group('CnPageRoute covering behaviour', () {
-    testWidgets('MaterialPageRoute<int> beneath CnPageRoute<void> drives its '
+    testWidgets(
+        'MaterialPageRoute<int> beneath CnPageRoute<void> drives its '
         'secondaryAnimation', (t) async {
       final home = _Rec();
       final below = _Rec();
@@ -152,7 +156,8 @@ void main() {
       expect(below.secondary.value, 1.0);
     });
 
-    testWidgets('MaterialPageRoute<dynamic> and a PageRouteBuilder below also '
+    testWidgets(
+        'MaterialPageRoute<dynamic> and a PageRouteBuilder below also '
         'animate under CnPageRoute', (t) async {
       final home = _Rec();
       final nav = await _app(t, home);
@@ -191,7 +196,8 @@ void main() {
       expect(cn.secondary.value, greaterThan(0));
     });
 
-    testWidgets('PageRouteBuilder(opaque: false) does not cover a CnPageRoute '
+    testWidgets(
+        'PageRouteBuilder(opaque: false) does not cover a CnPageRoute '
         'page', (t) async {
       final home = _Rec();
       final cn = _Rec();
@@ -265,6 +271,19 @@ void main() {
       );
       await _pumpFrames(t);
       expect(cn.secondary.value, 0.0);
+    });
+  });
+
+  group('timing parameter', () {
+    test('defaults to standard and is passed through', () {
+      expect(const CnFadeThroughPageTransitionsBuilder().timing,
+          CnRouteTiming.standard);
+      final route = CnPageRoute<void>(builder: (_) => const SizedBox());
+      expect(route.timing, CnRouteTiming.standard);
+      const custom = CnRouteTiming(exitStagger: 0.5);
+      final r2 =
+          CnPageRoute<void>(builder: (_) => const SizedBox(), timing: custom);
+      expect(r2.timing, same(custom));
     });
   });
 }

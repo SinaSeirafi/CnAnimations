@@ -8,41 +8,50 @@ This is exactly what this package is trying to help you with.
 
 ## Features
 
-### Basic Animations: 
+### Basic animations
 - Fade
 - Slide
 - Scale
 
 ![](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/master/CnAnimations%20gif%200.2.gif)
 
-### Route Aware Animation
-Combining Fade and Slide animations with navigation events
-- same page push / pop animation
-- next page push / pop animation
+### Navigation-driven element choreography
+Elements of a page animate with the page transition itself: they leave when another page covers theirs, arrive when the page appears, and follow a swipe-back gesture. The motion is driven by route progress, not by navigation events, so it stays in sync however the route moves.
+
+Pair it with `CnPageRoute` or `CnFadeThroughPageTransitionsBuilder`, and tune it app-wide with `CnRouteChoreography`.
+
+<!-- part 2: CnRouteAnimation usage snippets -->
+
+### Route aware animation (deprecated)
+`CnRouteAwareAnimation` and `RouteAwareWidget` react to navigation events through a `RouteObserver`. They still work in 0.9.0 and will be removed in 1.0.0. See "Migrating from 0.1.0".
 
 ![](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/master/CnAnimations%20RA%20gif%200.1.gif)
-
-Requires setup. (below)
-
-### Route Aware Widget 
-Run functions based on navigation events. (push, pop, pushNext, popNext)
-
-It is used within CnRouteAwareAnimation.
-Requires setup. (below)
 
 
 ## Getting started
 If you only want to use basic animations, you're good to go!
 
-If you want to use RouteAwareWidget or CnRouteAwareAnimation you need to setup routeObserver. 
+For navigation-driven choreography, use `CnPageRoute`, or add the builder to your theme:
 
-Setup: Add RouteAwareWidget.routeObserver in material app (main)
 ```dart
 import 'package:cn_animations/cn_animations.dart';
 
 MaterialApp(
+  theme: ThemeData(
+    pageTransitionsTheme: const PageTransitionsTheme(builders: {
+      TargetPlatform.android: CnFadeThroughPageTransitionsBuilder(),
+      TargetPlatform.iOS: CnFadeThroughPageTransitionsBuilder(),
+    }),
+  ),
+)
+```
+
+The deprecated `CnRouteAwareAnimation` and `RouteAwareWidget` still need the observer:
+
+```dart
+MaterialApp(
   navigatorObservers: [RouteAwareWidget.routeObserver],
-) 
+)
 ```
 
 
@@ -104,3 +113,12 @@ CnRouteAwareAnimation(
   child: child,
 ) 
 ```
+
+
+## Migrating from 0.1.0
+0.9.0 keeps every 0.1.0 widget working. The route-aware widgets are deprecated and will be removed in 1.0.0, so migrate now:
+
+1. Replace `CnRouteAwareAnimation` with `CnRouteAnimation`. <!-- part 2: parameter mapping table -->
+2. Delete `navigatorObservers: [RouteAwareWidget.routeObserver]` unless you use `RouteAwareWidget` yourself.
+3. If you used a custom `PageRouteBuilder` fade route, switch to `CnPageRoute` or the theme builder. A plain `PageRouteBuilder` over a `MaterialPageRoute` never drives the lower page's exits.
+4. If you relied on items animating as they were scrolled into view, set `scrollReveal: const CnScrollReveal()` on the `CnRouteChoreography` scope.
