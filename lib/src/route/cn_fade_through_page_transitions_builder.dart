@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../choreography/cn_route_choreography.dart' show CnRouteTiming;
 import '../progress/cn_directional_curved_animation.dart';
 import 'cn_back_gesture_detector.dart';
 
@@ -20,18 +19,10 @@ class CnFadeThroughPageTransitionsBuilder extends PageTransitionsBuilder {
   /// `ColorScheme.surface` of the surrounding theme.
   const CnFadeThroughPageTransitionsBuilder({
     this.backgroundColor,
-    @Deprecated('Has no effect; removed in 1.0.0')
-    this.timing = CnRouteTiming.standard,
   });
 
   /// Color painted behind the incoming page.
   final Color? backgroundColor;
-
-  /// Has no effect: the page transition keeps its fixed fade-through
-  /// intervals and 400 ms duration. Element timing is read from the
-  /// `CnRouteChoreography` scope and the widgets. Removed in 1.0.0.
-  @Deprecated('Has no effect; removed in 1.0.0')
-  final CnRouteTiming timing;
 
   /// Fade-in window of route progress.
   static const Interval _enter = Interval(0.3, 1.0);

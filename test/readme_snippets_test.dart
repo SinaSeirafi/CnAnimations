@@ -130,14 +130,6 @@ void main() {
       expect(find.text('detail page'), findsOneWidget);
     });
 
-    testWidgets('deprecated observer install still compiles', (tester) async {
-      // ignore: deprecated_member_use_from_same_package
-      final observer = RouteAwareWidget.routeObserver;
-      await tester.pumpWidget(
-        MaterialApp(navigatorObservers: [observer], home: const HomePage()),
-      );
-      expect(find.text('home page'), findsOneWidget);
-    });
   });
 
   group('CnRouteAnimation', () {
@@ -365,23 +357,5 @@ void main() {
       expect(find.text('child'), findsOneWidget);
     });
 
-    testWidgets('before snippet (deprecated) still builds', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          // ignore: deprecated_member_use_from_same_package
-          navigatorObservers: [RouteAwareWidget.routeObserver],
-          home: Scaffold(
-            // ignore: deprecated_member_use_from_same_package
-            body: CnRouteAwareAnimation(
-              beginSamePage: const Offset(0, -0.1),
-              endNextPage: const Offset(0, 0.1),
-              child: child,
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('child'), findsOneWidget);
-    });
   });
 }

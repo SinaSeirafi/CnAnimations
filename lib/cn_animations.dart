@@ -3,8 +3,6 @@ library;
 export 'cn_fade.dart';
 export 'cn_slide.dart';
 export 'cn_scale.dart';
-export 'cn_route_aware_animation.dart';
-export 'route_aware_widget.dart' hide routeObserver;
 
 // Navigation-driven choreography. geometry.dart, route_progress.dart and the
 // kCn* constants / CnRouteSubjectTarget are package-internal and not exported.
