@@ -5,10 +5,13 @@ Color _colorFor(int index) =>
     Colors.primaries[index % Colors.primaries.length].shade400;
 
 /// A coloured square that flies to the detail page. The Hero is the tapped
-/// item, so it keeps the `stay` role while its siblings part.
+/// item, so it keeps the `stay` role while its siblings part. It follows back
+/// gestures because it sets `transitionOnUserGestures`.
 Widget heroThumb(int index, {required double size}) {
   return Hero(
     tag: 'card-$index',
+    // Fly during swipe-back and predictive back too, not only on push/pop.
+    transitionOnUserGestures: true,
     child: Container(
       width: size,
       height: size,
