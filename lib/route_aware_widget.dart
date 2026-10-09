@@ -1,39 +1,50 @@
 import 'package:flutter/material.dart';
 
-final RouteObserver<PageRoute> _routeObserver = RouteObserver<PageRoute>();
-RouteObserver<PageRoute> get routeObserver => _routeObserver;
+/// Kept for backwards compatibility. Returns the same instance as
+/// [RouteAwareWidget.routeObserver].
+@Deprecated('Use RouteAwareWidget.routeObserver')
+RouteObserver<PageRoute> get routeObserver => RouteAwareWidget.routeObserver;
 
 /// ## Setup
 /// Add routeObserver in material app (main)
 ///
 /// ```dart
 /// MaterialApp(
-///   navigatorObservers: [routeObserver],
+///   navigatorObservers: [RouteAwareWidget.routeObserver],
 /// )
 /// ```
+///
+/// Inside routes that are not a [PageRoute] (dialogs, bottom sheets), only
+/// [onPush] is called, once.
 class RouteAwareWidget extends StatefulWidget {
   const RouteAwareWidget({
-    Key? key,
+    super.key,
     required this.child,
     this.onPush,
     this.onPop,
     this.onPushNext,
     this.onPopNext,
-  }) : super(key: key);
+  });
+
+  static final RouteObserver<PageRoute> _routeObserver =
+      RouteObserver<PageRoute>();
+
+  /// Add this to `MaterialApp.navigatorObservers`.
+  static RouteObserver<PageRoute> get routeObserver => _routeObserver;
 
   final Widget child;
 
   /// This function will be called when this page is pushed, aka initState
-  final Function? onPush;
+  final VoidCallback? onPush;
 
   /// This function will be called when this page is poped
-  final Function? onPop;
+  final VoidCallback? onPop;
 
   /// This function will be called when next page is pushed
-  final Function? onPushNext;
+  final VoidCallback? onPushNext;
 
   /// This function will be called when next page is poped
-  final Function? onPopNext;
+  final VoidCallback? onPopNext;
 
   @override
   State<RouteAwareWidget> createState() => _RouteAwareWidgetState();
@@ -57,27 +68,38 @@ class _RouteAwareWidgetState extends State<RouteAwareWidget> with RouteAware {
   @override
   void didPopNext() => _run(widget.onPopNext);
 
-  void _run(Function? function) {
+  void _run(VoidCallback? function) {
     if (function != null) function();
   }
+
+  /// Whether [_route] has been resolved at least once.
+  bool _hasResolvedRoute = false;
+  ModalRoute<dynamic>? _route;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    try {
-      routeObserver.subscribe(
-          this, ModalRoute.of(context)! as PageRoute<dynamic>);
-    } catch (e) {
-      /// This might fail for opening modals
-      /// as they are not subclass of PageRoute
 
-      // print("Add Route Observer error: $e");
+    final ModalRoute<dynamic>? route = ModalRoute.of(context);
+    if (_hasResolvedRoute && route == _route) return;
+
+    _hasResolvedRoute = true;
+    _route = route;
+    RouteAwareWidget.routeObserver.unsubscribe(this);
+
+    if (route is PageRoute) {
+      // Calls didPush once for this route.
+      RouteAwareWidget.routeObserver.subscribe(this, route);
+    } else {
+      // Dialogs, bottom sheets and other non-page routes are not tracked by
+      // the observer, so treat this widget as pushed, once per route.
+      didPush();
     }
   }
 
   @override
   void dispose() {
-    routeObserver.unsubscribe(this);
+    RouteAwareWidget.routeObserver.unsubscribe(this);
 
     super.dispose();
   }

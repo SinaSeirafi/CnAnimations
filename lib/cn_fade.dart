@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 class CnFade extends StatefulWidget {
   final Widget child;
   final Duration duration;
+
+  /// Overrides [duration] when non-null.
+  @Deprecated('Use duration instead')
   final int? durationInMilliseconds;
   final bool forward;
   final Curve? curve;
@@ -14,19 +17,25 @@ class CnFade extends StatefulWidget {
   final Duration? delay;
   final AnimationController? controller;
 
+  /// When true (default) and the platform asks to reduce motion
+  /// ([MediaQuery.disableAnimations]), the final state is shown immediately.
+  /// Set to false to animate regardless of that setting.
+  final bool respectReducedMotion;
+
   const CnFade({
-    Key? key,
+    super.key,
     required this.child,
     this.duration = const Duration(milliseconds: 500),
-    this.durationInMilliseconds,
+    @Deprecated('Use duration instead') this.durationInMilliseconds,
     this.forward = true,
     this.fadeStartValue = 0,
     this.fadeEndValue = 1,
     this.delay,
     this.delayInMilliseconds = 10,
     this.controller,
+    this.respectReducedMotion = true,
     this.curve,
-  }) : super(key: key);
+  });
 
   @override
   State<CnFade> createState() => _CnFadeState();
@@ -36,60 +45,104 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return FadeTransition(
-      opacity: _fadeAnimation,
+      opacity: _reduceMotion
+          ? AlwaysStoppedAnimation<double>(_finalValue)
+          : _fadeAnimation,
       child: widget.child,
     );
   }
 
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
+  CurvedAnimation? _curvedAnimation;
+  Timer? _delayTimer;
+
+  Duration get _duration {
+    // ignore: deprecated_member_use_from_same_package
+    final int? milliseconds = widget.durationInMilliseconds;
+    return milliseconds != null
+        ? Duration(milliseconds: milliseconds)
+        : widget.duration;
+  }
+
+  double get _finalValue =>
+      widget.forward ? widget.fadeEndValue : widget.fadeStartValue;
+
+  bool get _reduceMotion =>
+      widget.respectReducedMotion &&
+      (MediaQuery.maybeDisableAnimationsOf(context) ?? false);
 
   @override
   void didUpdateWidget(covariant CnFade oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (_controller.duration != _duration) _controller.duration = _duration;
+
+    if (widget.controller != oldWidget.controller) {
+      if (widget.controller == null) {
+        _startInternalController();
+      } else {
+        _delayTimer?.cancel();
+      }
+    }
+
     if (widget.forward != oldWidget.forward ||
         widget.fadeStartValue != oldWidget.fadeStartValue ||
         widget.fadeEndValue != oldWidget.fadeEndValue ||
         widget.controller != oldWidget.controller ||
-        widget.curve != oldWidget.curve) _updateFadeAnimation();
-
-    super.didUpdateWidget(oldWidget);
+        widget.curve != oldWidget.curve) {
+      _updateFadeAnimation();
+    }
   }
 
-  _updateFadeAnimation() {
+  void _updateFadeAnimation() {
+    _curvedAnimation?.dispose();
+    _curvedAnimation = CurvedAnimation(
+      parent: widget.controller ?? _controller,
+      curve: widget.curve ?? Curves.easeInOut,
+    );
+
     _fadeAnimation = Tween<double>(
       begin: widget.forward ? widget.fadeStartValue : widget.fadeEndValue,
       end: widget.forward ? widget.fadeEndValue : widget.fadeStartValue,
-    ).animate(
-      CurvedAnimation(
-        parent: widget.controller ?? _controller,
-        curve: widget.curve ?? Curves.easeInOut,
-      ),
+    ).animate(_curvedAnimation!);
+  }
+
+  /// Runs the internal controller forward after the delay.
+  void _startInternalController() {
+    _delayTimer?.cancel();
+    _delayTimer = Timer(
+      widget.delay ?? Duration(milliseconds: widget.delayInMilliseconds),
+      () {
+        if (!mounted) return;
+
+        if (_reduceMotion) {
+          _controller.value = 1;
+        } else {
+          _controller.forward();
+        }
+      },
     );
   }
 
   @override
   void initState() {
+    super.initState();
+
     _controller = AnimationController(
-      duration: widget.duration,
+      duration: _duration,
       vsync: this,
     );
 
     _updateFadeAnimation();
 
-    if (widget.controller == null) {
-      Future.delayed(
-        widget.delay ?? Duration(milliseconds: widget.delayInMilliseconds),
-        () {
-          if (mounted) _controller.forward();
-        },
-      );
-    }
-
-    super.initState();
+    if (widget.controller == null) _startInternalController();
   }
 
   @override
   void dispose() {
+    _delayTimer?.cancel();
+    _curvedAnimation?.dispose();
     _controller.dispose();
     super.dispose();
   }

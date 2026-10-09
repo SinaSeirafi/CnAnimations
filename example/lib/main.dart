@@ -1,6 +1,5 @@
 import 'package:cn_animations/cn_animations.dart';
 
-import 'package:cn_animations/route_aware_widget.dart';
 import 'package:example/restart_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +9,7 @@ void main() {
       child: MaterialApp(
         home: const MyHomePage(),
         theme: ThemeData(primarySwatch: Colors.teal),
-        navigatorObservers: [routeObserver],
+        navigatorObservers: [RouteAwareWidget.routeObserver],
       ),
     ),
   );
@@ -129,7 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
 /// To show the effect of [CnRouteAwareAnimation] upon items of the first page
 class NewPage extends StatelessWidget {
-  const NewPage({Key? key}) : super(key: key);
+  const NewPage({super.key});
 
   @override
   Widget build(BuildContext context) {

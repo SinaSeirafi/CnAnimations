@@ -8,12 +8,23 @@ class CnSlide extends StatefulWidget {
   final Offset begin;
   final Offset end;
   final Curve? curve;
+
+  /// Start of the animation within [duration], from 0.0 to 1.0.
   final double intervalBegin;
+
+  /// End of the animation within [duration], from 0.0 to 1.0.
   final double intervalEnd;
   final bool forward;
   final Duration? delay;
   final int delayInMilliseconds;
   final AnimationController? controller;
+
+  /// When true (default) and the platform asks to reduce motion
+  /// ([MediaQuery.disableAnimations]), the final state is shown immediately.
+  /// Set to false to animate regardless of that setting.
+  final bool respectReducedMotion;
+
+  @Deprecated('Has no effect and will be removed in a future release')
   final bool reverseControllerValue;
 
   const CnSlide({
@@ -28,9 +39,11 @@ class CnSlide extends StatefulWidget {
     this.delay,
     this.delayInMilliseconds = 0,
     this.controller,
+    this.respectReducedMotion = true,
+    @Deprecated('Has no effect and will be removed in a future release')
     this.reverseControllerValue = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<CnSlide> createState() => _CnSlideState();
@@ -40,39 +53,89 @@ class _CnSlideState extends State<CnSlide> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return SlideTransition(
-      position: _slideAnimation,
+      position: _reduceMotion
+          ? AlwaysStoppedAnimation<Offset>(_finalValue)
+          : _slideAnimation,
       child: widget.child,
     );
   }
 
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
+  CurvedAnimation? _curvedAnimation;
+  Timer? _delayTimer;
+
+  Offset get _finalValue => widget.forward ? widget.end : widget.begin;
+
+  bool get _reduceMotion =>
+      widget.respectReducedMotion &&
+      (MediaQuery.maybeDisableAnimationsOf(context) ?? false);
 
   @override
   void didUpdateWidget(covariant CnSlide oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (_controller.duration != widget.duration) {
+      _controller.duration = widget.duration;
+    }
+
+    if (widget.controller != oldWidget.controller) {
+      if (widget.controller == null) {
+        _startInternalController();
+      } else {
+        _delayTimer?.cancel();
+      }
+    }
+
     if (widget.forward != oldWidget.forward ||
         widget.begin != oldWidget.begin ||
         widget.end != oldWidget.end ||
         widget.controller != oldWidget.controller ||
-        widget.curve != oldWidget.curve) _updateSlideAnimation();
-
-    super.didUpdateWidget(oldWidget);
+        widget.curve != oldWidget.curve ||
+        widget.intervalBegin != oldWidget.intervalBegin ||
+        widget.intervalEnd != oldWidget.intervalEnd) {
+      _updateSlideAnimation();
+    }
   }
 
-  _updateSlideAnimation() {
+  void _updateSlideAnimation() {
+    _curvedAnimation?.dispose();
+    _curvedAnimation = CurvedAnimation(
+      parent: widget.controller ?? _controller,
+      curve: Interval(
+        widget.intervalBegin,
+        widget.intervalEnd,
+        curve: widget.curve ?? Curves.easeInOut,
+      ),
+    );
+
     _slideAnimation = Tween<Offset>(
       begin: widget.forward ? widget.begin : widget.end,
       end: widget.forward ? widget.end : widget.begin,
-    ).animate(
-      CurvedAnimation(
-        parent: widget.controller ?? _controller,
-        curve: widget.curve ?? Curves.easeInOut,
-      ),
+    ).animate(_curvedAnimation!);
+  }
+
+  /// Runs the internal controller forward after the delay.
+  void _startInternalController() {
+    _delayTimer?.cancel();
+    _delayTimer = Timer(
+      widget.delay ?? Duration(milliseconds: widget.delayInMilliseconds),
+      () {
+        if (!mounted) return;
+
+        if (_reduceMotion) {
+          _controller.value = 1;
+        } else {
+          _controller.forward();
+        }
+      },
     );
   }
 
   @override
   void initState() {
+    super.initState();
+
     _controller = AnimationController(
       duration: widget.duration,
       vsync: this,
@@ -80,20 +143,13 @@ class _CnSlideState extends State<CnSlide> with SingleTickerProviderStateMixin {
 
     _updateSlideAnimation();
 
-    if (widget.controller == null) {
-      Future.delayed(
-        widget.delay ?? Duration(milliseconds: widget.delayInMilliseconds),
-        () {
-          if (mounted) _controller.forward();
-        },
-      );
-    }
-
-    super.initState();
+    if (widget.controller == null) _startInternalController();
   }
 
   @override
   void dispose() {
+    _delayTimer?.cancel();
+    _curvedAnimation?.dispose();
     _controller.dispose();
     super.dispose();
   }

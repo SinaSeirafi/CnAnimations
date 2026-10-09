@@ -3,14 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'cn_animations.dart';
-import 'route_aware_widget.dart';
 
 /// ### Setup
 /// Requires adding RouteObserver in Material App to work
 /// Otherwise only push will work
 class CnRouteAwareAnimation extends StatefulWidget {
   const CnRouteAwareAnimation({
-    Key? key,
+    super.key,
     required this.child,
     this.showFadeAnimation = true,
     this.fadeStartSamePage = 0,
@@ -31,7 +30,8 @@ class CnRouteAwareAnimation extends StatefulWidget {
     this.fadeDelayInMilliseconds = 0,
     this.slideDuration = const Duration(milliseconds: 300),
     this.slideDelayInMilliseconds = 0,
-  }) : super(key: key);
+    this.respectReducedMotion = true,
+  });
 
   final Widget child;
 
@@ -98,6 +98,11 @@ class CnRouteAwareAnimation extends StatefulWidget {
   /// [Delay] before starting the [slide] animations in milliseconds
   final int slideDelayInMilliseconds;
 
+  /// When true (default) and the platform asks to reduce motion
+  /// ([MediaQuery.disableAnimations]), the final state is shown immediately.
+  /// Set to false to animate regardless of that setting.
+  final bool respectReducedMotion;
+
   @override
   State<CnRouteAwareAnimation> createState() => _CnRouteAwareAnimationState();
 }
@@ -110,7 +115,9 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
         (!widget.showPush &&
             !widget.showPop &&
             !widget.showPushNext &&
-            !widget.showPopNext)) {
+            !widget.showPopNext) ||
+        (widget.respectReducedMotion &&
+            (MediaQuery.maybeDisableAnimationsOf(context) ?? false))) {
       return widget.child;
     }
 
@@ -119,6 +126,8 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
         if (widget.showPush) {
           _emitSame();
           _controllersForward();
+        } else {
+          _controllersShown();
         }
       },
       onPop: () {
@@ -139,18 +148,21 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
           _controllersReverse();
         }
       },
-      child: StreamBuilder<_AnimationValues>(
-        stream: streamController.stream,
-        initialData: initialData,
-        builder: (context, snapshot) {
+      // onPush can run while this subtree is building (from
+      // RouteAwareWidget.didChangeDependencies), where setState on this state
+      // is not allowed. The listener lives below RouteAwareWidget, so updating
+      // the notifier there is safe.
+      child: ValueListenableBuilder<_AnimationValues>(
+        valueListenable: _values,
+        builder: (context, values, _) {
           return _fadeAnimation(
             controller: fadeController,
-            fadeStart: snapshot.data!.fadeStart,
-            fadeEnd: snapshot.data!.fadeEnd,
+            fadeStart: values.fadeStart,
+            fadeEnd: values.fadeEnd,
             child: _slideAnimation(
               controller: slideController,
-              begin: snapshot.data!.begin,
-              end: snapshot.data!.end,
+              begin: values.begin,
+              end: values.end,
               child: widget.child,
             ),
           );
@@ -159,11 +171,18 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
     );
   }
 
-  _AnimationValues get initialData => _AnimationValues(
+  _AnimationValues get _sameValues => _AnimationValues(
         begin: widget.beginSamePage,
         end: widget.endSamePage,
         fadeStart: widget.fadeStartSamePage,
         fadeEnd: widget.fadeEndSamePage,
+      );
+
+  _AnimationValues get _nextValues => _AnimationValues(
+        begin: widget.beginNextPage ?? widget.endSamePage,
+        end: widget.endNextPage ?? widget.beginSamePage,
+        fadeStart: widget.fadeStartNextPage ?? widget.fadeEndSamePage,
+        fadeEnd: widget.fadeEndNextPage ?? widget.fadeStartSamePage,
       );
 
   Widget _fadeAnimation({
@@ -178,6 +197,7 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
       controller: controller,
       fadeStartValue: fadeStart,
       fadeEndValue: fadeEnd,
+      respectReducedMotion: widget.respectReducedMotion,
       child: child,
     );
   }
@@ -194,51 +214,47 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
       controller: controller,
       begin: begin,
       end: end,
+      respectReducedMotion: widget.respectReducedMotion,
       child: child,
     );
   }
 
-  _setControllerValues(double val) {
+  void _setControllerValues(double val) {
     fadeController.value = val;
     slideController.value = val;
   }
 
-  _controllersForward() {
+  void _controllersForward() {
+    _cancelTimers();
     _setControllerValues(0);
-    _handleDelay(widget.fadeDelayInMilliseconds, fadeController.forward);
-    _handleDelay(widget.slideDelayInMilliseconds, slideController.forward);
+    _fadeTimer =
+        _handleDelay(widget.fadeDelayInMilliseconds, fadeController.forward);
+    _slideTimer =
+        _handleDelay(widget.slideDelayInMilliseconds, slideController.forward);
   }
 
-  _controllersReverse() {
+  void _controllersReverse() {
+    _cancelTimers();
     _setControllerValues(1);
-    _handleDelay(widget.fadeDelayInMilliseconds, fadeController.reverse);
-    _handleDelay(widget.slideDelayInMilliseconds, slideController.reverse);
+    _fadeTimer =
+        _handleDelay(widget.fadeDelayInMilliseconds, fadeController.reverse);
+    _slideTimer =
+        _handleDelay(widget.slideDelayInMilliseconds, slideController.reverse);
   }
 
-  _emitSame() {
-    streamController.add(
-      _AnimationValues(
-        begin: widget.beginSamePage,
-        end: widget.endSamePage,
-        fadeStart: widget.fadeStartSamePage,
-        fadeEnd: widget.fadeEndSamePage,
-      ),
-    );
+  /// Push animation is not played: sit at the shown (completed) state.
+  void _controllersShown() {
+    _cancelTimers();
+    _emitSame();
+    _setControllerValues(1);
   }
 
-  _emitNext() {
-    streamController.add(
-      _AnimationValues(
-        begin: widget.beginNextPage ?? widget.endSamePage,
-        end: widget.endNextPage ?? widget.beginSamePage,
-        fadeStart: widget.fadeStartNextPage ?? widget.fadeEndSamePage,
-        fadeEnd: widget.fadeEndNextPage ?? widget.fadeStartSamePage,
-      ),
-    );
-  }
+  void _emitSame() => _values.value = _sameValues;
 
-  _handleDelay(int delayInMilliseconds, Function function) {
-    Future.delayed(
+  void _emitNext() => _values.value = _nextValues;
+
+  Timer _handleDelay(int delayInMilliseconds, VoidCallback function) {
+    return Timer(
       Duration(milliseconds: delayInMilliseconds),
       () {
         if (mounted) function();
@@ -246,43 +262,90 @@ class _CnRouteAwareAnimationState extends State<CnRouteAwareAnimation>
     );
   }
 
+  /// Each navigation event replaces the pending delayed callbacks of the
+  /// previous one, so they cannot run out of order.
+  void _cancelTimers() {
+    _fadeTimer?.cancel();
+    _slideTimer?.cancel();
+  }
+
   late AnimationController fadeController;
 
   late AnimationController slideController;
 
-  StreamController<_AnimationValues> streamController =
-      StreamController<_AnimationValues>();
+  late final ValueNotifier<_AnimationValues> _values;
+
+  Timer? _fadeTimer;
+
+  Timer? _slideTimer;
 
   @override
   void initState() {
     super.initState();
 
-    fadeController =
-        AnimationController(vsync: this, duration: widget.fadeDuration);
+    // When push is not played, start at the shown (completed) state.
+    final double initialValue = widget.showPush ? 0 : 1;
 
-    slideController =
-        AnimationController(vsync: this, duration: widget.slideDuration);
+    fadeController = AnimationController(
+      vsync: this,
+      duration: widget.fadeDuration,
+      value: initialValue,
+    );
+
+    slideController = AnimationController(
+      vsync: this,
+      duration: widget.slideDuration,
+      value: initialValue,
+    );
+
+    _values = ValueNotifier<_AnimationValues>(_sameValues);
+  }
+
+  @override
+  void didUpdateWidget(covariant CnRouteAwareAnimation oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (fadeController.duration != widget.fadeDuration) {
+      fadeController.duration = widget.fadeDuration;
+    }
+    if (slideController.duration != widget.slideDuration) {
+      slideController.duration = widget.slideDuration;
+    }
   }
 
   @override
   void dispose() {
+    _cancelTimers();
     fadeController.dispose();
     slideController.dispose();
+    _values.dispose();
 
     super.dispose();
   }
 }
 
+@immutable
 class _AnimationValues {
   final Offset begin;
   final Offset end;
   final double fadeStart;
   final double fadeEnd;
 
-  _AnimationValues({
+  const _AnimationValues({
     required this.begin,
     required this.end,
     required this.fadeStart,
     required this.fadeEnd,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      other is _AnimationValues &&
+      other.begin == begin &&
+      other.end == end &&
+      other.fadeStart == fadeStart &&
+      other.fadeEnd == fadeEnd;
+
+  @override
+  int get hashCode => Object.hash(begin, end, fadeStart, fadeEnd);
 }

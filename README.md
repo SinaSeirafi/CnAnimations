@@ -1,16 +1,3 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
-
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
-
 # Flutter basic animations simplified
 
 Flutter is made of widgets, right?
@@ -26,14 +13,14 @@ This is exactly what this package is trying to help you with.
 - Slide
 - Scale
 
-![](https://github.com/SinaSeirafi/CnAnimations/blob/master/CnAnimations%20gif%200.2.gif)
+![](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/master/CnAnimations%20gif%200.2.gif)
 
 ### Route Aware Animation
 Combining Fade and Slide animations with navigation events
 - same page push / pop animation
 - next page push / pop animation
 
-![](https://github.com/SinaSeirafi/CnAnimations/blob/master/CnAnimations%20RA%20gif%200.1.gif)
+![](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/master/CnAnimations%20RA%20gif%200.1.gif)
 
 Requires setup. (below)
 
@@ -49,10 +36,12 @@ If you only want to use basic animations, you're good to go!
 
 If you want to use RouteAwareWidget or CnRouteAwareAnimation you need to setup routeObserver. 
 
-Setup: Add routeObserver in material app (main)
+Setup: Add RouteAwareWidget.routeObserver in material app (main)
 ```dart
+import 'package:cn_animations/cn_animations.dart';
+
 MaterialApp(
-  navigatorObservers: [routeObserver],
+  navigatorObservers: [RouteAwareWidget.routeObserver],
 ) 
 ```
 
