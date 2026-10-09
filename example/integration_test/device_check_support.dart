@@ -20,13 +20,12 @@ Finder keyed(String label) =>
 
 bool exists(String label) => keyed(label).evaluate().isNotEmpty;
 
-Finder _own<T>(String label) =>
-    find
-        .descendant(
-          of: keyed(label),
-          matching: find.byType(T, skipOffstage: false),
-        )
-        .first;
+Finder _own<T>(String label) => find
+    .descendant(
+      of: keyed(label),
+      matching: find.byType(T, skipOffstage: false),
+    )
+    .first;
 
 /// The element's own opacity (choreography only).
 double opacityOf(WidgetTester tester, String label) =>
@@ -112,18 +111,17 @@ class FrameSampler<T> {
 
 /// Number of Hero flights in progress: a hero in flight hides its own child
 /// under an `Offstage(offstage: true)` placeholder.
-int heroesHidden() =>
-    find
-        .descendant(
-          of: find.byType(Hero, skipOffstage: false),
-          matching: find.byWidgetPredicate(
-            (Widget w) => w is Offstage && w.offstage,
-            skipOffstage: false,
-          ),
-          skipOffstage: false,
-        )
-        .evaluate()
-        .length;
+int heroesHidden() => find
+    .descendant(
+      of: find.byType(Hero, skipOffstage: false),
+      matching: find.byWidgetPredicate(
+        (Widget w) => w is Offstage && w.offstage,
+        skipOffstage: false,
+      ),
+      skipOffstage: false,
+    )
+    .evaluate()
+    .length;
 
 /// The flight shuttle's rect: the hero thumbnail icon that is not inside any
 /// `Hero` (the default shuttle is the destination hero's child, placed in the
