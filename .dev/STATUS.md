@@ -84,6 +84,7 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 - Step 6 fix round merged (eadd57b). Post-merge: root and example analyze "No issues found"; root 280 pass (3 new: R9, R18, R19); example 7 pass; dry-run 0 warnings, 1 expected hint. R9 deviation: the assert lives in `cnStaggeredExit`/`cnStaggeredEnter` (a const constructor can't read `Interval.curve`). R10: `CnPartingSpec.subject` → `subjectBehavior`. R12: `CnRouteRecord.pointerWindow` removed; record uses `kCnPointerSubjectWindow`.
 - iOS simulator check (iPhone 17 Pro, iOS 26.5, on d1bd682, before R6): the example builds and runs on Flutter 3.32.7 + Xcode 26.6. 22 device tests in `example/integration_test` (commit 5f8d440 on `v1/device-ios`) pass, with no exceptions and no package bugs. Swipe-back scrubs on both installs, commit/cancel/fling work, `fullscreenDialog` doesn't swipe, and elements part around the tapped item and return from above. The pre-R6 dead zone was confirmed (progress 0.662→0.463). The example's Hero doesn't fly on swipe-back because it lacks `transitionOnUserGestures: true`; the package handles it when the flag is set. Follow-up running on the same branch: merge R6, re-measure, Hero flag plus a README sentence, commit a minimal Podfile (the generated one names a missing `RunnerTests` target). Timing was not measured (host load; profile mode can't run on the simulator).
 - Step 8 done. Slice R merged (f50f8be): removed `CnRouteAwareAnimation`, `RouteAwareWidget` (+ `.routeObserver`), the top-level `routeObserver`, `CnFade.durationInMilliseconds`, `CnSlide.reverseControllerValue`, and the route `timing`. Deleted `lib/cn_route_aware_animation.dart`, `lib/route_aware_widget.dart` and their tests. CHANGELOG 1.0.0 "Breaking: removed" entry; README migration says "removed in 1.0.0". Post-merge: root/example analyze clean, root 268, example 7, apk builds, dry-run 0 warnings 0 hints. The removed names remain only in the README migration text and the 0.9.0 CHANGELOG history.
+- CI merged locally (72f5e28, 003344b → merge dd51a62): `.github/workflows/ci.yml`, matrix Flutter 3.29.0 + stable; triggers are PRs, pushes to master, and manual runs. `flutter_lints` ^6.0.0 → ^5.0.0 (6 needs Dart 3.8). Post-merge: root/example analyze clean, root 268, example 7, dry-run 0 warnings. **Push blocked:** the token lacks the `workflow` scope (see Next steps 1).
 - Session 3 (2026-10-10), after PR #1. Owner choices: keep `delayInMilliseconds` (it duplicates `delay` but works; removing it would need a 0.9.x deprecation after the pushed `v0.9.0` tag). Three agents are running in parallel:
   - CI (sonnet, `v1/ci`): GitHub Actions on Flutter 3.29.0 plus stable, and `flutter_lints` lowered to a version that supports Dart 3.7.
   - pub.dev score research (sonnet, read-only, report in the session scratchpad).
@@ -104,23 +105,17 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 - Step 1 done: G merged (76dae93). Post-merge: root analyze "No issues found", root 164 pass; example analyze clean, 7 pass.
 - Steps 1–3 started in parallel (disjoint files): G (sonnet, `example/**`), F2 (sonnet, README/CHANGELOG/`test/exports_test.dart`/`test/readme_snippets_test.dart`), C2 (opus, new worktree `…/cn_animations-wt/slice-c2`, branch `v1/slice-c2` from 0a0d763, owns `lib/src/route/**` and `test/route/**`).
 
-## Next steps, in order
+## Next steps, in order (revised 2026-10-11: close-out path)
 
-Run each step as a delegated agent, working in its slice worktree and committing on its branch. The main thread merges into `feat/v1-choreography` and re-runs `flutter analyze` plus the full `flutter test` after each merge. Checkpoint this file after every step.
+The original steps 1–9 are done. The owner **skipped the physical-device check**; the emulator checks stand in for it. Accepted risk: real finger feel, 120 Hz and frame timing were never measured. The owner wants to close out soon.
 
-1. **Finish slice G** (sonnet), in the `slice-g` worktree. Follow "Status at stop" in `.dev/notes/slice-g-notes.md`:
-   - run `flutter test` in `example/`;
-   - fix the dialog-test finders so they target the Card/Text inside the keyed `CnRouteAnimation`, because the keyed render object sits outside the translation;
-   - run the root analyze (it must show **No issues found**) and the root tests;
-   - amend the WIP commit into a real one.
-2. **Finish slice F2** (sonnet), in the `slice-f2` worktree. Its brief: README snippets that compile against the real API, the `CnRouteAnimation` CHANGELOG bullet, `test/exports_test.dart` positives, and a new `test/readme_snippets_test.dart`. The facts it must state are in `.dev/notes/run-notes.md` and the design's "Owner decisions" section. Check its branch for partial work first.
-3. **Fix the two P0 back-gesture bugs** (opus), on a new `v1/slice-c2` branch from the integration head. It owns `lib/src/route/**` and `test/route/**`. Then un-skip H's 4 bug tests.
-4. **Finish slice H** (opus), in the `slice-h` worktree after rebasing or merging the bug fix. Follow "Status at stop" in `.dev/notes/slice-h-notes.md`. Write `overlays_test.dart`, `stack_ops_test.dart` (including verifying or refuting the `pushReplacement` train-hop belief), `choreography_claims_test.dart` and `leaks_rebuild_test.dart`, using `support.dart`. New bugs get a `skip: 'BUG: …'` and a repro; they are not fixed in H.
-5. **Merge F2, G and H**, then run full verification on the merged tree: `flutter analyze` at the root and in `example/` (both clean), full `flutter test` at the root and in `example/`, and `flutter pub publish --dry-run`.
-6. **Fable review** of the merged 0.9.0 (read-only), weighing the design against the code, the docs against the behavior, and API ergonomics, plus next-step suggestions. Then an **Opus** fix round for confirmed findings. One review round.
-7. **Owner check on a device:** run `example/` on Android and iOS. This is the only way to judge feel: predictive back, Hero, 120 Hz, and the exit direction. Ask the owner.
-8. **Tag 0.9.0 locally**, then **slice R** (sonnet): remove the deprecated symbols listed under owner decisions, their tests and the old example usage; set version 1.0.0; write the CHANGELOG entry; update README migration to "removed in 1.0.0". Run full verification again.
-9. **Ask the owner** before merging to `master`, opening a PR, or running `pub publish`. Publishing order: 0.9.0, then 1.0.0.
+1. **Unblock the CI push (owner).** `git push` of the CI commit was rejected: the `gh` token lacks the `workflow` scope. The owner runs `gh auth refresh -h github.com -s workflow` once. Then the main thread pushes `feat/v1-choreography` (dd51a62 or later) and `v1/ci`, and CI runs on PR #1 (Flutter 3.29.0 + stable). Both legs must be green, and the 3.29.0 leg is the first real run on the declared minimum SDK.
+2. **Merge the two running agents' work:** README "How it works" (`v1/readme-how-it-works`) and the pub.dev score research. Apply any score fixes that are small and safe in one short slice (sonnet). Re-verify and push.
+3. **Merge PR #1 into `master` and tag `v1.0.0`.** These are owner actions, or the main thread's on an explicit go-ahead. Before the owner's local `master` checkout pulls, the owner decides what to do with its uncommitted 2023 WIP (3 files).
+4. **Publish** when the owner's publishing research is done: 0.9.0 from tag `v0.9.0`, then 1.0.0, or 1.0.0 only (the owner decides).
+5. **Clean up** worktrees and branches only on the owner's go-ahead, after a content check against `master`.
+
+Deferred past 1.0.0 (not blocking): `CnPage` and `MaterialPageRoute` parity on `CnPageRoute`; `@internal` on internal types; a dartdoc note on `CnFade`'s 10 ms default delay; `delayInMilliseconds` kept (owner, 2026-10-10).
 
 ## Scheduled after the package (owner request, not started)
 
