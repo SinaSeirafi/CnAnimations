@@ -22,7 +22,7 @@ class CnFade extends StatefulWidget {
   final Animation<double>? animation;
 
   /// When true (default) and the platform asks to reduce motion
-  /// ([MediaQuery.disableAnimations]), the final state is shown immediately.
+  /// ([MediaQueryData.disableAnimations]), the final state is shown immediately.
   /// Set to false to animate regardless of that setting.
   ///
   /// Applies only when both [controller] and [animation] are null. With an

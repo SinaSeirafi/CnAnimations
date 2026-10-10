@@ -106,10 +106,10 @@ class CnElementProgress {
 /// one). A [CnRouteChoreography] above can replace either with its
 /// `progress` / `coverProgress`. Each source is sliced per element by the
 /// resolved [CnRouteTiming]: entrances use [CnRouteTiming.enter] with
-/// [CnRouteTiming.enterCurve], exits and covers use [CnRouteTiming.exit] with
-/// [CnRouteTiming.exitCurve]. A curve set on the `enter` or `exit` [Interval]
-/// itself is ignored. When the page above pops, the cover runs in reverse
-/// over the same exit slice.
+/// [CnRouteTiming.enterCurve], exits and covers use [CnRouteTiming.exit], and
+/// uncovers (the page above pops) use [CnRouteTiming.uncover], the exit and
+/// uncover slices both with [CnRouteTiming.exitCurve]. A curve set on the
+/// `enter`, `exit` or `uncover` [Interval] itself is ignored.
 ///
 /// **Timed entrance.** When there is no progress to follow, the element plays
 /// one entrance over [CnRouteTiming.fallbackDuration]: with no route and no
@@ -258,8 +258,9 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
   // Timed fallback: which kind is playing, if any.
   _Fallback? _fallback;
 
-  // Geometry. f is the stagger factor (0 nearest the anchor, 1 farthest or
-  // unknown); 1 is the no-stagger value used until layout is known.
+  // Geometry. f is the stagger factor (0 nearest the anchor, 1 farthest, off
+  // screen or unknown); 1 is the largest delay (and parting distance), used
+  // until layout is known.
   double _primaryF = 1.0;
   double _coverF = 1.0;
   CnElementRole _role = CnElementRole.plain;

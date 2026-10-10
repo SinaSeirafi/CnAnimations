@@ -1,18 +1,18 @@
 import 'package:flutter/widgets.dart';
 
 // ---------------------------------------------------------------------------
-// Defaults pending an owner decision (design §10). Each is one named constant
+// Package defaults (owner decisions, design §10). Each is one named constant
 // so a change is a one-line edit. They are package-internal: export the public
 // types from this file with `show`, not these constants.
 // ---------------------------------------------------------------------------
 
 /// What reduced motion means when it applies and nothing overrides it
-/// (design §10 Q2, recommended `fadeOnly`).
+/// (design §10 Q2, decided: `fadeOnly`).
 const CnReducedMotionMode kCnDefaultReducedMotionMode =
     CnReducedMotionMode.fadeOnly;
 
 /// How the subject of a cover transition is detected when nothing overrides
-/// it (design §10 Q3, recommended `pointer`).
+/// it (design §10 Q3, decided: `pointer`).
 const CnSubjectDetection kCnDefaultSubjectDetection =
     CnSubjectDetection.pointer;
 

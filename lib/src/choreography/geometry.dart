@@ -21,7 +21,8 @@ import 'cn_route_choreography.dart';
 ///   screen.
 /// - `f`: stagger / distance factor in `[0, 1]`: main-axis distance from the
 ///   anchor to the element's center divided by the viewport's main extent.
-///   Always 1 for off-screen elements (they skip stagger).
+///   Always 1 for off-screen elements: the same as the farthest on-screen
+///   element, so the largest delay and parting distance.
 /// - `direction`: logical parting direction away from the subject, one of
 ///   `(0, ±1)`, `(±1, 0)` or zero. Zero when there is no subject and for the
 ///   subject itself. The x component is in reading order (flipped for RTL),

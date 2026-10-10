@@ -212,7 +212,7 @@ Navigator.of(context).push(
 );
 ```
 
-Under Flutter's zoom or Cupertino transitions the page below is hidden by the transition itself, so element exits are mostly invisible; use one of the routes above to see them. Dialogs, bottom sheets, full-screen dialogs and non-opaque routes do not cover the page, so elements stay.
+Under Flutter's stock platform transitions (on Android the zoom or predictive-back builder, depending on the Flutter version; on iOS and macOS the Cupertino slide) the page below is moved or hidden by the transition itself, so element exits can be mostly invisible; use one of the routes above to see them. Dialogs, bottom sheets, full-screen dialogs and non-opaque routes do not cover the page, so elements stay.
 
 Android predictive back needs `android:enableOnBackInvokedCallback="true"` on the `<application>` in your `AndroidManifest.xml`, as for Flutter's own predictive-back transition.
 
@@ -274,7 +274,7 @@ The subject stays where it is (or fades, or grows slightly, per `CnPartingSpec.s
 ### Stagger is bounded by geometry, not by list index
 Each element delays its slice by a factor `f` between 0 and 1 times the stagger (`exitStagger` 0.12, `enterStagger` 0.25 of the transition). `f` is the element's distance along the axis from an anchor, divided by the viewport's extent on that axis: the anchor is the subject's center when there is one, else the viewport's leading edge. Geometry is read from the render tree when the transition starts, so `ListView.builder` and grids need no index bookkeeping, and the ripple starts next to the subject.
 
-Because `f` cannot exceed 1, the whole choreography always ends with the route transition however long the list is. The farthest on-screen element starts its exit at most 48 ms late and its entrance at most 100 ms late on the 400 ms fade-through. Elements laid out outside the viewport (a lazy list's cache extent) get `f = 1` and skip the stagger; they still follow progress, so they are correct if scrolled into view mid-transition. Siblings also move farther the farther they are from the subject (`distanceGrowth`, up to 1.5 times by default).
+Because `f` cannot exceed 1, the whole choreography always ends with the route transition however long the list is. The farthest on-screen element starts its exit at most 48 ms late and its entrance at most 100 ms late on the 400 ms fade-through. Elements laid out outside the viewport (a lazy list's cache extent) get `f = 1`, the same as the farthest on-screen element, so they take the largest delay (and parting distance); they still follow progress, so they are correct if scrolled into view mid-transition. Siblings also move farther the farther they are from the subject (`distanceGrowth`, up to 1.5 times by default).
 
 ### Reduced motion defaults to fade-only
 When `MediaQuery.disableAnimations` is set, the default is `CnReducedMotionMode.fadeOnly`: opacity keeps following the route, translation and scale are dropped, and the timed entrance fades only. The elements still read progress, so a back gesture still scrubs their opacity. `CnReducedMotionMode.none` renders elements at rest instead. The decision is per element: the widget's `respectReducedMotion` and `reducedMotionMode` win over the scope's, which win over the defaults (`true`, `fadeOnly`), so an app can opt out everywhere and opt one widget back in. A `controller:` or `animation:` passed to the basic widgets is owned by your app and is never overridden. Options are in [Reduced motion](#reduced-motion).
@@ -316,10 +316,10 @@ An element exits by cover only when the route pushed over its page animates the 
    )
    ```
 
-2. Delete `navigatorObservers: [RouteAwareWidget.routeObserver]`; `RouteAwareWidget` and the observer are gone and nothing in the package needs one.
+2. Delete the observer from `navigatorObservers`: `[routeObserver]` (0.0.x, imported from `package:cn_animations/route_aware_widget.dart`) or `[RouteAwareWidget.routeObserver]` (0.1.0), and delete that import. `RouteAwareWidget` and the observer are gone and nothing in the package needs one.
 3. If you used a custom `PageRouteBuilder` fade route, switch to `CnPageRoute` or the theme builder. A plain `PageRouteBuilder` over a `MaterialPageRoute` never drives the lower page's exits.
 4. If you relied on items animating as they were scrolled into view, set `scrollReveal: const CnScrollReveal()` on the `CnRouteChoreography` scope.
-5. Also removed in 1.0.0: `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver` (no replacement needed), `CnFade.durationInMilliseconds` (use `duration`), `CnSlide.reverseControllerValue` (it had no effect; delete it) and the `timing` parameter of `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute` (it had no effect; set element timing with `CnRouteChoreography` or `CnRouteAnimation.timing`).
+5. Also removed in 1.0.0: `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver` from 0.0.x (no replacement needed), `CnFade.durationInMilliseconds` (use `duration`), `CnSlide.reverseControllerValue` (it had no effect; delete it) and the `timing` parameter of `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute` (it had no effect; set element timing with `CnRouteChoreography` or `CnRouteAnimation.timing`).
 
 
 ## History
