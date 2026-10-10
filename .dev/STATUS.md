@@ -1,6 +1,6 @@
 # cn_animations 0.9.0 / 1.0.0: status and next steps
 
-Last updated: 2026-10-09, when the first working session stopped. This file is the single source of truth for where the work stands. Update it at every checkpoint.
+Last updated: 2026-10-11, during the session 3 close-out. This file is the single source of truth for where the work stands. Update it at every checkpoint.
 
 ## Where everything is
 
@@ -10,7 +10,7 @@ All work branches below (everything except `master`) were **pushed to origin on 
 | --- | --- | --- | --- |
 | `master` | `~/Development/CnPackages/cn_animations` | 0f3b9bd (0.0.3) | The owner's checkout. It has **uncommitted 2023 WIP in 3 files; do not touch it.** |
 | `fix/route-aware-regressions` | `~/Development/CnPackages/cn_animations-fixes` | 2b3ee71 | 0.1.0: 8 bugs fixed plus the 7 review findings. Done and verified (39 + 2 tests). |
-| `feat/v1-choreography` | `~/Development/CnPackages/cn_animations-wt/integration` | see `git log` | **Integration branch for 0.9.0.** Slices A–F1 merged; 164 tests pass; analyze shows only 5 example deprecation infos (slice G clears them). This `.dev/` folder lives here. |
+| `feat/v1-choreography` | `~/Development/CnPackages/cn_animations-wt/integration` | see `git log` | **PR #1 head (1.0.0).** Every slice is merged. Current counts are in the newest Session 3 entry. This `.dev/` folder lives here. |
 | `v1/slice-f2` | `…/cn_animations-wt/slice-f2` | 8b55c8a (no commits) | Slice F part 2: README and CHANGELOG for `CnRouteAnimation`. Not started; there were no changes when the session stopped. |
 | `v1/slice-g` | `…/cn_animations-wt/slice-g` | 7ffb772 (WIP) | Example app rewritten; tests not fully verified. |
 | `v1/slice-h` | `…/cn_animations-wt/slice-h` | f8b0af5 (WIP) | Integration tests: interactive back only, 7 pass and 4 are skipped as bugs. |
@@ -62,7 +62,7 @@ About 97% toward 0.9.0 and 95% toward 1.0.0, weighted by effort (as of the end o
 | Push / PR (step 9, owner chose B) | Done: branches and tag `v0.9.0` pushed; PR #1 `feat/v1-choreography` → `master` opened |
 | pub publish | **Not done.** The owner is researching how best to publish for visibility and usefulness first |
 
-## Known bugs (found by slice H; fixed by C2 in ee3de20, pending H un-skip and device check)
+## Known bugs (found by slice H; fixed by C2 in ee3de20; H tests un-skipped and passing; checked on emulators)
 
 1. **P0: Android predictive back never reaches the Cn routes.**
    - Only Flutter's `PredictiveBackPageTransitionsBuilder` registers the observer that forwards `flutter/backgesture` to `TransitionRoute.handleStartBackGesture` (flutter `material/predictive_back_page_transitions_builder.dart:117-123`).
@@ -79,7 +79,7 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 
 **Fixed (R1, eadd57b):** `pubspec.yaml` now declares `sdk: ^3.7.0`, `flutter: ">=3.29.0"` (was `>=3.10.0`). Not run on an actual 3.29 SDK (only 3.32.7 installed). `flutter_lints ^6.0.0` (dev only) needs Dart 3.8, so contributors on exactly 3.29 can't `pub get` the dev deps; consumers are unaffected.
 
-## Session 2 (2026-10-09, from ~14:05 Yerevan)
+## Session 2 (2026-10-09)
 
 - Step 6 fix round merged (eadd57b). Post-merge: root and example analyze "No issues found"; root 280 pass (3 new: R9, R18, R19); example 7 pass; dry-run 0 warnings, 1 expected hint. R9 deviation: the assert lives in `cnStaggeredExit`/`cnStaggeredEnter` (a const constructor can't read `Interval.curve`). R10: `CnPartingSpec.subject` → `subjectBehavior`. R12: `CnRouteRecord.pointerWindow` removed; record uses `kCnPointerSubjectWindow`.
 - iOS simulator check (iPhone 17 Pro, iOS 26.5, on d1bd682, before R6): the example builds and runs on Flutter 3.32.7 + Xcode 26.6. 22 device tests in `example/integration_test` (commit 5f8d440 on `v1/device-ios`) pass, with no exceptions and no package bugs. Swipe-back scrubs on both installs, commit/cancel/fling work, `fullscreenDialog` doesn't swipe, and elements part around the tapped item and return from above. The pre-R6 dead zone was confirmed (progress 0.662→0.463). The example's Hero doesn't fly on swipe-back because it lacks `transitionOnUserGestures: true`; the package handles it when the flag is set. Follow-up running on the same branch: merge R6, re-measure, Hero flag plus a README sentence, commit a minimal Podfile (the generated one names a missing `RunnerTests` target). Timing was not measured (host load; profile mode can't run on the simulator).
