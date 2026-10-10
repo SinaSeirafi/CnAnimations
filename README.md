@@ -319,3 +319,7 @@ An element exits by cover only when the route pushed over its page animates the 
 4. If you relied on items animating as they were scrolled into view, set `scrollReveal: const CnScrollReveal()` on the `CnRouteChoreography` scope.
 5. Also removed in 1.0.0: `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver` (no replacement needed), `CnFade.durationInMilliseconds` (use `duration`), `CnSlide.reverseControllerValue` (it had no effect; delete it) and the `timing` parameter of `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute` (it had no effect; set element timing with `CnRouteChoreography` or `CnRouteAnimation.timing`).
 
+
+## History
+cn_animations was first published in January 2023 (0.0.1 to 0.0.3) with `CnFade`, `CnSlide`, `CnScale` and the route-aware widgets. In 2026 it was reworked with Claude, Anthropic's AI model, into the progress-driven route choreography of 0.9.0 and 1.0.0. Claude worked on the design, implementation, tests, reviews and documentation; the package author made the product decisions. If you are coming from 0.0.x, see [Migrating from 0.1.0](#migrating-from-010).
+
