@@ -1,6 +1,8 @@
 ## 1.0.0
 Breaking: removed everything that 0.9.0 deprecated. Nothing else changed in behaviour.
 
+This release completes a rework of the 2023 package (0.0.1 to 0.0.3), done with Claude (Anthropic).
+
 * Removed `CnRouteAwareAnimation`: use `CnRouteAnimation` (see "Migrating from 0.1.0" in the README for the parameter mapping).
 * Removed `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver`: no longer needed by the package. Delete `navigatorObservers: [RouteAwareWidget.routeObserver]`.
 * Removed `CnFade.durationInMilliseconds`: use `duration`.
