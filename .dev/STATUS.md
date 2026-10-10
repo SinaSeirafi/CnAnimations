@@ -132,7 +132,12 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
    - On `feat/v1-choreography`, add a commit that reverts the slice R merge (f50f8be), bringing back the deprecated symbols, version 0.9.0, and the 0.9.0 README/CHANGELOG. Fix the docs added since R so they read correctly for 0.9.0. Verify, move tag `v0.9.0` there and force-push the tag (owner-authorized "update v0.9").
    - Then add a commit that re-applies R plus the 1.0.0 CHANGELOG. Check: `git diff <pre-restructure head> <1.0.0 commit>` is empty or CHANGELOG-only.
    - CI must be green on both commits. Run it with `workflow_dispatch` on the 0.9.0 commit, and PR #1 covers the head.
-4. **Final fresh-context review** (opus, read-only, in flight; report in `scratchpad/final-review-opus/review.md` in session 3; the fable attempt was stopped at the owner's request) of the final 0.9.0 and 1.0.0 commits. Owner: "clear to merge after a fresh context agent review".
+4. **Done: final fresh-context review (opus): MERGE-READY**, with no blocking findings. Both new fixes were mutation-tested: breaking the detector fix fails 8 tests; disabling the guard fails 4 on 3.47.7. The local 3.47 failures were environmental: in clean trees on 3.47.7, 0.9.0 passes 300 + 7 and 1.0.0 passes 279 + 7. Non-blocking follow-ups, to fix before publishing (each needs the release commits and tags redone, so batch them):
+   - N1: `test/route/stock_predictive_back_test.dart:249-278` "during a cancel" never starts a second gesture; rename or rewrite it.
+   - N2: a leftover "f = 1 (no stagger)" comment.
+   - N3: one README sentence doesn't mention the guard.
+   - N4: three 0.9.0 CHANGELOG bullets are worded as fixes to never-released versions.
+   - N6: 1.0.0 ships a gif its README no longer uses; keep it on master, because the 0.9.0 README links it there. of the final 0.9.0 and 1.0.0 commits. Owner: "clear to merge after a fresh context agent review".
 5. **Merge PR #1 → `master`** and tag `v1.0.0`. Owner-authorized once 4 passes and CI is green.
 6. **Owner reviews `.dev/publishing-suggestions.md`** (Fable, done; nothing in it is applied yet). It covers topics, screenshots, the README first screen, release mechanics and discoverability. Publishing order once approved: 0.9.0 (from `v0.9.0`), then 1.0.0.
 7. **Owner's local `master` checkout:** the 2023 WIP (3 files) is fully superseded (see Session 3). The owner discards it and pulls after the merge.
