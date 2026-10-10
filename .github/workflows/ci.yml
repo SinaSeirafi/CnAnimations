@@ -1,0 +1,57 @@
+name: CI
+
+# PRs and master only: a branch with an open PR would otherwise run twice
+# (push + pull_request). Other branches can be run by hand.
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Flutter ${{ matrix.flutter }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        flutter: ["3.29.0", "stable"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.flutter == 'stable' && 'stable' || '' }}
+          flutter-version: ${{ matrix.flutter == 'stable' && '' || matrix.flutter }}
+          cache: true
+      - run: flutter --version
+
+      - name: Pub get (package)
+        run: flutter pub get
+      - name: Pub get (example)
+        run: flutter pub get
+        working-directory: example
+
+      - name: Analyze (package)
+        run: flutter analyze
+      - name: Analyze (example)
+        run: flutter analyze
+        working-directory: example
+
+      - name: Test (package)
+        run: flutter test
+      # Plain `flutter test` only runs example/test; integration_test/ needs a device.
+      - name: Test (example)
+        run: flutter test
+        working-directory: example
+
+      - name: Publish dry-run
+        if: matrix.flutter == 'stable'
+        run: flutter pub publish --dry-run
