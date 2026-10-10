@@ -1,9 +1,12 @@
 name: CI
 
+# PRs and master only: a branch with an open PR would otherwise run twice
+# (push + pull_request). Other branches can be run by hand.
 on:
   pull_request:
   push:
-    branches: [master, "feat/**", "v1/**"]
+    branches: [master]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
