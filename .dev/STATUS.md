@@ -27,6 +27,7 @@ All work branches below (everything except `master`) were **pushed to origin on 
 - **Pointer subject detection** is on by default (700 ms window).
 - **Direction follows the Material convention.** `enterOffset` defaults to `Offset(0, 0.1)` (from below), and `exitOffset` defaults to `-enterOffset`, so covered content moves up and returns from above. The owner noted there are no existing users to keep continuity for.
 - **No push or publish** without the owner's explicit go-ahead.
+- **Models (owner, 2026-10-11):** use **opus** instead of fable for tests, reviews and progress work. Fable only with the owner's explicit confirmation.
 - **Delegated to the main thread (owner, 2026-10-09: "decide best and move forward"):**
   - R2: (a) docs only. Reduced motion does apply to a scope `progress:`. A scope progress stands in for navigation, which is exactly what reduced motion targets, and `respectReducedMotion: false` on the scope is the opt-out. `controller:` / `animation:` on the basic widgets stay app-owned.
   - R6: (a) add a separate `uncover` slice to `CnRouteTiming` (default `Interval(0.3, 0.65)`; first set to `Interval(0.25, 0.6)`, which measurement showed left one dead frame per pop; 0.65 is where the top element's exit ends, and the length matches the exit slice), used when S is falling (pop and interactive back), so the page below's elements start returning while the top page is still fading. Additive; decided before 1.0.0 because changing the default later is a visual change.
@@ -131,7 +132,7 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
    - On `feat/v1-choreography`, add a commit that reverts the slice R merge (f50f8be), bringing back the deprecated symbols, version 0.9.0, and the 0.9.0 README/CHANGELOG. Fix the docs added since R so they read correctly for 0.9.0. Verify, move tag `v0.9.0` there and force-push the tag (owner-authorized "update v0.9").
    - Then add a commit that re-applies R plus the 1.0.0 CHANGELOG. Check: `git diff <pre-restructure head> <1.0.0 commit>` is empty or CHANGELOG-only.
    - CI must be green on both commits. Run it with `workflow_dispatch` on the 0.9.0 commit, and PR #1 covers the head.
-4. **Final fresh-context review** (fable, read-only, in flight; report in `scratchpad/final-review/review.md` in session 3) of the final 0.9.0 and 1.0.0 commits. Owner: "clear to merge after a fresh context agent review".
+4. **Final fresh-context review** (opus, read-only, in flight; report in `scratchpad/final-review-opus/review.md` in session 3; the fable attempt was stopped at the owner's request) of the final 0.9.0 and 1.0.0 commits. Owner: "clear to merge after a fresh context agent review".
 5. **Merge PR #1 → `master`** and tag `v1.0.0`. Owner-authorized once 4 passes and CI is green.
 6. **Owner reviews `.dev/publishing-suggestions.md`** (Fable, done; nothing in it is applied yet). It covers topics, screenshots, the README first screen, release mechanics and discoverability. Publishing order once approved: 0.9.0 (from `v0.9.0`), then 1.0.0.
 7. **Owner's local `master` checkout:** the 2023 WIP (3 files) is fully superseded (see Session 3). The owner discards it and pulls after the merge.
