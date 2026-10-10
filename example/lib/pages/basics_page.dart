@@ -92,10 +92,11 @@ class BasicsPage extends StatelessWidget {
 
   Widget _nav(BuildContext context, String label, Widget page) {
     return FilledButton.tonal(
-      onPressed: () => Navigator.push(
-        context,
-        MaterialPageRoute<void>(builder: (_) => page),
-      ),
+      onPressed:
+          () => Navigator.push(
+            context,
+            MaterialPageRoute<void>(builder: (_) => page),
+          ),
       child: Text(label),
     );
   }

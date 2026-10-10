@@ -23,8 +23,12 @@ class SettingsPage extends StatelessWidget {
             title: const Text('Reduced motion: none'),
             subtitle: const Text('Off = fade only, on = no motion at all'),
             value: s.reducedMotionMode == CnReducedMotionMode.none,
-            onChanged: (v) => s.reducedMotionMode =
-                v ? CnReducedMotionMode.none : CnReducedMotionMode.fadeOnly,
+            onChanged:
+                (v) =>
+                    s.reducedMotionMode =
+                        v
+                            ? CnReducedMotionMode.none
+                            : CnReducedMotionMode.fadeOnly,
           ),
           SwitchListTile(
             title: const Text('Scroll reveal'),
@@ -47,8 +51,9 @@ class SettingsPage extends StatelessWidget {
           SwitchListTile(
             title: const Text('Cn fade-through route'),
             subtitle: const Text(
-                'Off = platform default: covered pages are hidden under '
-                'Zoom/Cupertino transitions, so their exits are invisible'),
+              'Off = platform default: covered pages are hidden under '
+              'Zoom/Cupertino transitions, so their exits are invisible',
+            ),
             value: s.useFadeThrough,
             onChanged: (v) => s.useFadeThrough = v,
           ),

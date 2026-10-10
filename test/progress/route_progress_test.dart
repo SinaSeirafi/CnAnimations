@@ -110,7 +110,9 @@ void main() {
       const progress = AlwaysStoppedAnimation<double>(0.5);
       const cover = AlwaysStoppedAnimation<double>(0.0);
       await tester.pumpWidget(
-        MaterialApp(home: _Binder('a', log, progress: progress, cover: cover)),
+        MaterialApp(
+          home: _Binder('a', log, progress: progress, cover: cover),
+        ),
       );
 
       final p = log['a']!.progress;

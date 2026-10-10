@@ -37,7 +37,8 @@ class _Frame {
   bool get deadOwn => topElement < _invisible && belowElement < _invisible;
 
   @override
-  String toString() => 'A=${a.toStringAsFixed(3)} S=${s.toStringAsFixed(3)} '
+  String toString() =>
+      'A=${a.toStringAsFixed(3)} S=${s.toStringAsFixed(3)} '
       'top=${topElement.toStringAsFixed(3)}x${topPage.toStringAsFixed(3)} '
       'below=${belowElement.toStringAsFixed(3)}';
 }
@@ -45,12 +46,14 @@ class _Frame {
 /// The fade-through's own opacity on the top page: the nearest
 /// `FadeTransition` above the element 't'.
 double _topPageOpacity(WidgetTester tester) => tester
-    .widget<FadeTransition>(find
-        .ancestor(
-          of: find.byKey(const ValueKey<String>('t'), skipOffstage: false),
-          matching: find.byType(FadeTransition, skipOffstage: false),
-        )
-        .first)
+    .widget<FadeTransition>(
+      find
+          .ancestor(
+            of: find.byKey(const ValueKey<String>('t'), skipOffstage: false),
+            matching: find.byType(FadeTransition, skipOffstage: false),
+          )
+          .first,
+    )
     .opacity
     .value;
 
@@ -67,17 +70,13 @@ Future<_Stack> _twoPages(WidgetTester tester, Install install) async {
     const SizedBox(),
     theme: themeFor(install),
   );
-  nav.currentState!.push(routeFor<void>(
-      install,
-      (_) => column(<Widget>[
-            item('b'),
-          ])));
+  nav.currentState!.push(
+    routeFor<void>(install, (_) => column(<Widget>[item('b')])),
+  );
   await tester.pumpAndSettle();
-  nav.currentState!.push(routeFor<void>(
-      install,
-      (_) => column(<Widget>[
-            item('t'),
-          ])));
+  nav.currentState!.push(
+    routeFor<void>(install, (_) => column(<Widget>[item('t')])),
+  );
   await tester.pumpAndSettle();
   final _Stack stack = _Stack(nav, routeOf(tester, 'b'), routeOf(tester, 't'));
   expect(stack.below.secondaryAnimation!.value, 1.0);
@@ -86,24 +85,26 @@ Future<_Stack> _twoPages(WidgetTester tester, Install install) async {
 }
 
 _Frame _sample(WidgetTester tester, _Stack stack) => _Frame(
-      stack.top.animation!.value,
-      stack.below.secondaryAnimation!.value,
-      opacityOf(tester, 't'),
-      _topPageOpacity(tester),
-      opacityOf(tester, 'b'),
-    );
+  stack.top.animation!.value,
+  stack.below.secondaryAnimation!.value,
+  opacityOf(tester, 't'),
+  _topPageOpacity(tester),
+  opacityOf(tester, 'b'),
+);
 
 String _report(String what, List<_Frame> frames) {
   final List<_Frame> dead = frames.where((_Frame f) => f.dead).toList();
   final List<_Frame> deadOwn = frames.where((_Frame f) => f.deadOwn).toList();
   final double worst = frames
-      .map((_Frame f) =>
-          f.topVisible > f.belowVisible ? f.topVisible : f.belowVisible)
+      .map(
+        (_Frame f) =>
+            f.topVisible > f.belowVisible ? f.topVisible : f.belowVisible,
+      )
       .reduce((double a, double b) => a < b ? a : b);
   String range(List<_Frame> fs) => fs.isEmpty
       ? 'none'
       : 'S in [${fs.last.s.toStringAsFixed(3)}, '
-          '${fs.first.s.toStringAsFixed(3)}]';
+            '${fs.first.s.toStringAsFixed(3)}]';
   return '$what: ${frames.length} frames; '
       'dead (composited) ${dead.length} ${range(dead)}; '
       'dead (own opacity) ${deadOwn.length} ${range(deadOwn)}; '
@@ -142,8 +143,9 @@ void _expectContinuous(List<double> s, List<double> v) {
 void main() {
   for (final Install install in Install.values) {
     group(install.name, () {
-      testWidgets('button pop: the page below returns as the top page fades',
-          (WidgetTester tester) async {
+      testWidgets('button pop: the page below returns as the top page fades', (
+        WidgetTester tester,
+      ) async {
         final _Stack stack = await _twoPages(tester, install);
         stack.nav.currentState!.pop();
         await tester.pump();
@@ -152,9 +154,11 @@ void main() {
           final _Frame f = _sample(tester, stack);
           frames.add(f);
           expect(f.a, moreOrLessEquals(f.s, epsilon: eps));
-          expect(f.belowElement,
-              moreOrLessEquals(1 - _uncoverSlice.transform(f.s), epsilon: eps),
-              reason: '$f');
+          expect(
+            f.belowElement,
+            moreOrLessEquals(1 - _uncoverSlice.transform(f.s), epsilon: eps),
+            reason: '$f',
+          );
           await tester.pump(const Duration(microseconds: 16667));
         }
         await tester.pumpAndSettle();
@@ -167,99 +171,117 @@ void main() {
       });
 
       testWidgets(
-          'predictive back: scrubbed values show one page or the other, and '
-          'a cancel re-covers on the same slice without a jump',
-          (WidgetTester tester) async {
-        final _Stack stack = await _twoPages(tester, install);
-        // The real platform channel, as the engine sends it: gesture
-        // progress p puts the route at A = 1 - p.
-        await sendBackGesture(tester, 'startBackGesture');
-        await tester.pump();
-        final List<_Frame> frames = <_Frame>[];
-        for (int i = 1; i <= 19; i++) {
-          await sendBackGesture(
-            tester,
-            'updateBackGestureProgress',
-            progress: 0.05 * i,
-          );
+        'predictive back: scrubbed values show one page or the other, and '
+        'a cancel re-covers on the same slice without a jump',
+        (WidgetTester tester) async {
+          final _Stack stack = await _twoPages(tester, install);
+          // The real platform channel, as the engine sends it: gesture
+          // progress p puts the route at A = 1 - p.
+          await sendBackGesture(tester, 'startBackGesture');
           await tester.pump();
-          expect(stack.top.animation!.value, moreOrLessEquals(1 - 0.05 * i));
-          final _Frame f = _sample(tester, stack);
-          frames.add(f);
-          expect(f.belowElement,
+          final List<_Frame> frames = <_Frame>[];
+          for (int i = 1; i <= 19; i++) {
+            await sendBackGesture(
+              tester,
+              'updateBackGestureProgress',
+              progress: 0.05 * i,
+            );
+            await tester.pump();
+            expect(stack.top.animation!.value, moreOrLessEquals(1 - 0.05 * i));
+            final _Frame f = _sample(tester, stack);
+            frames.add(f);
+            expect(
+              f.belowElement,
               moreOrLessEquals(1 - _uncoverSlice.transform(f.s), epsilon: eps),
-              reason: '$f');
-        }
-        debugPrint(_report('back ${install.name}', frames));
-        // Before: 7 of 19 samples showed nothing, S in [0.35, 0.65]. Now
-        // only the sample at exactly S = 0.65 does.
-        _expectResidualOnly(frames);
-        expect(frames.where((_Frame f) => f.dead).length, lessThanOrEqualTo(1));
+              reason: '$f',
+            );
+          }
+          debugPrint(_report('back ${install.name}', frames));
+          // Before: 7 of 19 samples showed nothing, S in [0.35, 0.65]. Now
+          // only the sample at exactly S = 0.65 does.
+          _expectResidualOnly(frames);
+          expect(
+            frames.where((_Frame f) => f.dead).length,
+            lessThanOrEqualTo(1),
+          );
 
-        // Cancel from S = 0.05: S climbs back to 1, still on the uncover
-        // slice (locked by the rest it left), so the element below fades out
-        // smoothly instead of jumping to the exit slice's value.
-        final List<double> s = <double>[stack.below.secondaryAnimation!.value];
-        final List<double> b = <double>[opacityOf(tester, 'b')];
-        await sendBackGesture(tester, 'cancelBackGesture');
-        for (int i = 0; i < 90; i++) {
-          await tester.pump(const Duration(milliseconds: 4));
-          final double sv = stack.below.secondaryAnimation!.value;
-          s.add(sv);
-          b.add(opacityOf(tester, 'b'));
-          expect(b.last,
-              moreOrLessEquals(1 - _uncoverSlice.transform(sv), epsilon: eps));
-        }
-        await tester.pumpAndSettle();
-        expect(opacityOf(tester, 'b'), 0.0, reason: 'cancel re-covers');
-        expect(opacityOf(tester, 't'), 1.0);
-        _expectContinuous(s, b);
-      });
+          // Cancel from S = 0.05: S climbs back to 1, still on the uncover
+          // slice (locked by the rest it left), so the element below fades out
+          // smoothly instead of jumping to the exit slice's value.
+          final List<double> s = <double>[
+            stack.below.secondaryAnimation!.value,
+          ];
+          final List<double> b = <double>[opacityOf(tester, 'b')];
+          await sendBackGesture(tester, 'cancelBackGesture');
+          for (int i = 0; i < 90; i++) {
+            await tester.pump(const Duration(milliseconds: 4));
+            final double sv = stack.below.secondaryAnimation!.value;
+            s.add(sv);
+            b.add(opacityOf(tester, 'b'));
+            expect(
+              b.last,
+              moreOrLessEquals(1 - _uncoverSlice.transform(sv), epsilon: eps),
+            );
+          }
+          await tester.pumpAndSettle();
+          expect(opacityOf(tester, 'b'), 0.0, reason: 'cancel re-covers');
+          expect(opacityOf(tester, 't'), 1.0);
+          _expectContinuous(s, b);
+        },
+      );
 
       testWidgets(
-          'a push popped before it finishes stays on the exit slice both '
-          'ways', (WidgetTester tester) async {
-        final GlobalKey<NavigatorState> nav = await pumpApp(
-          tester,
-          const SizedBox(),
-          theme: themeFor(install),
-        );
-        nav.currentState!
-            .push(routeFor<void>(install, (_) => column(<Widget>[item('b')])));
-        await tester.pumpAndSettle();
-        final ModalRoute<Object?> below = routeOf(tester, 'b');
-        nav.currentState!
-            .push(routeFor<void>(install, (_) => column(<Widget>[item('t')])));
-        await tester.pump();
-        final List<double> s = <double>[];
-        final List<double> b = <double>[];
-        void sample() {
-          final double sv = below.secondaryAnimation!.value;
-          s.add(sv);
-          b.add(opacityOf(tester, 'b'));
-          expect(b.last, moreOrLessEquals(1 - coveredAt(sv), epsilon: eps),
-              reason: 'S $sv');
-        }
+        'a push popped before it finishes stays on the exit slice both '
+        'ways',
+        (WidgetTester tester) async {
+          final GlobalKey<NavigatorState> nav = await pumpApp(
+            tester,
+            const SizedBox(),
+            theme: themeFor(install),
+          );
+          nav.currentState!.push(
+            routeFor<void>(install, (_) => column(<Widget>[item('b')])),
+          );
+          await tester.pumpAndSettle();
+          final ModalRoute<Object?> below = routeOf(tester, 'b');
+          nav.currentState!.push(
+            routeFor<void>(install, (_) => column(<Widget>[item('t')])),
+          );
+          await tester.pump();
+          final List<double> s = <double>[];
+          final List<double> b = <double>[];
+          void sample() {
+            final double sv = below.secondaryAnimation!.value;
+            s.add(sv);
+            b.add(opacityOf(tester, 'b'));
+            expect(
+              b.last,
+              moreOrLessEquals(1 - coveredAt(sv), epsilon: eps),
+              reason: 'S $sv',
+            );
+          }
 
-        for (int i = 0; i < 7; i++) {
-          await tester.pump(const Duration(milliseconds: 16));
-          sample();
-        }
-        final double peak = s.last;
-        expect(peak, inExclusiveRange(0.2, 0.35));
-        nav.currentState!.pop();
-        for (int i = 0; i < 30 && below.secondaryAnimation!.value > 0; i++) {
-          await tester.pump(const Duration(milliseconds: 16));
-          sample();
-        }
-        await tester.pumpAndSettle();
-        expect(s.reduce((double x, double y) => x > y ? x : y), peak);
-        expect(opacityOf(tester, 'b'), 1.0);
-        _expectContinuous(s, b);
-      });
+          for (int i = 0; i < 7; i++) {
+            await tester.pump(const Duration(milliseconds: 16));
+            sample();
+          }
+          final double peak = s.last;
+          expect(peak, inExclusiveRange(0.2, 0.35));
+          nav.currentState!.pop();
+          for (int i = 0; i < 30 && below.secondaryAnimation!.value > 0; i++) {
+            await tester.pump(const Duration(milliseconds: 16));
+            sample();
+          }
+          await tester.pumpAndSettle();
+          expect(s.reduce((double x, double y) => x > y ? x : y), peak);
+          expect(opacityOf(tester, 'b'), 1.0);
+          _expectContinuous(s, b);
+        },
+      );
 
-      testWidgets('a push over the page below while the top page pops',
-          (WidgetTester tester) async {
+      testWidgets('a push over the page below while the top page pops', (
+        WidgetTester tester,
+      ) async {
         final _Stack stack = await _twoPages(tester, install);
         stack.nav.currentState!.pop();
         await tester.pump();
@@ -272,8 +294,9 @@ void main() {
         }
         expect(s.last, inExclusiveRange(0.4, 0.6));
         expect(b.last, greaterThan(0.0), reason: 'returning');
-        stack.nav.currentState!
-            .push(routeFor<void>(install, (_) => column(<Widget>[item('n')])));
+        stack.nav.currentState!.push(
+          routeFor<void>(install, (_) => column(<Widget>[item('n')])),
+        );
         for (int i = 0; i < 60; i++) {
           await tester.pump(const Duration(milliseconds: 8));
           s.add(stack.below.secondaryAnimation!.value);

@@ -60,11 +60,17 @@ List<double> expectNoDeadZone(
     for (final ({double a, double top, double below}) e in samples)
       if (e.top < deadThreshold && e.below < deadThreshold) e.a,
   ];
-  expect(dead.length, lessThanOrEqualTo(1),
-      reason: '$name: dead samples at A = $dead');
+  expect(
+    dead.length,
+    lessThanOrEqualTo(1),
+    reason: '$name: dead samples at A = $dead',
+  );
   for (final double a in dead) {
-    expect((a - uncoverBoundary).abs(), lessThanOrEqualTo(boundaryTolerance),
-        reason: '$name: dead sample away from the boundary, A = $a');
+    expect(
+      (a - uncoverBoundary).abs(),
+      lessThanOrEqualTo(boundaryTolerance),
+      reason: '$name: dead sample away from the boundary, A = $a',
+    );
   }
   return dead;
 }
@@ -79,8 +85,11 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   if (!Platform.isIOS) {
-    testWidgets('device check (iOS only)', (WidgetTester tester) async {},
-        skip: true);
+    testWidgets(
+      'device check (iOS only)',
+      (WidgetTester tester) async {},
+      skip: true,
+    );
     return;
   }
 
@@ -100,10 +109,9 @@ void main() {
 
   /// List items whose rect is on screen now.
   List<String> visibleListLabels(WidgetTester tester) => <String>[
-        for (int i = 0; i < 20; i++)
-          if (exists(listLabel(i)) && onScreen(tester, listLabel(i)))
-            listLabel(i),
-      ];
+    for (int i = 0; i < 20; i++)
+      if (exists(listLabel(i)) && onScreen(tester, listLabel(i))) listLabel(i),
+  ];
 
   /// Opens Detail [subjectIndex] over the list with [install] and [open].
   Future<void> openDetail0(
@@ -173,9 +181,10 @@ void main() {
 
   String offs(WidgetTester tester, List<String> labels) => labels
       .map(
-        (String l) => exists(l)
-            ? '${l.replaceAll('list-item-', '#')}:${f3(offsetOf(tester, l).dy)}/${f3(opacityOf(tester, l))}'
-            : '${l.replaceAll('list-item-', '#')}:gone',
+        (String l) =>
+            exists(l)
+                ? '${l.replaceAll('list-item-', '#')}:${f3(offsetOf(tester, l).dy)}/${f3(opacityOf(tester, l))}'
+                : '${l.replaceAll('list-item-', '#')}:gone',
       )
       .join(' ');
 
@@ -185,20 +194,24 @@ void main() {
   /// (zero velocity, so only the position decides); a fling moves fast and
   /// lets go at once. Returns the per-stop samples and the settle samples.
   Future<
-      ({
-        List<
-            ({
-              double x,
-              double a,
-              bool gesture,
-              Map<String, Offset> off,
-              Map<String, double> op,
-              double topVis,
-              int heroes,
-            })> stops,
-        List<({Duration t, ({double a, int heroes}) v})> settle,
-        Duration releasedAt,
-      })> swipe(
+    ({
+      List<
+        ({
+          double x,
+          double a,
+          bool gesture,
+          Map<String, Offset> off,
+          Map<String, double> op,
+          double topVis,
+          int heroes,
+        })
+      >
+      stops,
+      List<({Duration t, ({double a, int heroes}) v})> settle,
+      Duration releasedAt,
+    })
+  >
+  swipe(
     WidgetTester tester, {
     required String name,
     required List<String> below,
@@ -218,15 +231,17 @@ void main() {
     final TestGesture g = await tester.createGesture();
     await g.down(Offset(x, y), timeStamp: t);
     final List<
-        ({
-          double x,
-          double a,
-          bool gesture,
-          Map<String, Offset> off,
-          Map<String, double> op,
-          double topVis,
-          int heroes,
-        })> samples = [];
+      ({
+        double x,
+        double a,
+        bool gesture,
+        Map<String, Offset> off,
+        Map<String, double> op,
+        double topVis,
+        int heroes,
+      })
+    >
+    samples = [];
     for (final double stop in stops) {
       final double target = stop * width;
       while ((target - x).abs() > 0.5) {
@@ -294,11 +309,11 @@ void main() {
     }
     final FrameSampler<({double a, int heroes})> settle =
         FrameSampler<({double a, int heroes})>(
-      () => (
-        a: top.animation!.value,
-        heroes: shuttleRect(tester) == null ? 0 : 1,
-      ),
-    );
+          () => (
+            a: top.animation!.value,
+            heroes: shuttleRect(tester) == null ? 0 : 1,
+          ),
+        );
     settle.start();
     final Duration releasedAt = tester.binding.currentSystemFrameTimeStamp;
     await g.up(timeStamp: t + Duration(milliseconds: fling ? 8 : 16));
@@ -421,15 +436,22 @@ void main() {
           expect(opacityOf(tester, l), 1.0);
           expect(offsetOf(tester, l), Offset.zero);
         }
-        final int heroesDuringDrag =
-            s.map((e) => e.heroes).reduce((a, b) => a > b ? a : b);
-        final int heroesDuringSettle = r.settle.isEmpty
-            ? 0
-            : r.settle.map((e) => e.v.heroes).reduce((a, b) => a > b ? a : b);
+        final int heroesDuringDrag = s
+            .map((e) => e.heroes)
+            .reduce((a, b) => a > b ? a : b);
+        final int heroesDuringSettle =
+            r.settle.isEmpty
+                ? 0
+                : r.settle
+                    .map((e) => e.v.heroes)
+                    .reduce((a, b) => a > b ? a : b);
         // The example's Hero sets transitionOnUserGestures, so the
         // thumbnail flies with the finger during the swipe.
-        expect(heroesDuringDrag, greaterThan(0),
-            reason: 'example hero flies during swipe-back: $name');
+        expect(
+          heroesDuringDrag,
+          greaterThan(0),
+          reason: 'example hero flies during swipe-back: $name',
+        );
         final int shuttleStops = s.where((e) => e.heroes > 0).length;
         report(
           '$name RESULT hero shuttle on screen at $shuttleStops/${s.length} '
@@ -528,8 +550,7 @@ void main() {
     });
 
     for (final Open open in Open.values) {
-      testWidgets(
-          '3+4 push/pop timing and dead zone, ${install.name}, '
+      testWidgets('3+4 push/pop timing and dead zone, ${install.name}, '
           '${open.name}', (WidgetTester tester) async {
         await openList(tester);
         final List<String> below = visibleListLabels(tester);
@@ -542,7 +563,8 @@ void main() {
           double sib,
           int heroes,
           Rect? shuttle,
-        }) read() {
+        })
+        read() {
           if (top == null && exists(topLabels.first)) {
             top = routeOf(tester, topLabels.first);
           }
@@ -559,18 +581,20 @@ void main() {
         void analyse(
           String name,
           List<
-                  ({
-                    Duration t,
-                    ({
-                      double a,
-                      double topVis,
-                      double all,
-                      double sib,
-                      int heroes,
-                      Rect? shuttle,
-                    }) v,
-                  })>
-              s,
+            ({
+              Duration t,
+              ({
+                double a,
+                double topVis,
+                double all,
+                double sib,
+                int heroes,
+                Rect? shuttle,
+              })
+              v,
+            })
+          >
+          s,
         ) {
           final Duration t0 = s.first.t;
           for (final e in s) {
@@ -590,8 +614,10 @@ void main() {
                 double sib,
                 int heroes,
                 Rect? shuttle,
-              }) v,
-            ) belowOf,
+              })
+              v,
+            )
+            belowOf,
           ) {
             int frames = 0;
             int ms = 0;
@@ -628,14 +654,16 @@ void main() {
 
         final String name = 'timing/${install.name}/${open.name}';
         final FrameSampler<
-            ({
-              double a,
-              double topVis,
-              double all,
-              double sib,
-              int heroes,
-              Rect? shuttle,
-            })> push = FrameSampler(read)..start();
+          ({
+            double a,
+            double topVis,
+            double all,
+            double sib,
+            int heroes,
+            Rect? shuttle,
+          })
+        >
+        push = FrameSampler(read)..start();
         await openDetail0(tester, install, open);
         await wait(tester, 900);
         push.stop();
@@ -648,14 +676,16 @@ void main() {
         analyse('$name push', push.samples);
 
         final FrameSampler<
-            ({
-              double a,
-              double topVis,
-              double all,
-              double sib,
-              int heroes,
-              Rect? shuttle,
-            })> pop = FrameSampler(read)..start();
+          ({
+            double a,
+            double topVis,
+            double all,
+            double sib,
+            int heroes,
+            Rect? shuttle,
+          })
+        >
+        pop = FrameSampler(read)..start();
         await tester.tap(find.byType(BackButton));
         await wait(tester, 900);
         pop.stop();
@@ -668,22 +698,24 @@ void main() {
         );
         analyse('$name pop', pop.samples);
         final List<double> deadPop = expectNoDeadZone(
-            '$name pop', <({double a, double top, double below})>[
-          for (final e in pop.samples)
-            (a: e.v.a, top: e.v.topVis, below: e.v.all),
-        ]);
+          '$name pop',
+          <({double a, double top, double below})>[
+            for (final e in pop.samples)
+              (a: e.v.a, top: e.v.topVis, below: e.v.all),
+          ],
+        );
         report(
-            '$name pop RESULT R6 dead frames (both < ${deadThreshold * 100}%): '
-            '${deadPop.isEmpty ? 'none' : deadPop.map(f3).join(', ')} '
-            'of ${pop.samples.length}');
+          '$name pop RESULT R6 dead frames (both < ${deadThreshold * 100}%): '
+          '${deadPop.isEmpty ? 'none' : deadPop.map(f3).join(', ')} '
+          'of ${pop.samples.length}',
+        );
       });
     }
   }
 
   for (final Install install in Install.values) {
     for (final Open open in Open.values) {
-      testWidgets(
-          '3 R6 dead zone by route value (1 % scrub), '
+      testWidgets('3 R6 dead zone by route value (1 % scrub), '
           '${install.name}, ${open.name}', (WidgetTester tester) async {
         await openList(tester);
         final List<String> below = visibleListLabels(tester);
@@ -727,11 +759,12 @@ void main() {
           rows.add('${f3(a)}:${f3(tv)}/${f3(all)}/${f3(sib)}');
         }
         report('$name rows A:top/belowAll/belowSiblings ${rows.join(' ')}');
-        String span(double? from, double? to) => from == null
-            ? 'none'
-            : 'A ${f3(from)} → ${f3(to!)} (ΔA ${f3(from - to)}, '
-                '≈ ${((from - to) * 400).toStringAsFixed(0)} ms of a linear '
-                '400 ms pop, derived)';
+        String span(double? from, double? to) =>
+            from == null
+                ? 'none'
+                : 'A ${f3(from)} → ${f3(to!)} (ΔA ${f3(from - to)}, '
+                    '≈ ${((from - to) * 400).toStringAsFixed(0)} ms of a linear '
+                    '400 ms pop, derived)';
         report(
           '$name RESULT dead zone (top and below both < '
           '${visibleThreshold * 100}%): all elements ${span(allFrom, allTo)}; '
@@ -763,19 +796,18 @@ void main() {
       });
     }
 
-    testWidgets(
-        '4 Hero with transitionOnUserGestures flies on swipe-back, '
+    testWidgets('4 Hero with transitionOnUserGestures flies on swipe-back, '
         '${install.name}', (WidgetTester tester) async {
       Widget thumb(double size) => Hero(
-            tag: 'gesture-hero',
-            transitionOnUserGestures: true,
-            child: Container(
-              width: size,
-              height: size,
-              color: Colors.teal,
-              child: const Icon(Icons.image_outlined, color: Colors.white),
-            ),
-          );
+        tag: 'gesture-hero',
+        transitionOnUserGestures: true,
+        child: Container(
+          width: size,
+          height: size,
+          color: Colors.teal,
+          child: const Icon(Icons.image_outlined, color: Colors.white),
+        ),
+      );
       final GlobalKey<NavigatorState> nav = GlobalKey<NavigatorState>();
       await tester.pumpWidget(
         MaterialApp(
@@ -796,17 +828,17 @@ void main() {
       );
       await wait(tester, 600);
       Widget page(BuildContext _) => Scaffold(
-            appBar: AppBar(title: const Text('Hero detail')),
-            body: Column(
-              children: <Widget>[
-                Center(child: thumb(160)),
-                const CnRouteAnimation(
-                  key: ValueKey<String>('detail-paragraph-0'),
-                  child: Text('Paragraph'),
-                ),
-              ],
+        appBar: AppBar(title: const Text('Hero detail')),
+        body: Column(
+          children: <Widget>[
+            Center(child: thumb(160)),
+            const CnRouteAnimation(
+              key: ValueKey<String>('detail-paragraph-0'),
+              child: Text('Paragraph'),
             ),
-          );
+          ],
+        ),
+      );
       nav.currentState!.push(
         install == Install.cnPageRoute
             ? CnPageRoute<void>(builder: page)

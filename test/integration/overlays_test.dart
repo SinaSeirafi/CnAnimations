@@ -31,34 +31,36 @@ Route<T> pageRoute<T>(PageKind kind, WidgetBuilder builder) {
 /// The overlay kinds of design §8, each opened from [context].
 final Map<String, void Function(BuildContext context)> overlays =
     <String, void Function(BuildContext context)>{
-  'showDialog': (BuildContext context) => showDialog<void>(
+      'showDialog': (BuildContext context) => showDialog<void>(
         context: context,
         builder: (_) => const AlertDialog(title: Text('overlay')),
       ),
-  'showGeneralDialog': (BuildContext context) => showGeneralDialog<void>(
+      'showGeneralDialog': (BuildContext context) => showGeneralDialog<void>(
         context: context,
         pageBuilder: (_, _, _) => const Center(child: Text('overlay')),
       ),
-  'showModalBottomSheet': (BuildContext context) => showModalBottomSheet<void>(
-        context: context,
-        builder: (_) => const SizedBox(height: 200, child: Text('overlay')),
-      ),
-  'showCupertinoDialog': (BuildContext context) => showCupertinoDialog<void>(
-        context: context,
-        builder: (_) => const CupertinoAlertDialog(title: Text('overlay')),
-      ),
-  'showCupertinoModalPopup': (BuildContext context) =>
-      showCupertinoModalPopup<void>(
-        context: context,
-        builder: (_) => const SizedBox(height: 200, child: Text('overlay')),
-      ),
-  'fullscreenDialog': (BuildContext context) => Navigator.of(context).push(
+      'showModalBottomSheet': (BuildContext context) =>
+          showModalBottomSheet<void>(
+            context: context,
+            builder: (_) => const SizedBox(height: 200, child: Text('overlay')),
+          ),
+      'showCupertinoDialog': (BuildContext context) =>
+          showCupertinoDialog<void>(
+            context: context,
+            builder: (_) => const CupertinoAlertDialog(title: Text('overlay')),
+          ),
+      'showCupertinoModalPopup': (BuildContext context) =>
+          showCupertinoModalPopup<void>(
+            context: context,
+            builder: (_) => const SizedBox(height: 200, child: Text('overlay')),
+          ),
+      'fullscreenDialog': (BuildContext context) => Navigator.of(context).push(
         MaterialPageRoute<void>(
           fullscreenDialog: true,
           builder: (_) => const Scaffold(body: Text('overlay')),
         ),
       ),
-};
+    };
 
 /// Three elements; tapping 'e1' runs [onTap]. 'e2' reports its progress.
 Widget overlayPage(ProgressLog log, void Function(BuildContext) onTap) =>
@@ -99,12 +101,18 @@ Future<GlobalKey<NavigatorState>> pushPage(
 }
 
 void expectAtRest(WidgetTester tester, ProgressLog log, {String? reason}) {
-  expect(routeOf(tester, 'e0').secondaryAnimation!.isDismissed, isTrue,
-      reason: reason);
+  expect(
+    routeOf(tester, 'e0').secondaryAnimation!.isDismissed,
+    isTrue,
+    reason: reason,
+  );
   for (final String label in <String>['e0', 'e1']) {
     expect(opacityOf(tester, label), 1.0, reason: '$label ${reason ?? ''}');
-    expect(offsetOf(tester, label), Offset.zero,
-        reason: '$label ${reason ?? ''}');
+    expect(
+      offsetOf(tester, label),
+      Offset.zero,
+      reason: '$label ${reason ?? ''}',
+    );
   }
   expect(log.last, CnElementProgress.rest, reason: 'e2 ${reason ?? ''}');
 }
@@ -114,8 +122,9 @@ void main() {
     for (final PageKind kind in PageKind.values) {
       for (final MapEntry<String, void Function(BuildContext)> overlay
           in overlays.entries) {
-        testWidgets('${overlay.key} over a ${kind.name} page',
-            (WidgetTester tester) async {
+        testWidgets('${overlay.key} over a ${kind.name} page', (
+          WidgetTester tester,
+        ) async {
           final ProgressLog log = ProgressLog();
           final GlobalKey<NavigatorState> nav = await pushPage(
             tester,
@@ -145,9 +154,9 @@ void main() {
 
   group('counter-tests: non-opaque routes and the generic quirk', () {
     Route<void> transparent() => PageRouteBuilder<void>(
-          opaque: false,
-          pageBuilder: (_, _, _) => const Center(child: Text('overlay')),
-        );
+      opaque: false,
+      pageBuilder: (_, _, _) => const Center(child: Text('overlay')),
+    );
 
     /// Plain elements fully covered: at the mirrored exit offset, faded out.
     void expectCovered(WidgetTester tester, ProgressLog log) {
@@ -158,48 +167,50 @@ void main() {
     }
 
     testWidgets(
-        'PageRouteBuilder(opaque: false) over a PageRouteBuilder page covers '
-        'it (PageRoute.canTransitionTo only checks `is PageRoute`, §5)',
-        (WidgetTester tester) async {
-      final ProgressLog log = ProgressLog();
-      final GlobalKey<NavigatorState> nav = await pushPage(
-        tester,
-        PageKind.pageRouteBuilder,
-        (_) => overlayPage(log, (_) {}),
-      );
-      nav.currentState!.push(transparent());
-      await tester.pumpAndSettle();
-      expectCovered(tester, log);
-      nav.currentState!.pop();
-      await tester.pumpAndSettle();
-      expectAtRest(tester, log);
-    });
+      'PageRouteBuilder(opaque: false) over a PageRouteBuilder page covers '
+      'it (PageRoute.canTransitionTo only checks `is PageRoute`, §5)',
+      (WidgetTester tester) async {
+        final ProgressLog log = ProgressLog();
+        final GlobalKey<NavigatorState> nav = await pushPage(
+          tester,
+          PageKind.pageRouteBuilder,
+          (_) => overlayPage(log, (_) {}),
+        );
+        nav.currentState!.push(transparent());
+        await tester.pumpAndSettle();
+        expectCovered(tester, log);
+        nav.currentState!.pop();
+        await tester.pumpAndSettle();
+        expectAtRest(tester, log);
+      },
+    );
 
     // Design §8 expected this case to cover. It does not: the Material
     // mixin's canTransitionTo accepts only Material routes or routes with a
     // delegatedTransition, and a PageRouteBuilder has neither. This matches
     // the README ("non-opaque routes do not cover the page").
     testWidgets(
-        'PageRouteBuilder(opaque: false) over a MaterialPageRoute page (theme '
-        'form) does not cover it', (WidgetTester tester) async {
-      final ProgressLog log = ProgressLog();
-      final GlobalKey<NavigatorState> nav = await pushPage(
-        tester,
-        PageKind.materialWithTheme,
-        (_) => overlayPage(log, (_) {}),
-      );
-      nav.currentState!.push(transparent());
-      for (int i = 0; i < 3; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-        expectAtRest(tester, log, reason: 'frame $i');
-      }
-      await tester.pumpAndSettle();
-      expect(find.text('overlay'), findsOneWidget);
-      expectAtRest(tester, log);
-    });
+      'PageRouteBuilder(opaque: false) over a MaterialPageRoute page (theme '
+      'form) does not cover it',
+      (WidgetTester tester) async {
+        final ProgressLog log = ProgressLog();
+        final GlobalKey<NavigatorState> nav = await pushPage(
+          tester,
+          PageKind.materialWithTheme,
+          (_) => overlayPage(log, (_) {}),
+        );
+        nav.currentState!.push(transparent());
+        for (int i = 0; i < 3; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+          expectAtRest(tester, log, reason: 'frame $i');
+        }
+        await tester.pumpAndSettle();
+        expect(find.text('overlay'), findsOneWidget);
+        expectAtRest(tester, log);
+      },
+    );
 
-    testWidgets(
-        'PageRouteBuilder(opaque: false) over a CnPageRoute page does '
+    testWidgets('PageRouteBuilder(opaque: false) over a CnPageRoute page does '
         'not cover it', (WidgetTester tester) async {
       final ProgressLog log = ProgressLog();
       final GlobalKey<NavigatorState> nav = await pushPage(
@@ -218,30 +229,31 @@ void main() {
     });
 
     testWidgets(
-        'generic quirk: MaterialPageRoute<int> page under CnPageRoute<void> '
-        'is covered', (WidgetTester tester) async {
-      final ProgressLog log = ProgressLog();
-      final GlobalKey<NavigatorState> nav = await pumpApp(
-        tester,
-        const SizedBox(),
-        theme: ThemeData(platform: TargetPlatform.android),
-      );
-      nav.currentState!.push(
-        MaterialPageRoute<int>(builder: (_) => overlayPage(log, (_) {})),
-      );
-      await tester.pumpAndSettle();
-      nav.currentState!.push(
-        CnPageRoute<void>(builder: (_) => const SizedBox()),
-      );
-      await tester.pumpAndSettle();
-      expectCovered(tester, log);
-      nav.currentState!.pop();
-      await tester.pumpAndSettle();
-      expectAtRest(tester, log);
-    });
+      'generic quirk: MaterialPageRoute<int> page under CnPageRoute<void> '
+      'is covered',
+      (WidgetTester tester) async {
+        final ProgressLog log = ProgressLog();
+        final GlobalKey<NavigatorState> nav = await pumpApp(
+          tester,
+          const SizedBox(),
+          theme: ThemeData(platform: TargetPlatform.android),
+        );
+        nav.currentState!.push(
+          MaterialPageRoute<int>(builder: (_) => overlayPage(log, (_) {})),
+        );
+        await tester.pumpAndSettle();
+        nav.currentState!.push(
+          CnPageRoute<void>(builder: (_) => const SizedBox()),
+        );
+        await tester.pumpAndSettle();
+        expectCovered(tester, log);
+        nav.currentState!.pop();
+        await tester.pumpAndSettle();
+        expectAtRest(tester, log);
+      },
+    );
 
-    testWidgets(
-        'generic quirk guard: MaterialPageRoute<int> page under a bare '
+    testWidgets('generic quirk guard: MaterialPageRoute<int> page under a bare '
         'PageRouteBuilder<void> is not covered', (WidgetTester tester) async {
       final ProgressLog log = ProgressLog();
       final GlobalKey<NavigatorState> nav = await pumpApp(

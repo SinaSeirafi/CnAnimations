@@ -34,9 +34,9 @@ class SettingsModel extends ChangeNotifier {
   set subjectBehavior(CnSubjectBehavior v) => _set(() => _subjectBehavior = v);
   set useFadeThrough(bool v) => _set(() => _useFadeThrough = v);
   set slowMotion(bool v) => _set(() {
-        _slowMotion = v;
-        timeDilation = v ? 4.0 : 1.0;
-      });
+    _slowMotion = v;
+    timeDilation = v ? 4.0 : 1.0;
+  });
 
   void _set(VoidCallback change) {
     change();

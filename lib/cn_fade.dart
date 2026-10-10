@@ -43,9 +43,9 @@ class CnFade extends StatefulWidget {
     this.respectReducedMotion = true,
     this.curve,
   }) : assert(
-          controller == null || animation == null,
-          'Provide either controller or animation, not both.',
-        );
+         controller == null || animation == null,
+         'Provide either controller or animation, not both.',
+       );
 
   @override
   State<CnFade> createState() => _CnFadeState();
@@ -139,10 +139,7 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
-      duration: _duration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: _duration, vsync: this);
 
     _updateFadeAnimation();
 

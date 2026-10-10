@@ -123,13 +123,11 @@ void main() {
           ),
         ),
       );
-      Navigator.of(
-        ctx,
-      ).push(CnPageRoute<void>(builder: (_) => const DetailPage()));
+      Navigator.of(ctx)
+          .push(CnPageRoute<void>(builder: (_) => const DetailPage()));
       await tester.pumpAndSettle();
       expect(find.text('detail page'), findsOneWidget);
     });
-
   });
 
   group('CnRouteAnimation', () {
@@ -356,6 +354,5 @@ void main() {
       );
       expect(find.text('child'), findsOneWidget);
     });
-
   });
 }

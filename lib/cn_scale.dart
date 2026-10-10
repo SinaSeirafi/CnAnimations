@@ -42,9 +42,9 @@ class CnScale extends StatefulWidget {
     this.animation,
     this.respectReducedMotion = true,
   }) : assert(
-          controller == null || animation == null,
-          'Provide either controller or animation, not both.',
-        );
+         controller == null || animation == null,
+         'Provide either controller or animation, not both.',
+       );
 
   @override
   State<CnScale> createState() => _CnScaleState();
@@ -140,10 +140,7 @@ class _CnScaleState extends State<CnScale> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
 
     _updateScaleAnimation();
 

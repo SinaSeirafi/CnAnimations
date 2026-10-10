@@ -100,8 +100,7 @@ void main() {
       expect(data.scrollReveal, CnScrollReveal.off); // default
     });
 
-    testWidgets(
-        'a change to an outer scope rebuilds dependents below an '
+    testWidgets('a change to an outer scope rebuilds dependents below an '
         'inner scope', (tester) async {
       final reveal = ValueNotifier<CnScrollReveal?>(null);
       final seen = <CnScrollReveal>[];
@@ -129,34 +128,34 @@ void main() {
       var builds = 0;
       final probe = _Probe((_) => builds++);
       Widget tree() => CnRouteChoreography(
-            // Non-const but equal values each rebuild.
-            timing: CnRouteTiming(exit: Interval(0.0, 0.3)),
-            parting: CnPartingSpec(distance: Offset(0, 0.5)),
-            scrollReveal: CnScrollReveal(offset: Offset(0, 0.2)),
-            child: probe,
-          );
+        // Non-const but equal values each rebuild.
+        timing: CnRouteTiming(exit: Interval(0.0, 0.3)),
+        parting: CnPartingSpec(distance: Offset(0, 0.5)),
+        scrollReveal: CnScrollReveal(offset: Offset(0, 0.2)),
+        child: probe,
+      );
 
       await tester.pumpWidget(tree());
       await tester.pumpWidget(tree());
       expect(builds, 1);
     });
 
-    testWidgets('a scope in MaterialApp.builder reaches elements inside routes',
-        (
-      tester,
-    ) async {
-      late CnRouteChoreographyData data;
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (context, child) => CnRouteChoreography(
-            timing: const CnRouteTiming(exitStagger: 0.08),
-            child: child!,
+    testWidgets(
+      'a scope in MaterialApp.builder reaches elements inside routes',
+      (tester) async {
+        late CnRouteChoreographyData data;
+        await tester.pumpWidget(
+          MaterialApp(
+            builder: (context, child) => CnRouteChoreography(
+              timing: const CnRouteTiming(exitStagger: 0.08),
+              child: child!,
+            ),
+            home: _Probe((d) => data = d),
           ),
-          home: _Probe((d) => data = d),
-        ),
-      );
-      expect(data.timing.exitStagger, 0.08);
-    });
+        );
+        expect(data.timing.exitStagger, 0.08);
+      },
+    );
   });
 
   group('reducedMotionFor', () {

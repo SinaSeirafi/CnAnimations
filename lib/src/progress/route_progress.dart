@@ -390,10 +390,10 @@ class CnRouteProgress {
 
   @override
   int get hashCode => Object.hash(
-        identityHashCode(route),
-        identityHashCode(primary),
-        identityHashCode(cover),
-      );
+    identityHashCode(route),
+    identityHashCode(primary),
+    identityHashCode(cover),
+  );
 
   @override
   String toString() =>
