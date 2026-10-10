@@ -79,17 +79,19 @@ ThemeData themeFor(
   }
 }
 
-Finder _own<T>(String label) => find
-    .descendant(
-      of: find.byKey(ValueKey<String>(label), skipOffstage: false),
-      matching: find.byType(T, skipOffstage: false),
-    )
-    .first;
+Finder _own<T>(String label) =>
+    find
+        .descendant(
+          of: find.byKey(ValueKey<String>(label), skipOffstage: false),
+          matching: find.byType(T, skipOffstage: false),
+        )
+        .first;
 
-bool exists(String label) => find
-    .byKey(ValueKey<String>(label), skipOffstage: false)
-    .evaluate()
-    .isNotEmpty;
+bool exists(String label) =>
+    find
+        .byKey(ValueKey<String>(label), skipOffstage: false)
+        .evaluate()
+        .isNotEmpty;
 
 /// The element's own opacity.
 double opacityOf(WidgetTester tester, String label) =>
@@ -103,9 +105,10 @@ Offset offsetOf(WidgetTester tester, String label) =>
 double scaleOf(WidgetTester tester, String label) =>
     tester.widget<ScaleTransition>(_own<ScaleTransition>(label)).scale.value;
 
-ModalRoute<Object?> routeOf(WidgetTester tester, String label) => ModalRoute.of(
-  tester.element(find.byKey(ValueKey<String>(label), skipOffstage: false)),
-)!;
+ModalRoute<Object?> routeOf(WidgetTester tester, String label) =>
+    ModalRoute.of(
+      tester.element(find.byKey(ValueKey<String>(label), skipOffstage: false)),
+    )!;
 
 /// Records the last progress handed to a `builder:`.
 class ProgressLog {
@@ -192,10 +195,10 @@ Future<void> sendBackGesture(
       method,
       method == 'startBackGesture' || method == 'updateBackGestureProgress'
           ? <String, Object?>{
-              'touchOffset': <double>[5.0, 300.0],
-              'progress': progress,
-              'swipeEdge': 0,
-            }
+            'touchOffset': <double>[5.0, 300.0],
+            'progress': progress,
+            'swipeEdge': 0,
+          }
           : null,
     ),
   );

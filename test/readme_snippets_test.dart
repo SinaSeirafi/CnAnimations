@@ -72,9 +72,7 @@ void main() {
       addTearDown(controller.dispose);
       final Animation<double> animation = controller;
       await tester.pumpWidget(
-        MaterialApp(
-          home: CnFade(animation: animation, child: child),
-        ),
+        MaterialApp(home: CnFade(animation: animation, child: child)),
       );
       FadeTransition fade() =>
           tester.widget<FadeTransition>(find.byType(FadeTransition).last);
@@ -123,8 +121,9 @@ void main() {
           ),
         ),
       );
-      Navigator.of(ctx)
-          .push(CnPageRoute<void>(builder: (_) => const DetailPage()));
+      Navigator.of(
+        ctx,
+      ).push(CnPageRoute<void>(builder: (_) => const DetailPage()));
       await tester.pumpAndSettle();
       expect(find.text('detail page'), findsOneWidget);
     });
@@ -191,14 +190,18 @@ void main() {
           home: Scaffold(
             body: ListView.builder(
               itemCount: 5,
-              itemBuilder: (context, i) => CnRouteAnimation(
-                child: ListTile(
-                  title: Text('Item $i'),
-                  onTap: () => Navigator.of(
-                    context,
-                  ).push(CnPageRoute<void>(builder: (_) => const DetailPage())),
-                ),
-              ),
+              itemBuilder:
+                  (context, i) => CnRouteAnimation(
+                    child: ListTile(
+                      title: Text('Item $i'),
+                      onTap:
+                          () => Navigator.of(context).push(
+                            CnPageRoute<void>(
+                              builder: (_) => const DetailPage(),
+                            ),
+                          ),
+                    ),
+                  ),
             ),
           ),
         ),
@@ -218,10 +221,11 @@ void main() {
             CnRouteAnimation(
               subject: true,
               child: Builder(
-                builder: (context) => TextButton(
-                  onPressed: () => CnRouteChoreography.select(context),
-                  child: const Text('select'),
-                ),
+                builder:
+                    (context) => TextButton(
+                      onPressed: () => CnRouteChoreography.select(context),
+                      child: const Text('select'),
+                    ),
               ),
             ),
           ],

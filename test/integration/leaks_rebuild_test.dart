@@ -17,22 +17,24 @@ import 'support.dart';
 Widget filteredPage(ValueNotifier<List<int>> ids, Install install) =>
     ValueListenableBuilder<List<int>>(
       valueListenable: ids,
-      builder: (BuildContext context, List<int> list, _) => column(<Widget>[
-        for (final int i in list)
-          item(
-            'p$i',
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => Navigator.of(context).push(
-                routeFor<void>(
-                  install,
-                  (_) => column(<Widget>[item('d0'), item('d1')]),
+      builder:
+          (BuildContext context, List<int> list, _) => column(<Widget>[
+            for (final int i in list)
+              item(
+                'p$i',
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap:
+                      () => Navigator.of(context).push(
+                        routeFor<void>(
+                          install,
+                          (_) => column(<Widget>[item('d0'), item('d1')]),
+                        ),
+                      ),
+                  child: SizedBox(height: 60, child: Text('p$i')),
                 ),
               ),
-              child: SizedBox(height: 60, child: Text('p$i')),
-            ),
-          ),
-      ]),
+          ]),
     );
 
 Map<String, int> liveCounts(AllocationTracker tracker) => <String, int>{
@@ -53,10 +55,11 @@ void main() {
             tester,
             const SizedBox(),
             theme: themeFor(install),
-            builder: (_, Widget? child) => CnRouteChoreography(
-              scrollReveal: const CnScrollReveal(),
-              child: child!,
-            ),
+            builder:
+                (_, Widget? child) => CnRouteChoreography(
+                  scrollReveal: const CnScrollReveal(),
+                  child: child!,
+                ),
           );
           await tester.pumpAndSettle();
 
@@ -69,20 +72,23 @@ void main() {
                   controller: scroll,
                   itemCount: 40,
                   itemExtent: 100,
-                  itemBuilder: (BuildContext context, int i) => item(
-                    'L$i',
-                    timing: null,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => Navigator.of(context).push(
-                        routeFor<void>(
-                          install,
-                          (_) => column(<Widget>[item('d0'), item('d1')]),
+                  itemBuilder:
+                      (BuildContext context, int i) => item(
+                        'L$i',
+                        timing: null,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap:
+                              () => Navigator.of(context).push(
+                                routeFor<void>(
+                                  install,
+                                  (_) =>
+                                      column(<Widget>[item('d0'), item('d1')]),
+                                ),
+                              ),
+                          child: SizedBox(height: 100, child: Text('L$i')),
                         ),
                       ),
-                      child: SizedBox(height: 100, child: Text('L$i')),
-                    ),
-                  ),
                 ),
               ),
             );

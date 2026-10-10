@@ -16,20 +16,22 @@ import 'support.dart';
 
 /// Five 60 px items; tapping one pushes a page holding element 't'.
 Widget listPage(Install install, CnRouteTiming timing) => Builder(
-  builder: (BuildContext context) => column(<Widget>[
-    for (int i = 0; i < 5; i++)
-      CnRouteAnimation(
-        key: ValueKey<String>('s$i'),
-        timing: timing,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => Navigator.of(
-            context,
-          ).push(routeFor<void>(install, (_) => column(<Widget>[item('t')]))),
-          child: SizedBox(height: 60, child: Text('s$i')),
-        ),
-      ),
-  ]),
+  builder:
+      (BuildContext context) => column(<Widget>[
+        for (int i = 0; i < 5; i++)
+          CnRouteAnimation(
+            key: ValueKey<String>('s$i'),
+            timing: timing,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap:
+                  () => Navigator.of(context).push(
+                    routeFor<void>(install, (_) => column(<Widget>[item('t')])),
+                  ),
+              child: SizedBox(height: 60, child: Text('s$i')),
+            ),
+          ),
+      ]),
 );
 
 class Stack2 {

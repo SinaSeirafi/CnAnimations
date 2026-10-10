@@ -45,17 +45,21 @@ class _Frame {
 
 /// The fade-through's own opacity on the top page: the nearest
 /// `FadeTransition` above the element 't'.
-double _topPageOpacity(WidgetTester tester) => tester
-    .widget<FadeTransition>(
-      find
-          .ancestor(
-            of: find.byKey(const ValueKey<String>('t'), skipOffstage: false),
-            matching: find.byType(FadeTransition, skipOffstage: false),
-          )
-          .first,
-    )
-    .opacity
-    .value;
+double _topPageOpacity(WidgetTester tester) =>
+    tester
+        .widget<FadeTransition>(
+          find
+              .ancestor(
+                of: find.byKey(
+                  const ValueKey<String>('t'),
+                  skipOffstage: false,
+                ),
+                matching: find.byType(FadeTransition, skipOffstage: false),
+              )
+              .first,
+        )
+        .opacity
+        .value;
 
 class _Stack {
   _Stack(this.nav, this.below, this.top);
@@ -101,10 +105,11 @@ String _report(String what, List<_Frame> frames) {
             f.topVisible > f.belowVisible ? f.topVisible : f.belowVisible,
       )
       .reduce((double a, double b) => a < b ? a : b);
-  String range(List<_Frame> fs) => fs.isEmpty
-      ? 'none'
-      : 'S in [${fs.last.s.toStringAsFixed(3)}, '
-            '${fs.first.s.toStringAsFixed(3)}]';
+  String range(List<_Frame> fs) =>
+      fs.isEmpty
+          ? 'none'
+          : 'S in [${fs.last.s.toStringAsFixed(3)}, '
+              '${fs.first.s.toStringAsFixed(3)}]';
   return '$what: ${frames.length} frames; '
       'dead (composited) ${dead.length} ${range(dead)}; '
       'dead (own opacity) ${deadOwn.length} ${range(deadOwn)}; '

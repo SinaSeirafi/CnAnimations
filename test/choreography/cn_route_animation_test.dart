@@ -51,12 +51,13 @@ ThemeData fadeThroughTheme() => ThemeData(
   ),
 );
 
-Finder _own<T>(String label) => find
-    .descendant(
-      of: find.byKey(ValueKey<String>(label), skipOffstage: false),
-      matching: find.byType(T, skipOffstage: false),
-    )
-    .first;
+Finder _own<T>(String label) =>
+    find
+        .descendant(
+          of: find.byKey(ValueKey<String>(label), skipOffstage: false),
+          matching: find.byType(T, skipOffstage: false),
+        )
+        .first;
 
 /// The element's own fade (the first FadeTransition below the widget).
 double opacityOf(WidgetTester tester, String label) =>
@@ -69,9 +70,10 @@ Offset offsetOf(WidgetTester tester, String label) =>
 double scaleOf(WidgetTester tester, String label) =>
     tester.widget<ScaleTransition>(_own<ScaleTransition>(label)).scale.value;
 
-ModalRoute<Object?> routeOf(WidgetTester tester, String label) => ModalRoute.of(
-  tester.element(find.byKey(ValueKey<String>(label), skipOffstage: false)),
-)!;
+ModalRoute<Object?> routeOf(WidgetTester tester, String label) =>
+    ModalRoute.of(
+      tester.element(find.byKey(ValueKey<String>(label), skipOffstage: false)),
+    )!;
 
 /// A 100 px tall element.
 Widget item(
@@ -183,10 +185,11 @@ void main() {
       );
       nav.currentState!.push(
         CnPageRoute<void>(
-          builder: (_) => const CnRouteAnimation(
-            key: ValueKey<String>('d'),
-            child: SizedBox(height: 50),
-          ),
+          builder:
+              (_) => const CnRouteAnimation(
+                key: ValueKey<String>('d'),
+                child: SizedBox(height: 50),
+              ),
         ),
       );
       await tester.pump();
@@ -204,11 +207,12 @@ void main() {
       );
       nav.currentState!.push(
         CnPageRoute<void>(
-          builder: (_) => page(<Widget>[
-            item('top', timing: null),
-            const SizedBox(height: 350),
-            item('low', timing: null),
-          ]),
+          builder:
+              (_) => page(<Widget>[
+                item('top', timing: null),
+                const SizedBox(height: 350),
+                item('low', timing: null),
+              ]),
         ),
       );
       await tester.pump();
@@ -448,8 +452,8 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
-          builder: (_, _) =>
-              Align(alignment: Alignment.topLeft, child: item('n')),
+          builder:
+              (_, _) => Align(alignment: Alignment.topLeft, child: item('n')),
         ),
       );
       expect(
@@ -467,8 +471,8 @@ void main() {
       // A rebuild does not replay it.
       await tester.pumpWidget(
         MaterialApp(
-          builder: (_, _) =>
-              Align(alignment: Alignment.topLeft, child: item('n')),
+          builder:
+              (_, _) => Align(alignment: Alignment.topLeft, child: item('n')),
         ),
       );
       expect(opacityOf(tester, 'n'), 1.0);
@@ -600,14 +604,15 @@ void main() {
       final GlobalKey<NavigatorState> nav = await pumpReduced(tester);
       nav.currentState!.push(
         CnPageRoute<void>(
-          builder: (_) => page(<Widget>[
-            CnRouteAnimation(
-              key: const ValueKey<String>('r'),
-              timing: flat,
-              scale: 0.9,
-              child: const SizedBox(height: 100),
-            ),
-          ]),
+          builder:
+              (_) => page(<Widget>[
+                CnRouteAnimation(
+                  key: const ValueKey<String>('r'),
+                  timing: flat,
+                  scale: 0.9,
+                  child: const SizedBox(height: 100),
+                ),
+              ]),
         ),
       );
       await tester.pump();
@@ -629,13 +634,14 @@ void main() {
     ) async {
       final GlobalKey<NavigatorState> nav = await pumpReduced(
         tester,
-        scope: (Widget child) => CnRouteChoreography(
-          reducedMotionMode: CnReducedMotionMode.none,
-          child: child,
-        ),
+        scope:
+            (Widget child) => CnRouteChoreography(
+              reducedMotionMode: CnReducedMotionMode.none,
+              child: child,
+            ),
       );
-      final FallbackControllerTracker tracker = FallbackControllerTracker()
-        ..start();
+      final FallbackControllerTracker tracker =
+          FallbackControllerTracker()..start();
       addTearDown(tracker.stop);
       nav.currentState!.push(
         CnPageRoute<void>(builder: (_) => page(<Widget>[item('r')])),
@@ -661,10 +667,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: fadeThroughTheme(),
-          builder: (BuildContext context, Widget? child) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(disableAnimations: true),
-            child: child!,
-          ),
+          builder:
+              (BuildContext context, Widget? child) => MediaQuery(
+                data: MediaQuery.of(context).copyWith(disableAnimations: true),
+                child: child!,
+              ),
           home: page(<Widget>[
             item('r', reducedMotionMode: CnReducedMotionMode.none),
           ]),
@@ -681,9 +688,10 @@ void main() {
     }) async {
       nav.currentState!.push(
         CnPageRoute<void>(
-          builder: (_) => page(<Widget>[
-            item('p', respectReducedMotion: respectReducedMotion),
-          ]),
+          builder:
+              (_) => page(<Widget>[
+                item('p', respectReducedMotion: respectReducedMotion),
+              ]),
         ),
       );
       await tester.pump();
@@ -713,8 +721,9 @@ void main() {
     ) async {
       final GlobalKey<NavigatorState> nav = await pumpReduced(
         tester,
-        scope: (Widget child) =>
-            CnRouteChoreography(respectReducedMotion: false, child: child),
+        scope:
+            (Widget child) =>
+                CnRouteChoreography(respectReducedMotion: false, child: child),
       );
       expect((await midPushOffset(tester, nav)).dy, greaterThan(0));
     });
@@ -724,8 +733,9 @@ void main() {
     ) async {
       final GlobalKey<NavigatorState> nav = await pumpReduced(
         tester,
-        scope: (Widget child) =>
-            CnRouteChoreography(respectReducedMotion: false, child: child),
+        scope:
+            (Widget child) =>
+                CnRouteChoreography(respectReducedMotion: false, child: child),
       );
       expect(
         await midPushOffset(tester, nav, respectReducedMotion: true),
@@ -738,8 +748,9 @@ void main() {
     ) async {
       final GlobalKey<NavigatorState> nav = await pumpReduced(
         tester,
-        scope: (Widget child) =>
-            CnRouteChoreography(respectReducedMotion: true, child: child),
+        scope:
+            (Widget child) =>
+                CnRouteChoreography(respectReducedMotion: true, child: child),
       );
       expect(
         (await midPushOffset(tester, nav, respectReducedMotion: false)).dy,
@@ -750,8 +761,8 @@ void main() {
     testWidgets('the route-driven path creates no AnimationController', (
       WidgetTester tester,
     ) async {
-      final FallbackControllerTracker tracker = FallbackControllerTracker()
-        ..start();
+      final FallbackControllerTracker tracker =
+          FallbackControllerTracker()..start();
       addTearDown(tracker.stop);
       final GlobalKey<NavigatorState> nav = await pumpApp(
         tester,
@@ -763,9 +774,10 @@ void main() {
       tracker.created.clear();
       nav.currentState!.push(
         CnPageRoute<void>(
-          builder: (_) => page(<Widget>[
-            for (int i = 0; i < 5; i++) item('p$i', height: 60),
-          ]),
+          builder:
+              (_) => page(<Widget>[
+                for (int i = 0; i < 5; i++) item('p$i', height: 60),
+              ]),
         ),
       );
       await tester.pumpAndSettle();
@@ -787,9 +799,10 @@ void main() {
       final GlobalKey<NavigatorState> nav = await pumpApp(
         tester,
         Builder(
-          builder: (BuildContext context) => page(<Widget>[
-            item('t', enabled: ModalRoute.of(context)!.isCurrent),
-          ]),
+          builder:
+              (BuildContext context) => page(<Widget>[
+                item('t', enabled: ModalRoute.of(context)!.isCurrent),
+              ]),
         ),
       );
       await tester.pumpAndSettle();
@@ -820,10 +833,12 @@ void main() {
       );
       nav.currentState!.push(
         CnPageRoute<void>(
-          builder: (_) => ValueListenableBuilder<bool>(
-            valueListenable: enabled,
-            builder: (_, bool on, _) => page(<Widget>[item('t', enabled: on)]),
-          ),
+          builder:
+              (_) => ValueListenableBuilder<bool>(
+                valueListenable: enabled,
+                builder:
+                    (_, bool on, _) => page(<Widget>[item('t', enabled: on)]),
+              ),
         ),
       );
       await tester.pump();
@@ -881,15 +896,16 @@ void main() {
       );
       nav.currentState!.push(
         CnPageRoute<void>(
-          builder: (_) => page(<Widget>[
-            item(
-              'b',
-              builder: (_, CnElementProgress progress, Widget? child) {
-                seen.add(progress);
-                return child!;
-              },
-            ),
-          ]),
+          builder:
+              (_) => page(<Widget>[
+                item(
+                  'b',
+                  builder: (_, CnElementProgress progress, Widget? child) {
+                    seen.add(progress);
+                    return child!;
+                  },
+                ),
+              ]),
         ),
       );
       await tester.pump();
@@ -954,9 +970,9 @@ void main() {
   });
 
   group('parting (§3.5)', () {
-    void pushBlank(BuildContext context) =>
-        Navigator.of(context)
-            .push(CnPageRoute<void>(builder: (_) => const SizedBox()));
+    void pushBlank(BuildContext context) => Navigator.of(
+      context,
+    ).push(CnPageRoute<void>(builder: (_) => const SizedBox()));
 
     /// Nine 60 px items in a ListView.builder, all on screen.
     Widget partingList({
@@ -967,19 +983,20 @@ void main() {
       return ListView.builder(
         itemCount: 9,
         itemExtent: 60,
-        itemBuilder: (BuildContext context, int i) => CnRouteAnimation(
-          key: ValueKey<String>('p$i'),
-          subject: subject[i],
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: navigateOnTap ? () => pushBlank(context) : null,
-            child: SizedBox(
-              key: i == 4 ? key4 : null,
-              height: 60,
-              child: Text('p$i'),
+        itemBuilder:
+            (BuildContext context, int i) => CnRouteAnimation(
+              key: ValueKey<String>('p$i'),
+              subject: subject[i],
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: navigateOnTap ? () => pushBlank(context) : null,
+                child: SizedBox(
+                  key: i == 4 ? key4 : null,
+                  height: 60,
+                  child: Text('p$i'),
+                ),
+              ),
             ),
-          ),
-        ),
       );
     }
 
@@ -1067,21 +1084,22 @@ void main() {
       await pumpApp(
         tester,
         Builder(
-          builder: (BuildContext context) => GridView.count(
-            crossAxisCount: 3,
-            childAspectRatio: 2,
-            children: <Widget>[
-              for (int i = 0; i < 9; i++)
-                CnRouteAnimation(
-                  key: ValueKey<String>('g$i'),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => pushBlank(context),
-                    child: Center(child: Text('g$i')),
-                  ),
-                ),
-            ],
-          ),
+          builder:
+              (BuildContext context) => GridView.count(
+                crossAxisCount: 3,
+                childAspectRatio: 2,
+                children: <Widget>[
+                  for (int i = 0; i < 9; i++)
+                    CnRouteAnimation(
+                      key: ValueKey<String>('g$i'),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => pushBlank(context),
+                        child: Center(child: Text('g$i')),
+                      ),
+                    ),
+                ],
+              ),
         ),
       );
       await tester.pumpAndSettle();
@@ -1264,18 +1282,20 @@ void main() {
         tester,
         ValueListenableBuilder<int>(
           valueListenable: count,
-          builder: (BuildContext context, int n, _) => ListView.builder(
-            itemCount: n,
-            itemExtent: 60,
-            itemBuilder: (BuildContext context, int i) => CnRouteAnimation(
-              key: ValueKey<String>('p$i'),
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => pushBlank(context),
-                child: SizedBox(height: 60, child: Text('p$i')),
+          builder:
+              (BuildContext context, int n, _) => ListView.builder(
+                itemCount: n,
+                itemExtent: 60,
+                itemBuilder:
+                    (BuildContext context, int i) => CnRouteAnimation(
+                      key: ValueKey<String>('p$i'),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => pushBlank(context),
+                        child: SizedBox(height: 60, child: Text('p$i')),
+                      ),
+                    ),
               ),
-            ),
-          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -1304,21 +1324,22 @@ void main() {
         Directionality(
           textDirection: TextDirection.rtl,
           child: Builder(
-            builder: (BuildContext context) => GridView.count(
-              crossAxisCount: 3,
-              childAspectRatio: 2,
-              children: <Widget>[
-                for (int i = 0; i < 9; i++)
-                  CnRouteAnimation(
-                    key: ValueKey<String>('g$i'),
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => pushBlank(context),
-                      child: Center(child: Text('g$i')),
-                    ),
-                  ),
-              ],
-            ),
+            builder:
+                (BuildContext context) => GridView.count(
+                  crossAxisCount: 3,
+                  childAspectRatio: 2,
+                  children: <Widget>[
+                    for (int i = 0; i < 9; i++)
+                      CnRouteAnimation(
+                        key: ValueKey<String>('g$i'),
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => pushBlank(context),
+                          child: Center(child: Text('g$i')),
+                        ),
+                      ),
+                  ],
+                ),
           ),
         ),
       );
@@ -1341,21 +1362,22 @@ void main() {
       await pumpApp(
         tester,
         Builder(
-          builder: (BuildContext context) => page(<Widget>[
-            for (final String label in <String>['b0', 'b1', 'b2'])
-              CnRouteAnimation(
-                key: ValueKey<String>(label),
-                builder: (_, CnElementProgress progress, Widget? child) {
-                  last[label] = progress;
-                  return child!;
-                },
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => pushBlank(context),
-                  child: SizedBox(height: 60, child: Text(label)),
-                ),
-              ),
-          ]),
+          builder:
+              (BuildContext context) => page(<Widget>[
+                for (final String label in <String>['b0', 'b1', 'b2'])
+                  CnRouteAnimation(
+                    key: ValueKey<String>(label),
+                    builder: (_, CnElementProgress progress, Widget? child) {
+                      last[label] = progress;
+                      return child!;
+                    },
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => pushBlank(context),
+                      child: SizedBox(height: 60, child: Text(label)),
+                    ),
+                  ),
+              ]),
         ),
       );
       await tester.pumpAndSettle();
@@ -1457,19 +1479,23 @@ void main() {
       final GlobalKey<NavigatorState> nav = await pumpApp(
         tester,
         Builder(
-          builder: (BuildContext context) => page(<Widget>[
-            for (int i = 0; i < 5; i++)
-              CnRouteAnimation(
-                key: ValueKey<String>('s$i'),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const SizedBox()),
+          builder:
+              (BuildContext context) => page(<Widget>[
+                for (int i = 0; i < 5; i++)
+                  CnRouteAnimation(
+                    key: ValueKey<String>('s$i'),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap:
+                          () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const SizedBox(),
+                            ),
+                          ),
+                      child: SizedBox(height: 60, child: Text('s$i')),
+                    ),
                   ),
-                  child: SizedBox(height: 60, child: Text('s$i')),
-                ),
-              ),
-          ]),
+              ]),
         ),
         theme: ThemeData(platform: TargetPlatform.iOS),
       );

@@ -54,9 +54,10 @@ class _CnScaleState extends State<CnScale> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return ScaleTransition(
-      scale: _snapToEnd
-          ? AlwaysStoppedAnimation<double>(_finalValue)
-          : _scaleAnimation,
+      scale:
+          _snapToEnd
+              ? AlwaysStoppedAnimation<double>(_finalValue)
+              : _scaleAnimation,
       child: widget.child,
     );
   }

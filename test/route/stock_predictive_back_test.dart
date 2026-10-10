@@ -29,18 +29,19 @@ Route<void> _detailRoute(String label) =>
     MaterialPageRoute<void>(builder: (_) => column(<Widget>[item(label)]));
 
 Widget _listPage() => Builder(
-  builder: (BuildContext context) => column(<Widget>[
-    for (int i = 0; i < 5; i++)
-      CnRouteAnimation(
-        key: ValueKey<String>('s$i'),
-        timing: flat,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => Navigator.of(context).push(_detailRoute('t')),
-          child: SizedBox(height: 60, child: Text('s$i')),
-        ),
-      ),
-  ]),
+  builder:
+      (BuildContext context) => column(<Widget>[
+        for (int i = 0; i < 5; i++)
+          CnRouteAnimation(
+            key: ValueKey<String>('s$i'),
+            timing: flat,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => Navigator.of(context).push(_detailRoute('t')),
+              child: SizedBox(height: 60, child: Text('s$i')),
+            ),
+          ),
+      ]),
 );
 
 /// One frame of every element: |slide| and opacity.

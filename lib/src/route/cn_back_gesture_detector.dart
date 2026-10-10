@@ -67,11 +67,12 @@ class _CnBackGestureDetectorState<T> extends State<CnBackGestureDetector<T>>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _recognizer = HorizontalDragGestureRecognizer(debugOwner: this)
-      ..onStart = _handleDragStart
-      ..onUpdate = _handleDragUpdate
-      ..onEnd = _handleDragEnd
-      ..onCancel = _handleDragCancel;
+    _recognizer =
+        HorizontalDragGestureRecognizer(debugOwner: this)
+          ..onStart = _handleDragStart
+          ..onUpdate = _handleDragUpdate
+          ..onEnd = _handleDragEnd
+          ..onCancel = _handleDragCancel;
   }
 
   @override

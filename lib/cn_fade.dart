@@ -55,9 +55,10 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return FadeTransition(
-      opacity: _snapToEnd
-          ? AlwaysStoppedAnimation<double>(_finalValue)
-          : _fadeAnimation,
+      opacity:
+          _snapToEnd
+              ? AlwaysStoppedAnimation<double>(_finalValue)
+              : _fadeAnimation,
       child: widget.child,
     );
   }

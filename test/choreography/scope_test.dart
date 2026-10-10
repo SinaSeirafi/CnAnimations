@@ -109,8 +109,9 @@ void main() {
       await tester.pumpWidget(
         ValueListenableBuilder<CnScrollReveal?>(
           valueListenable: reveal,
-          builder: (context, value, child) =>
-              CnRouteChoreography(scrollReveal: value, child: child!),
+          builder:
+              (context, value, child) =>
+                  CnRouteChoreography(scrollReveal: value, child: child!),
           child: CnRouteChoreography(axis: Axis.vertical, child: probe),
         ),
       );
@@ -146,10 +147,11 @@ void main() {
         late CnRouteChoreographyData data;
         await tester.pumpWidget(
           MaterialApp(
-            builder: (context, child) => CnRouteChoreography(
-              timing: const CnRouteTiming(exitStagger: 0.08),
-              child: child!,
-            ),
+            builder:
+                (context, child) => CnRouteChoreography(
+                  timing: const CnRouteTiming(exitStagger: 0.08),
+                  child: child!,
+                ),
             home: _Probe((d) => data = d),
           ),
         );

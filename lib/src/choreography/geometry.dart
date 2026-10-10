@@ -64,9 +64,10 @@ CnPlacement cnPlacement({
     anchor = rtl ? viewport.right : viewport.left;
   }
 
-  final double f = (onScreen && mainExtent > 0)
-      ? ((main(element.center) - anchor).abs() / mainExtent).clamp(0.0, 1.0)
-      : 1.0;
+  final double f =
+      (onScreen && mainExtent > 0)
+          ? ((main(element.center) - anchor).abs() / mainExtent).clamp(0.0, 1.0)
+          : 1.0;
 
   Offset direction = Offset.zero;
   if (subject != null) {

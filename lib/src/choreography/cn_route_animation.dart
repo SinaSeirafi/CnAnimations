@@ -427,8 +427,8 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
   void _updateForcedSubject() {
     final CnRouteRecord? record = _record;
     if (record == null) return;
-    final List<_CnRouteAnimationState> list = _forcedSubjects[record] ??=
-        <_CnRouteAnimationState>[];
+    final List<_CnRouteAnimationState> list =
+        _forcedSubjects[record] ??= <_CnRouteAnimationState>[];
     list.remove(this);
     if (widget.subject == true) list.add(this);
   }
@@ -727,9 +727,8 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
       shown: _shown,
       covered: _covered,
       role: _role,
-      partingDirection: _role == CnElementRole.sibling
-          ? _direction
-          : Offset.zero,
+      partingDirection:
+          _role == CnElementRole.sibling ? _direction : Offset.zero,
     );
   }
 
@@ -741,9 +740,9 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
       case CnElementRole.subject:
         coverFactor =
             (!_insideSubject &&
-                _config.parting.subjectBehavior == CnSubjectBehavior.fade)
-            ? 1.0 - covered
-            : 1.0;
+                    _config.parting.subjectBehavior == CnSubjectBehavior.fade)
+                ? 1.0 - covered
+                : 1.0;
       case CnElementRole.sibling:
         coverFactor = _config.parting.fadeSiblings ? 1.0 - covered : 1.0;
       case CnElementRole.plain:
@@ -758,9 +757,8 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
     if (widget.enter) {
       final _Fallback? fallback = _fallback;
       if (fallback != null) {
-        final Offset from = fallback == _Fallback.reveal
-            ? _reveal.offset
-            : widget.enterOffset;
+        final Offset from =
+            fallback == _Fallback.reveal ? _reveal.offset : widget.enterOffset;
         offset += from * (1.0 - _fallbackShown);
       }
       offset += widget.enterOffset * (1.0 - _routeShown);
@@ -805,8 +803,9 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
     if (builder != null) {
       content = ListenableBuilder(
         listenable: _hub,
-        builder: (BuildContext context, Widget? child) =>
-            builder(context, _elementProgress(), child),
+        builder:
+            (BuildContext context, Widget? child) =>
+                builder(context, _elementProgress(), child),
         child: widget.child,
       );
     } else {

@@ -31,58 +31,63 @@ Route<T> pageRoute<T>(PageKind kind, WidgetBuilder builder) {
 /// The overlay kinds of design §8, each opened from [context].
 final Map<String, void Function(BuildContext context)> overlays =
     <String, void Function(BuildContext context)>{
-      'showDialog': (BuildContext context) => showDialog<void>(
-        context: context,
-        builder: (_) => const AlertDialog(title: Text('overlay')),
-      ),
-      'showGeneralDialog': (BuildContext context) => showGeneralDialog<void>(
-        context: context,
-        pageBuilder: (_, _, _) => const Center(child: Text('overlay')),
-      ),
-      'showModalBottomSheet': (BuildContext context) =>
-          showModalBottomSheet<void>(
+      'showDialog':
+          (BuildContext context) => showDialog<void>(
+            context: context,
+            builder: (_) => const AlertDialog(title: Text('overlay')),
+          ),
+      'showGeneralDialog':
+          (BuildContext context) => showGeneralDialog<void>(
+            context: context,
+            pageBuilder: (_, _, _) => const Center(child: Text('overlay')),
+          ),
+      'showModalBottomSheet':
+          (BuildContext context) => showModalBottomSheet<void>(
             context: context,
             builder: (_) => const SizedBox(height: 200, child: Text('overlay')),
           ),
-      'showCupertinoDialog': (BuildContext context) =>
-          showCupertinoDialog<void>(
+      'showCupertinoDialog':
+          (BuildContext context) => showCupertinoDialog<void>(
             context: context,
             builder: (_) => const CupertinoAlertDialog(title: Text('overlay')),
           ),
-      'showCupertinoModalPopup': (BuildContext context) =>
-          showCupertinoModalPopup<void>(
+      'showCupertinoModalPopup':
+          (BuildContext context) => showCupertinoModalPopup<void>(
             context: context,
             builder: (_) => const SizedBox(height: 200, child: Text('overlay')),
           ),
-      'fullscreenDialog': (BuildContext context) => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          fullscreenDialog: true,
-          builder: (_) => const Scaffold(body: Text('overlay')),
-        ),
-      ),
+      'fullscreenDialog':
+          (BuildContext context) => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              fullscreenDialog: true,
+              builder: (_) => const Scaffold(body: Text('overlay')),
+            ),
+          ),
     };
 
 /// Three elements; tapping 'e1' runs [onTap]. 'e2' reports its progress.
 Widget overlayPage(ProgressLog log, void Function(BuildContext) onTap) =>
     Builder(
-      builder: (BuildContext context) => column(<Widget>[
-        item('e0'),
-        item(
-          'e1',
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => onTap(context),
-            child: const SizedBox(height: 100, child: Text('open')),
-          ),
-        ),
-        item('e2', builder: log.builder),
-      ]),
+      builder:
+          (BuildContext context) => column(<Widget>[
+            item('e0'),
+            item(
+              'e1',
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onTap(context),
+                child: const SizedBox(height: 100, child: Text('open')),
+              ),
+            ),
+            item('e2', builder: log.builder),
+          ]),
     );
 
 /// The theme form needs the theme; the other two run on the stock theme.
-ThemeData pageTheme(PageKind kind) => kind == PageKind.materialWithTheme
-    ? fadeThroughTheme()
-    : ThemeData(platform: TargetPlatform.android);
+ThemeData pageTheme(PageKind kind) =>
+    kind == PageKind.materialWithTheme
+        ? fadeThroughTheme()
+        : ThemeData(platform: TargetPlatform.android);
 
 /// Pushes [page] with [kind] and settles it.
 Future<GlobalKey<NavigatorState>> pushPage(

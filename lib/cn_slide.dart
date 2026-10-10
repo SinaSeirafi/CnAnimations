@@ -62,9 +62,10 @@ class _CnSlideState extends State<CnSlide> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return SlideTransition(
-      position: _snapToEnd
-          ? AlwaysStoppedAnimation<Offset>(_finalValue)
-          : _slideAnimation,
+      position:
+          _snapToEnd
+              ? AlwaysStoppedAnimation<Offset>(_finalValue)
+              : _slideAnimation,
       child: widget.child,
     );
   }

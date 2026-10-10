@@ -84,9 +84,12 @@ class _GrowingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<List<String>>(
       valueListenable: labels,
-      builder: (context, value, _) => Column(
-        children: [for (final l in value) _Binder(l, log, key: ValueKey(l))],
-      ),
+      builder:
+          (context, value, _) => Column(
+            children: [
+              for (final l in value) _Binder(l, log, key: ValueKey(l)),
+            ],
+          ),
     );
   }
 }
@@ -110,9 +113,7 @@ void main() {
       const progress = AlwaysStoppedAnimation<double>(0.5);
       const cover = AlwaysStoppedAnimation<double>(0.0);
       await tester.pumpWidget(
-        MaterialApp(
-          home: _Binder('a', log, progress: progress, cover: cover),
-        ),
+        MaterialApp(home: _Binder('a', log, progress: progress, cover: cover)),
       );
 
       final p = log['a']!.progress;

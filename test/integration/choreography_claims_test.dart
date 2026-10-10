@@ -36,19 +36,21 @@ double enteredWith(double f, double a) => Interval(
 
 /// A 200-item list of 100 px items with the default (staggered) timing.
 Widget longList({void Function(BuildContext context)? onTap}) => Builder(
-  builder: (BuildContext context) => ListView.builder(
-    itemCount: 200,
-    itemExtent: 100,
-    itemBuilder: (BuildContext context, int i) => item(
-      'L$i',
-      timing: null,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap == null ? null : () => onTap(context),
-        child: SizedBox(height: 100, child: Text('L$i')),
+  builder:
+      (BuildContext context) => ListView.builder(
+        itemCount: 200,
+        itemExtent: 100,
+        itemBuilder:
+            (BuildContext context, int i) => item(
+              'L$i',
+              timing: null,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onTap == null ? null : () => onTap(context),
+                child: SizedBox(height: 100, child: Text('L$i')),
+              ),
+            ),
       ),
-    ),
-  ),
 );
 
 /// The items of [longList] that exist (built, on screen or in the cache
@@ -58,9 +60,9 @@ List<int> builtItems() => <int>[
     if (exists('L$i')) i,
 ];
 
-void pushBlank(BuildContext context) =>
-    Navigator.of(context)
-        .push(CnPageRoute<void>(builder: (_) => const SizedBox()));
+void pushBlank(BuildContext context) => Navigator.of(
+  context,
+).push(CnPageRoute<void>(builder: (_) => const SizedBox()));
 
 void main() {
   group('stagger bound (§3.4)', () {
@@ -210,19 +212,21 @@ void main() {
   group('parting via tap on a CnPageRoute page (README, §3.5)', () {
     /// Nine 60 px items; a tap pushes the route made by [next].
     Widget partingList(Route<void> Function() next) => Builder(
-      builder: (BuildContext context) => ListView.builder(
-        itemCount: 9,
-        itemExtent: 60,
-        itemBuilder: (BuildContext context, int i) => item(
-          'p$i',
-          timing: null,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => Navigator.of(context).push(next()),
-            child: SizedBox(height: 60, child: Text('p$i')),
+      builder:
+          (BuildContext context) => ListView.builder(
+            itemCount: 9,
+            itemExtent: 60,
+            itemBuilder:
+                (BuildContext context, int i) => item(
+                  'p$i',
+                  timing: null,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.of(context).push(next()),
+                    child: SizedBox(height: 60, child: Text('p$i')),
+                  ),
+                ),
           ),
-        ),
-      ),
     );
 
     void expectParted(WidgetTester tester) {
@@ -246,10 +250,10 @@ void main() {
 
     final Map<String, Route<void> Function()> nextRoutes =
         <String, Route<void> Function()>{
-          'CnPageRoute': () =>
-              CnPageRoute<void>(builder: (_) => const SizedBox()),
-          'a stock MaterialPageRoute': () =>
-              MaterialPageRoute<void>(builder: (_) => const SizedBox()),
+          'CnPageRoute':
+              () => CnPageRoute<void>(builder: (_) => const SizedBox()),
+          'a stock MaterialPageRoute':
+              () => MaterialPageRoute<void>(builder: (_) => const SizedBox()),
         };
 
     for (final MapEntry<String, Route<void> Function()> next
@@ -294,24 +298,26 @@ void main() {
       );
       nav.currentState!.push(
         CnPageRoute<void>(
-          builder: (BuildContext context) => GridView.count(
-            crossAxisCount: 3,
-            childAspectRatio: 2,
-            children: <Widget>[
-              for (int i = 0; i < 9; i++)
-                item(
-                  'g$i',
-                  timing: null,
-                  child: Builder(
-                    builder: (BuildContext cell) => GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => pushBlank(cell),
-                      child: Center(child: Text('g$i')),
+          builder:
+              (BuildContext context) => GridView.count(
+                crossAxisCount: 3,
+                childAspectRatio: 2,
+                children: <Widget>[
+                  for (int i = 0; i < 9; i++)
+                    item(
+                      'g$i',
+                      timing: null,
+                      child: Builder(
+                        builder:
+                            (BuildContext cell) => GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => pushBlank(cell),
+                              child: Center(child: Text('g$i')),
+                            ),
+                      ),
                     ),
-                  ),
-                ),
-            ],
-          ),
+                ],
+              ),
         ),
       );
       await tester.pumpAndSettle();
@@ -378,8 +384,9 @@ void main() {
 
     Widget growingPage(ValueNotifier<int> count) => ValueListenableBuilder<int>(
       valueListenable: count,
-      builder: (_, int n, _) =>
-          column(<Widget>[for (int i = 0; i < n; i++) item('m$i')]),
+      builder:
+          (_, int n, _) =>
+              column(<Widget>[for (int i = 0; i < n; i++) item('m$i')]),
     );
 
     for (final bool reveal in <bool>[false, true]) {
@@ -392,12 +399,13 @@ void main() {
         final GlobalKey<NavigatorState> nav = await pumpApp(
           tester,
           const SizedBox(),
-          builder: reveal
-              ? (_, Widget? child) => CnRouteChoreography(
-                  scrollReveal: const CnScrollReveal(),
-                  child: child!,
-                )
-              : null,
+          builder:
+              reveal
+                  ? (_, Widget? child) => CnRouteChoreography(
+                    scrollReveal: const CnScrollReveal(),
+                    child: child!,
+                  )
+                  : null,
         );
         nav.currentState!.push(
           CnPageRoute<void>(builder: (_) => growingPage(count)),
@@ -452,19 +460,23 @@ void main() {
 
     /// Home with h0 and a tappable h1 (pushes a page holding 'n').
     Widget home() => Builder(
-      builder: (BuildContext context) => column(<Widget>[
-        scaled('h0'),
-        item(
-          'h1',
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => Navigator.of(context).push(
-              CnPageRoute<void>(builder: (_) => column(<Widget>[scaled('n')])),
+      builder:
+          (BuildContext context) => column(<Widget>[
+            scaled('h0'),
+            item(
+              'h1',
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap:
+                    () => Navigator.of(context).push(
+                      CnPageRoute<void>(
+                        builder: (_) => column(<Widget>[scaled('n')]),
+                      ),
+                    ),
+                child: const SizedBox(height: 100, child: Text('h1')),
+              ),
             ),
-            child: const SizedBox(height: 100, child: Text('h1')),
-          ),
-        ),
-      ]),
+          ]),
     );
 
     /// Initial entrance, a tap-push that parts the home page, and a pop,
@@ -519,8 +531,8 @@ void main() {
             // (uncover slice).
             final double covered =
                 top.animation!.status == AnimationStatus.reverse
-                ? uncoveredAt(s)
-                : coveredAt(s);
+                    ? uncoveredAt(s)
+                    : coveredAt(s);
             expect(
               opacityOf(tester, 'h0'),
               moreOrLessEquals(1 - covered, epsilon: eps),
@@ -528,8 +540,8 @@ void main() {
             final double a = top.animation!.value;
             final double expected =
                 top.animation!.status == AnimationStatus.reverse
-                ? shownLeaving(a)
-                : shownEntering(a);
+                    ? shownLeaving(a)
+                    : shownEntering(a);
             expect(
               opacityOf(tester, 'n'),
               moreOrLessEquals(expected, epsilon: eps),
@@ -550,10 +562,11 @@ void main() {
         home(),
         builder: reducedApp(
           reduce,
-          scope: (Widget child) => CnRouteChoreography(
-            reducedMotionMode: CnReducedMotionMode.none,
-            child: child,
-          ),
+          scope:
+              (Widget child) => CnRouteChoreography(
+                reducedMotionMode: CnReducedMotionMode.none,
+                child: child,
+              ),
         ),
       );
       await journey(tester, () {
@@ -597,10 +610,11 @@ void main() {
     ) async {
       final (double opacity, Offset offset) = await midPush(
         tester,
-        scope: (Widget child) => CnRouteChoreography(
-          reducedMotionMode: CnReducedMotionMode.none,
-          child: child,
-        ),
+        scope:
+            (Widget child) => CnRouteChoreography(
+              reducedMotionMode: CnReducedMotionMode.none,
+              child: child,
+            ),
         widgetMode: CnReducedMotionMode.fadeOnly,
       );
       expect(opacity, moreOrLessEquals(shownEntering(0.5), epsilon: 1e-3));
@@ -626,14 +640,15 @@ void main() {
       (WidgetTester tester) async {
         final (double opacity, Offset offset) = await midPush(
           tester,
-          scope: (Widget child) => CnRouteChoreography(
-            respectReducedMotion: false,
-            reducedMotionMode: CnReducedMotionMode.none,
-            child: CnRouteChoreography(
-              respectReducedMotion: true,
-              child: child,
-            ),
-          ),
+          scope:
+              (Widget child) => CnRouteChoreography(
+                respectReducedMotion: false,
+                reducedMotionMode: CnReducedMotionMode.none,
+                child: CnRouteChoreography(
+                  respectReducedMotion: true,
+                  child: child,
+                ),
+              ),
         );
         expect(opacity, 1.0, reason: 'inner respects it, outer mode is none');
         expect(offset, Offset.zero);
@@ -645,11 +660,12 @@ void main() {
     ) async {
       final (double opacity, Offset offset) = await midPush(
         tester,
-        scope: (Widget child) => CnRouteChoreography(
-          respectReducedMotion: false,
-          reducedMotionMode: CnReducedMotionMode.none,
-          child: child,
-        ),
+        scope:
+            (Widget child) => CnRouteChoreography(
+              respectReducedMotion: false,
+              reducedMotionMode: CnReducedMotionMode.none,
+              child: child,
+            ),
       );
       expect(opacity, lessThan(1.0));
       expect(offset.dy, greaterThan(0));
@@ -669,8 +685,8 @@ void main() {
         );
         nav.currentState!.push(
           CnPageRoute<void>(
-            builder: (_) =>
-                column(<Widget>[item('t', child: _StateProbe(states))]),
+            builder:
+                (_) => column(<Widget>[item('t', child: _StateProbe(states))]),
           ),
         );
         await tester.pump();

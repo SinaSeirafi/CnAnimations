@@ -498,8 +498,8 @@ class CnRouteChoreography extends InheritedWidget {
   /// any of them rebuilds the caller.
   static CnRouteChoreographyData of(BuildContext context) {
     final List<CnRouteChoreography> scopes = <CnRouteChoreography>[];
-    InheritedElement? element = context
-        .getElementForInheritedWidgetOfExactType<CnRouteChoreography>();
+    InheritedElement? element =
+        context.getElementForInheritedWidgetOfExactType<CnRouteChoreography>();
     while (element != null) {
       context.dependOnInheritedElement(element);
       scopes.add(element.widget as CnRouteChoreography);

@@ -15,17 +15,18 @@ Widget listPage(
   int n, {
   void Function(BuildContext context)? onTap,
 }) => Builder(
-  builder: (BuildContext context) => column(<Widget>[
-    for (int i = 0; i < n; i++)
-      item(
-        '$prefix$i',
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap == null ? null : () => onTap(context),
-          child: SizedBox(height: 60, child: Text('$prefix$i')),
-        ),
-      ),
-  ]),
+  builder:
+      (BuildContext context) => column(<Widget>[
+        for (int i = 0; i < n; i++)
+          item(
+            '$prefix$i',
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onTap == null ? null : () => onTap(context),
+              child: SizedBox(height: 60, child: Text('$prefix$i')),
+            ),
+          ),
+      ]),
 );
 
 /// Asserts a plain element of a page fully covered by another page.
@@ -132,10 +133,11 @@ void main() {
               (_) => listPage(
                 'b',
                 5,
-                onTap: (BuildContext context) => Navigator.of(context)
-                    .pushReplacement(
-                      routeFor<void>(install, (_) => listPage('c', 2)),
-                    ),
+                onTap:
+                    (BuildContext context) =>
+                        Navigator.of(context).pushReplacement(
+                          routeFor<void>(install, (_) => listPage('c', 2)),
+                        ),
               ),
             ),
           );

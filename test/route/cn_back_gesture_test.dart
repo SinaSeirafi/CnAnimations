@@ -51,21 +51,23 @@ Widget _element(String label) => CnRouteAnimation(
 );
 
 /// The element's own opacity (offstage included: a covered page is offstage).
-double _opacity(WidgetTester t, String label) => t
-    .widget<FadeTransition>(
-      find
-          .descendant(
-            of: find.byKey(ValueKey<String>(label), skipOffstage: false),
-            matching: find.byType(FadeTransition, skipOffstage: false),
-          )
-          .first,
-    )
-    .opacity
-    .value;
+double _opacity(WidgetTester t, String label) =>
+    t
+        .widget<FadeTransition>(
+          find
+              .descendant(
+                of: find.byKey(ValueKey<String>(label), skipOffstage: false),
+                matching: find.byType(FadeTransition, skipOffstage: false),
+              )
+              .first,
+        )
+        .opacity
+        .value;
 
-ModalRoute<Object?> _routeOf(WidgetTester t, String label) => ModalRoute.of(
-  t.element(find.byKey(ValueKey<String>(label), skipOffstage: false)),
-)!;
+ModalRoute<Object?> _routeOf(WidgetTester t, String label) =>
+    ModalRoute.of(
+      t.element(find.byKey(ValueKey<String>(label), skipOffstage: false)),
+    )!;
 
 class _Stack {
   _Stack(this.nav, this.below, this.top);
@@ -129,10 +131,10 @@ Future<void> _backGesture(
       method,
       hasArgs
           ? <String, Object?>{
-              'touchOffset': button ? null : <double>[5.0, 300.0],
-              'progress': progress,
-              'swipeEdge': 0,
-            }
+            'touchOffset': button ? null : <double>[5.0, 300.0],
+            'progress': progress,
+            'swipeEdge': 0,
+          }
           : null,
     ),
   );
@@ -280,13 +282,14 @@ void main() {
           final _Stack s = await _twoPages(
             t,
             install,
-            wrapTop: (Widget page) => PopScope<Object?>(
-              canPop: false,
-              onPopInvokedWithResult: (bool didPop, Object? _) {
-                if (!didPop) refused++;
-              },
-              child: page,
-            ),
+            wrapTop:
+                (Widget page) => PopScope<Object?>(
+                  canPop: false,
+                  onPopInvokedWithResult: (bool didPop, Object? _) {
+                    if (!didPop) refused++;
+                  },
+                  child: page,
+                ),
           );
           await _backGesture(t, 'startBackGesture');
           await _backGesture(t, 'updateBackGestureProgress', progress: 0.7);
@@ -365,17 +368,18 @@ void main() {
             navigatorObservers: <NavigatorObserver>[pops],
             // The CnPageRoute install sits over Flutter's predictive-back
             // builder, so the page below carries Flutter's own detector.
-            theme: install == _Install.cnPageRoute
-                ? ThemeData(
-                    platform: TargetPlatform.android,
-                    pageTransitionsTheme: const PageTransitionsTheme(
-                      builders: <TargetPlatform, PageTransitionsBuilder>{
-                        TargetPlatform.android:
-                            PredictiveBackPageTransitionsBuilder(),
-                      },
-                    ),
-                  )
-                : _theme(install, TargetPlatform.android),
+            theme:
+                install == _Install.cnPageRoute
+                    ? ThemeData(
+                      platform: TargetPlatform.android,
+                      pageTransitionsTheme: const PageTransitionsTheme(
+                        builders: <TargetPlatform, PageTransitionsBuilder>{
+                          TargetPlatform.android:
+                              PredictiveBackPageTransitionsBuilder(),
+                        },
+                      ),
+                    )
+                    : _theme(install, TargetPlatform.android),
             home: const SizedBox(),
           ),
         );
@@ -566,8 +570,8 @@ void main() {
           t,
           install,
           platform: TargetPlatform.iOS,
-          wrapTop: (Widget page) =>
-              PopScope<Object?>(canPop: false, child: page),
+          wrapTop:
+              (Widget page) => PopScope<Object?>(canPop: false, child: page),
         );
         final TestGesture g = await drag(
           t,
@@ -604,8 +608,11 @@ void main() {
           t,
           install,
           platform: TargetPlatform.iOS,
-          appBuilder: (BuildContext context, Widget? child) =>
-              Directionality(textDirection: TextDirection.rtl, child: child!),
+          appBuilder:
+              (BuildContext context, Widget? child) => Directionality(
+                textDirection: TextDirection.rtl,
+                child: child!,
+              ),
         );
         final TestGesture g = await drag(
           t,
