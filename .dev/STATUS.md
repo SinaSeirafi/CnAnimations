@@ -112,15 +112,24 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 - Step 1 done: G merged (76dae93). Post-merge: root analyze "No issues found", root 164 pass; example analyze clean, 7 pass.
 - Steps 1–3 started in parallel (disjoint files): G (sonnet, `example/**`), F2 (sonnet, README/CHANGELOG/`test/exports_test.dart`/`test/readme_snippets_test.dart`), C2 (opus, new worktree `…/cn_animations-wt/slice-c2`, branch `v1/slice-c2` from 0a0d763, owns `lib/src/route/**` and `test/route/**`).
 
-## Next steps, in order (revised 2026-10-11: close-out path)
+## Next steps, in order (revised 2026-10-11, owner decisions of the evening)
 
-The original steps 1–9 are done. The owner **skipped the physical-device check**; the emulator checks stand in for it. Accepted risk: real finger feel, 120 Hz and frame timing were never measured. The owner wants to close out soon.
+**Release shape (owner):** 0.9.0 gets every fix. 1.0.0 is exactly 0.9.0 minus the items deprecated in 0.9.0. The `v0.9.0` tag (869bb94, pushed, never published) is moved to the new 0.9.0 commit. **Publishing is the owner's call, after reviewing `.dev/publishing-suggestions.md`. Do not publish without an explicit go-ahead.**
 
-1. **Unblock the CI push (owner).** `git push` of the CI commit was rejected: the `gh` token lacks the `workflow` scope. The owner runs `gh auth refresh -h github.com -s workflow` once. Then the main thread pushes `feat/v1-choreography` (dd51a62 or later) and `v1/ci`, and CI runs on PR #1 (Flutter 3.29.0 + stable). Both legs must be green, and the 3.29.0 leg is the first real run on the declared minimum SDK.
-2. **Merge the two running agents' work:** README "How it works" (`v1/readme-how-it-works`) and the pub.dev score research. Apply any score fixes that are small and safe in one short slice (sonnet). Re-verify and push.
-3. **Merge PR #1 into `master` and tag `v1.0.0`.** These are owner actions, or the main thread's on an explicit go-ahead. Before the owner's local `master` checkout pulls, the owner decides what to do with its uncommitted 2023 WIP (3 files).
-4. **Publish** when the owner's publishing research is done: 0.9.0 from tag `v0.9.0`, then 1.0.0, or 1.0.0 only (the owner decides).
-5. **Clean up** worktrees and branches only on the owner's go-ahead, after a content check against `master`.
+1. **Fix the stable-CI failure** (opus, worktree `cn_animations-wt/fix-347`, branch `fix/flutter-347`). `test/progress/directional_curve_test.dart:250` fails on Flutter 3.47.7 (expected 'exit', got 'rest'). Merge it, then verify.
+2. **Polish pass** (sonnet, one branch from the merged head):
+   - `dart format` everything with the newest stable SDK, plus `// dart format off/on` around the `CnRouteAnimationBuilder` typedef. This is the pub.dev score fix, 150 → 160.
+   - The 3 `[MediaQuery.disableAnimations]` dartdoc links become `MediaQueryData`.
+   - `repository` and `issue_tracker` in the pubspec.
+   - The PR review's non-blocking findings N1–N4, N6 and N9 (`scratchpad/pr-review/review.md` in session 3; summary: the uncover dartdoc on `CnRouteAnimation`; "off-screen elements skip the stagger" is wrong in the README, `geometry.dart:24` and `cn_route_animation.dart:262`; migration step for 0.0.3's `[routeObserver]`; stale "pending owner decision" comments; the 2023 example web template; CI runner housekeeping).
+3. **Restructure the release history** (main thread or opus), so that 1.0.0 descends from 0.9.0:
+   - On `feat/v1-choreography`, add a commit that reverts the slice R merge (f50f8be), bringing back the deprecated symbols, version 0.9.0, and the 0.9.0 README/CHANGELOG. Fix the docs added since R so they read correctly for 0.9.0. Verify, move tag `v0.9.0` there and force-push the tag (owner-authorized "update v0.9").
+   - Then add a commit that re-applies R plus the 1.0.0 CHANGELOG. Check: `git diff <pre-restructure head> <1.0.0 commit>` is empty or CHANGELOG-only.
+   - CI must be green on both commits. Run it with `workflow_dispatch` on the 0.9.0 commit, and PR #1 covers the head.
+4. **Fresh-context review** (opus, read-only) of the final 0.9.0 and 1.0.0 commits. Owner: "clear to merge after a fresh context agent review".
+5. **Merge PR #1 → `master`** and tag `v1.0.0`. Owner-authorized once 4 passes and CI is green.
+6. **Owner reviews `.dev/publishing-suggestions.md`** (Fable, in progress). It covers topics, screenshots, the README first screen, release mechanics and discoverability. Publishing order once approved: 0.9.0 (from `v0.9.0`), then 1.0.0.
+7. **Owner's local `master` checkout:** the 2023 WIP (3 files) is fully superseded (see Session 3). The owner discards it and pulls after the merge.
 
 Deferred past 1.0.0 (not blocking): `CnPage` and `MaterialPageRoute` parity on `CnPageRoute`; `@internal` on internal types; a dartdoc note on `CnFade`'s 10 ms default delay; `delayInMilliseconds` kept (owner, 2026-10-10).
 
