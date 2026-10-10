@@ -338,22 +338,30 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
     _progress = next;
     final Animation<double>? primary = next.primary;
     if (primary != null) {
-      _lastPrimary = primary.value;
-      _primary = CnDirectionalCurvedAnimation(
+      final Animation<double> source = _guardRouteSource(
         primary,
+        next.route?.animation,
+      );
+      _lastPrimary = source.value;
+      _primary = CnDirectionalCurvedAnimation(
+        source,
         enter: _SliceCurve(this, _Slot.enter),
         exit: _SliceCurve(this, _Slot.exit),
       )..addListener(_handlePrimaryTick);
     }
     final Animation<double>? cover = next.cover;
     if (cover != null) {
-      _lastCover = cover.value;
+      final Animation<double> source = _guardRouteSource(
+        cover,
+        next.route?.secondaryAnimation,
+      );
+      _lastCover = source.value;
       // Rest-locked like the primary: the exit slice after the cover leaves 0
       // (a page pushed over this one), the uncover slice after it leaves 1
       // (the page above pops or is dragged back), so a reversal or a
       // cancelled gesture keeps its slice and never jumps (review R6).
       _cover = CnDirectionalCurvedAnimation(
-        cover,
+        source,
         enter: _SliceCurve(this, _Slot.cover),
         exit: _SliceCurve(this, _Slot.uncover),
       )..addListener(_handleCoverTick);
@@ -369,6 +377,13 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
     }
     _updateForcedSubject();
   }
+
+  /// Wraps [source] in a [_ReverseRestartGuard] when it is the route's own
+  /// animation ([routeSource]). Scope overrides pass through unchanged.
+  static Animation<double> _guardRouteSource(
+    Animation<double> source,
+    Animation<double>? routeSource,
+  ) => identical(source, routeSource) ? _ReverseRestartGuard(source) : source;
 
   void _unbind() {
     _primary?.removeListener(_handlePrimaryTick);
@@ -864,4 +879,140 @@ class _HubValue<T> extends Animation<T> {
 
   @override
   T get value => _read();
+}
+
+/// Keeps a route source from jumping back up when its reverse restarts from
+/// the top.
+///
+/// On Flutter 3.35+ (flutter/flutter#154718) a committed predictive back
+/// through the stock `PredictiveBackPageTransitionsBuilder` pops the route
+/// and then calls `reverse(from: upperBound)`: the route's animation, and the
+/// page below's secondary animation, go from the release value (say 0.5) to
+/// 1.0 and play the whole reverse. Flutter remaps only its own page
+/// transforms; elements reading the raw value would snap back to fully shown
+/// (this page) or fully covered (the page below).
+///
+/// Rule: while the source reverses, this value never rises. On a rise it
+/// scales the source by `k = last / source`, so it continues from the last
+/// value it gave and still reaches 0.0 with the source. If the source turns
+/// forward while scaled, the map is re-anchored so it reaches 1.0 with the
+/// source; a rest (0.0 or 1.0) restores the identity. Paths that never rise
+/// in reverse (Flutter 3.29–3.32, the package's back-gesture detector, the
+/// iOS swipe, a plain pop) pass through unchanged.
+///
+/// The restart notifies 1.0 with status completed between the two reverses
+/// (`value = from` lands on the bound before the reverse starts). A rest
+/// keeps the reverse anchor only for a reverse that starts in the same
+/// frame; a rest seen in a later frame is a real one.
+///
+/// Listens to its parent only while it has listeners of its own, and
+/// updates its map before notifying them.
+class _ReverseRestartGuard extends Animation<double>
+    with
+        AnimationLazyListenerMixin,
+        AnimationLocalListenersMixin,
+        AnimationLocalStatusListenersMixin {
+  _ReverseRestartGuard(this.parent);
+
+  final Animation<double> parent;
+
+  // value = _a + _b * parent.value; the identity is (0, 1).
+  double _a = 0.0;
+  double _b = 1.0;
+
+  AnimationStatus? _lastStatus;
+
+  // The last observation while the parent was reversing (null when there is
+  // none since the last forward or dismissed).
+  double? _reverseRaw;
+  double _reverseShown = 0.0;
+  Duration _reverseFrame = Duration.zero;
+  bool _restSinceReverse = false;
+
+  bool get _isIdentity => _a == 0.0 && _b == 1.0;
+
+  @override
+  AnimationStatus get status => parent.status;
+
+  @override
+  double get value => _map(parent.value);
+
+  double _map(double t) => (_a + _b * t).clamp(0.0, 1.0);
+
+  @override
+  void didStartListening() {
+    _reset();
+    parent.addListener(_handleValue);
+    parent.addStatusListener(_handleStatus);
+  }
+
+  @override
+  void didStopListening() {
+    parent.removeListener(_handleValue);
+    parent.removeStatusListener(_handleStatus);
+    _reset();
+  }
+
+  void _reset() {
+    _a = 0.0;
+    _b = 1.0;
+    _lastStatus = null;
+    _reverseRaw = null;
+    _restSinceReverse = false;
+  }
+
+  void _handleValue() {
+    _observe();
+    notifyListeners();
+  }
+
+  void _handleStatus(AnimationStatus status) {
+    _observe();
+    notifyStatusListeners(status);
+  }
+
+  void _observe() {
+    final double t = parent.value;
+    final AnimationStatus status = parent.status;
+    final Duration frame =
+        SchedulerBinding.instance.currentSystemFrameTimeStamp;
+    final bool turned = _lastStatus != null && status != _lastStatus;
+    switch (status) {
+      case AnimationStatus.reverse:
+        final double? previous = _reverseRaw;
+        if (previous != null &&
+            t > previous + 1e-9 &&
+            (!_restSinceReverse || frame == _reverseFrame)) {
+          // Restarted from above: continue from the last value given.
+          _a = 0.0;
+          _b = _reverseShown / t;
+        } else if (turned && !_isIdentity && t > 0.0) {
+          // Turned back while remapped: aim the map at 0.0.
+          final double shown = _map(t);
+          _a = 0.0;
+          _b = shown / t;
+        }
+        _reverseRaw = t;
+        _reverseShown = _map(t);
+        _reverseFrame = frame;
+        _restSinceReverse = false;
+      case AnimationStatus.forward:
+        if (turned && !_isIdentity && t < 1.0) {
+          // Turned forward while remapped: aim the map at 1.0.
+          final double shown = _map(t);
+          _b = (1.0 - shown) / (1.0 - t);
+          _a = 1.0 - _b;
+        }
+        _reverseRaw = null;
+      case AnimationStatus.completed:
+        _a = 0.0;
+        _b = 1.0;
+        _restSinceReverse = true;
+      case AnimationStatus.dismissed:
+        _a = 0.0;
+        _b = 1.0;
+        _reverseRaw = null;
+    }
+    _lastStatus = status;
+  }
 }
