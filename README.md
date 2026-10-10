@@ -1,3 +1,5 @@
+[![CI](https://github.com/SinaSeirafi/CnAnimations/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/SinaSeirafi/CnAnimations/actions/workflows/ci.yml)
+
 # Flutter basic animations simplified
 
 Flutter is made of widgets, right?
