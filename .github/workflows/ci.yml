@@ -17,19 +17,25 @@ permissions:
 
 jobs:
   verify:
-    name: Flutter ${{ matrix.flutter }}
+    name: Flutter ${{ matrix.name }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        flutter: ["3.29.0", "stable"]
+        include:
+          # The declared minimum (pubspec: flutter >=3.29.0).
+          - name: "3.29.0"
+            version: "3.29.0"
+          # Latest stable, as pub.dev analyzes with.
+          - name: stable
+            version: any
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: subosito/flutter-action@v2
         with:
-          channel: ${{ matrix.flutter == 'stable' && 'stable' || '' }}
-          flutter-version: ${{ matrix.flutter == 'stable' && '' || matrix.flutter }}
+          channel: stable
+          flutter-version: ${{ matrix.version }}
           cache: true
       - run: flutter --version
 
@@ -53,5 +59,5 @@ jobs:
         working-directory: example
 
       - name: Publish dry-run
-        if: matrix.flutter == 'stable'
+        if: matrix.name == 'stable'
         run: flutter pub publish --dry-run
