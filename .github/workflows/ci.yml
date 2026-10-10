@@ -1,0 +1,69 @@
+name: CI
+
+# PRs and master only: a branch with an open PR would otherwise run twice
+# (push + pull_request). Other branches can be run by hand.
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Flutter ${{ matrix.name }}
+    runs-on: ubuntu-24.04 # pinned: ubuntu-latest moves to Ubuntu 26 on 2026-10-19
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The declared minimum (pubspec: flutter >=3.29.0).
+          - name: "3.29.0"
+            version: "3.29.0"
+          # Latest stable, as pub.dev analyzes with.
+          - name: stable
+            version: any
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ matrix.version }}
+          cache: true
+      - run: flutter --version
+
+      - name: Pub get (package)
+        run: flutter pub get
+      - name: Pub get (example)
+        run: flutter pub get
+        working-directory: example
+
+      - name: Analyze (package)
+        run: flutter analyze
+      - name: Analyze (example)
+        run: flutter analyze
+        working-directory: example
+
+      - name: Test (package)
+        run: flutter test
+      # Plain `flutter test` only runs example/test; integration_test/ needs a device.
+      - name: Test (example)
+        run: flutter test
+        working-directory: example
+
+      # pub.dev scores formatting with the latest SDK at the package's
+      # language version; keep lib/ in that state.
+      - name: Format check (lib)
+        if: matrix.name == 'stable'
+        run: dart format --output=none --set-exit-if-changed lib
+
+      - name: Publish dry-run
+        if: matrix.name == 'stable'
+        run: flutter pub publish --dry-run

@@ -1,173 +1,73 @@
 import 'package:cn_animations/cn_animations.dart';
-
-import 'package:cn_animations/route_aware_widget.dart';
+import 'package:example/pages/basics_page.dart';
 import 'package:example/restart_widget.dart';
+import 'package:example/settings.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(
-    RestartWidget(
-      child: MaterialApp(
-        home: const MyHomePage(),
-        theme: ThemeData(primarySwatch: Colors.teal),
-        navigatorObservers: [routeObserver],
-      ),
-    ),
-  );
+  runApp(const RestartWidget(child: ExampleApp()));
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+/// Note what is missing: there is no `navigatorObservers` line. Route-driven
+/// choreography reads the route's own animations, so nothing has to be wired
+/// into the Navigator.
+class ExampleApp extends StatefulWidget {
+  const ExampleApp({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<ExampleApp> createState() => _ExampleAppState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _ExampleAppState extends State<ExampleApp> {
+  final SettingsModel _settings = SettingsModel();
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Cn Animations Example"),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            CnFade(
-              duration: const Duration(milliseconds: 1000),
-              child: _buildChild(0, "Fade"),
-            ),
-            CnScale(
-              duration: const Duration(milliseconds: 500),
-              child: _buildChild(1, "Scale"),
-            ),
-            CnSlide(
-              begin: const Offset(-0.1, 0),
-              duration: const Duration(milliseconds: 500),
-              child: _buildChild(2, "Slide"),
-            ),
-
-            /// You can chain animations together
-            /// Use first animation duration as the second one's delay and so on
-            ///
-            /// make sure to cancel previous values
-            ///
-            /// This is probably very inefficient
-            CnSlide(
-              begin: const Offset(-0.3, 0),
-              end: const Offset(0.03, 0),
-              duration: const Duration(milliseconds: 300),
-              child: CnSlide(
-                begin: const Offset(0.03, 0),
-
-                /// to cancel the other animation end value
-                end: const Offset(-0.03, 0),
-                delay: const Duration(milliseconds: 300),
-                duration: const Duration(milliseconds: 200),
-                child: _buildChild(3, "Chained"),
-              ),
-            ),
-
-            /// You can combine different animations easily
-            ///
-            /// If you use a combination a lot,
-            /// extract as a widget and just add that widget
-            CnFade(
-              duration: const Duration(milliseconds: 700),
-              // curve: Curves.,
-              child: CnSlide(
-                begin: const Offset(0, 0.2),
-                delayInMilliseconds: 100,
-                child: CnScale(
-                  duration: const Duration(milliseconds: 500),
-                  begin: 0.7,
-                  child: _buildChild(4, "Combined"),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-
-      /// To replay the animations after saving changes
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.replay_rounded),
-        onPressed: () => RestartWidget.restartApp(context),
-      ),
-    );
+  void dispose() {
+    _settings.dispose();
+    super.dispose();
   }
-
-  Widget _buildChild(int index, String title) {
-    /// Tap on any item on home screen to navigate forward
-    navigate() {
-      Navigator.push(
-        context,
-
-        /// Best way to use CnRouteAwareAnimation
-        /// is to use FadeTransition in navigation
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const NewPage(),
-          transitionDuration: const Duration(milliseconds: 500),
-          transitionsBuilder: (_, a, __, c) =>
-              FadeTransition(opacity: a, child: c),
-        ),
-      );
-    }
-
-    return CnRouteAwareAnimation(
-      showPush: false, // to disable initial push animation
-
-      /// By using index, different items move to different end points
-      /// With the same animation duration
-      /// Therefore they move more rapidly
-      endNextPage: Offset(0.15 + index * 0.1, 0),
-      child: _buildButton(title, onTap: navigate),
-    );
-  }
-}
-
-/// To show the effect of [CnRouteAwareAnimation] upon items of the first page
-class NewPage extends StatelessWidget {
-  const NewPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("New Page")),
-      body: Center(
-        child: CnRouteAwareAnimation(
-          beginSamePage: const Offset(0, -0.5),
-          child: _buildButton(
-            "Back",
-            height: 50,
-            width: 200,
-            onTap: () => Navigator.pop(context),
-          ),
-        ),
+    return SettingsScope(
+      model: _settings,
+      child: ListenableBuilder(
+        listenable: _settings,
+        builder:
+            (context, _) => MaterialApp(
+              title: 'Cn Animations Example',
+              theme: ThemeData(
+                colorSchemeSeed: Colors.teal,
+                useMaterial3: true,
+                pageTransitionsTheme:
+                    _settings.useFadeThrough
+                        ? PageTransitionsTheme(
+                          builders: {
+                            for (final platform in TargetPlatform.values)
+                              platform:
+                                  const CnFadeThroughPageTransitionsBuilder(),
+                          },
+                        )
+                        : null,
+              ),
+              // App-wide defaults for every CnRouteAnimation below the Navigator.
+              builder:
+                  (context, child) => CnRouteChoreography(
+                    respectReducedMotion: _settings.respectReducedMotion,
+                    reducedMotionMode: _settings.reducedMotionMode,
+                    scrollReveal:
+                        _settings.scrollReveal
+                            ? const CnScrollReveal()
+                            : CnScrollReveal.off,
+                    subjectDetection: _settings.subjectDetection,
+                    parting: CnPartingSpec(
+                      subjectBehavior: _settings.subjectBehavior,
+                    ),
+                    child: child!,
+                  ),
+              home: const BasicsPage(),
+            ),
       ),
     );
   }
-}
-
-Widget _buildButton(String text,
-    {double height = 100, double width = 100, required Function onTap}) {
-  return GestureDetector(
-    onTap: () => onTap(),
-    child: Container(
-      height: height,
-      width: width,
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.teal,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
-    ),
-  );
 }
