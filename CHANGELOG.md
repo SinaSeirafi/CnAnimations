@@ -1,3 +1,14 @@
+## 1.0.0
+Breaking: removed everything that 0.9.0 deprecated. Nothing else changed in behaviour.
+
+This release completes a rework of the 2023 package (0.0.1 to 0.0.3), done with Claude (Anthropic).
+
+* Removed `CnRouteAwareAnimation`: use `CnRouteAnimation` (see "Migrating from 0.1.0" in the README for the parameter mapping).
+* Removed `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver`: no longer needed by the package. Delete the observer from `navigatorObservers` (`[routeObserver]` in 0.0.x, `[RouteAwareWidget.routeObserver]` in 0.1.0).
+* Removed `CnFade.durationInMilliseconds`: use `duration`.
+* Removed `CnSlide.reverseControllerValue`: it had no effect.
+* Removed the `timing` parameter of `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute`: it had no effect. Element timing comes from `CnRouteChoreography` and `CnRouteAnimation`.
+
 ## 0.9.0
 0.9.0 is the migration bridge: it adds the new navigation-driven APIs and keeps the old route-aware widgets as deprecated. Everything deprecated in 0.9.0 is removed in 1.0.0.
 

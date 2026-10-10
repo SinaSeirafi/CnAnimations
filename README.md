@@ -31,12 +31,6 @@ CnRouteAnimation(
 No `RouteObserver` is needed. The element reads the route it sits on: it arrives with the page, leaves when another page covers it, returns when that page is popped, and follows a swipe-back or predictive-back gesture.
 
 
-### Route aware animation (deprecated)
-`CnRouteAwareAnimation` and `RouteAwareWidget` react to navigation events through a `RouteObserver`. They still work in 0.9.0 and will be removed in 1.0.0. See "Migrating from 0.1.0".
-
-![](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/master/CnAnimations%20RA%20gif%200.1.gif)
-
-
 ## Getting started
 If you only want to use basic animations, you're good to go!
 
@@ -52,14 +46,6 @@ MaterialApp(
         platform: const CnFadeThroughPageTransitionsBuilder(),
     }),
   ),
-)
-```
-
-The deprecated `CnRouteAwareAnimation` and `RouteAwareWidget` still need the observer:
-
-```dart
-MaterialApp(
-  navigatorObservers: [RouteAwareWidget.routeObserver],
 )
 ```
 
@@ -236,32 +222,6 @@ The two installs cover a page under slightly different routes. A `CnPageRoute` p
 
 A `CupertinoPageRoute<T>` page below a `CnPageRoute` receives exits only when both routes have the same type argument (`CupertinoPageRoute.canTransitionTo` compares them); `CnPageRoute` does not fix this. Give the routes matching type arguments, or use the theme builder.
 
-### Route Aware Animation
-
-If you simply add it on top of your widget, it will do a basic fade and slide upon all navigation events. 
-
-```dart
-CnRouteAwareAnimation(
-  child: child,
-) 
-```
-
-You can differentiate between Same page and Next page animations by changing input values. 
-
-With the values below, the child widget comes in to the page from left and goes out towards right. 
-
-```dart
-CnRouteAwareAnimation(
-  // Where slide begins for Same Page animation 
-  beginSamePage: const Offset(-0.5, 0),
-  // Where slide ends for Next Page animation 
-  endNextPage: const Offset(0.5, 0),
-  // Cancel fade animations for all navigation events
-  showFadeAnimation: false,
-  child: child,
-) 
-```
-
 
 ## How it works
 A short mental model of the choreography, for deciding whether it fits your app. The [Usage](#usage) sections above say how to configure each part; this section says why it behaves the way it does.
@@ -323,7 +283,7 @@ When `MediaQuery.disableAnimations` is set, the default is `CnReducedMotionMode.
 An element exits by cover only when the route pushed over its page animates the page's `secondaryAnimation`. Flutter decides that per route pair, and the package relies on those rules. Dialogs, bottom sheets, `fullscreenDialog` routes and non-opaque routes do not cover a page, so its elements stay where they are. A `CnPageRoute` page is covered by any opaque, non-full-screen-dialog `PageRoute`; a `MaterialPageRoute` page under the theme builder is covered by Material routes and routes with a delegated transition, which is why the fade-through builder declares a no-op one. The exact rules per install, and the Cupertino type-argument caveat, are in [Routes](#routes).
 
 ## Migrating from 0.1.0
-0.9.0 keeps every 0.1.0 widget working. The route-aware widgets are deprecated and will be removed in 1.0.0, so migrate now:
+1.0.0 removes the route-aware widgets that 0.9.0 deprecated. If you are on 0.1.0 or earlier, move to the new API as follows:
 
 1. Replace `CnRouteAwareAnimation` with `CnRouteAnimation`:
 
@@ -341,14 +301,14 @@ An element exits by cover only when the route pushed over its page animates the 
    Before and after:
 
    ```dart
-   // 0.1.0 (deprecated, removed in 1.0.0)
+   // 0.1.0 (removed in 1.0.0)
    CnRouteAwareAnimation(
      beginSamePage: const Offset(0, -0.1),
      endNextPage: const Offset(0, 0.1),
      child: child,
    )
 
-   // 0.9.0
+   // 1.0.0
    CnRouteAnimation(
      enterOffset: const Offset(0, -0.1),
      exitOffset: const Offset(0, 0.1),
@@ -356,10 +316,10 @@ An element exits by cover only when the route pushed over its page animates the 
    )
    ```
 
-2. Delete the observer from `navigatorObservers`: `[routeObserver]` (0.0.x, imported from `package:cn_animations/route_aware_widget.dart`) or `[RouteAwareWidget.routeObserver]` (0.1.0), and delete that import, unless you use `RouteAwareWidget` yourself. Nothing in the package needs an observer.
+2. Delete the observer from `navigatorObservers`: `[routeObserver]` (0.0.x, imported from `package:cn_animations/route_aware_widget.dart`) or `[RouteAwareWidget.routeObserver]` (0.1.0), and delete that import. `RouteAwareWidget` and the observer are gone and nothing in the package needs one.
 3. If you used a custom `PageRouteBuilder` fade route, switch to `CnPageRoute` or the theme builder. A plain `PageRouteBuilder` over a `MaterialPageRoute` never drives the lower page's exits.
 4. If you relied on items animating as they were scrolled into view, set `scrollReveal: const CnScrollReveal()` on the `CnRouteChoreography` scope.
-5. Also deprecated, and removed in 1.0.0: `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver` from 0.0.x (no replacement needed), `CnFade.durationInMilliseconds` (use `duration`), `CnSlide.reverseControllerValue` (it has no effect; delete it) and the `timing` parameter of `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute` (it has no effect; set element timing with `CnRouteChoreography` or `CnRouteAnimation.timing`).
+5. Also removed in 1.0.0: `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver` from 0.0.x (no replacement needed), `CnFade.durationInMilliseconds` (use `duration`), `CnSlide.reverseControllerValue` (it had no effect; delete it) and the `timing` parameter of `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute` (it had no effect; set element timing with `CnRouteChoreography` or `CnRouteAnimation.timing`).
 
 
 ## History
