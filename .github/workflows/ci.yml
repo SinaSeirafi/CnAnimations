@@ -58,6 +58,12 @@ jobs:
         run: flutter test
         working-directory: example
 
+      # pub.dev scores formatting with the latest SDK at the package's
+      # language version; keep lib/ in that state.
+      - name: Format check (lib)
+        if: matrix.name == 'stable'
+        run: dart format --output=none --set-exit-if-changed lib
+
       - name: Publish dry-run
         if: matrix.name == 'stable'
         run: flutter pub publish --dry-run
