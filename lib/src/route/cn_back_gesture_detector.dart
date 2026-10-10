@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -117,13 +118,60 @@ class _CnBackGestureDetectorState<T> extends State<CnBackGestureDetector<T>>
   @override
   void handleCancelBackGesture() {
     _predictiveNavigator = null;
-    widget.route.handleCancelBackGesture();
+    _settlePredictive(commit: false);
   }
 
   @override
   void handleCommitBackGesture() {
     _predictiveNavigator = null;
-    widget.route.handleCommitBackGesture();
+    _settlePredictive(commit: true);
+  }
+
+  /// Settles a released predictive back gesture from where the finger let
+  /// go, as `TransitionRoute._handleDragEnd` did through Flutter 3.32.
+  ///
+  /// Not delegated to [PredictiveBackRoute.handleCommitBackGesture]: since
+  /// Flutter 3.35 (flutter/flutter#154718) the route's commit restarts its
+  /// controller at 1.0 and plays the whole reverse, which Flutter's own
+  /// predictive-back transition hides by remapping its animations on commit.
+  /// Here it would bring the page back to fully shown, and part the page
+  /// below's elements again, before the pop. Cancel is settled here too, so
+  /// release behaves the same on every supported Flutter version.
+  void _settlePredictive({required bool commit}) {
+    final PageRoute<T> route = widget.route;
+    final NavigatorState? navigator = route.navigator;
+    // The route's own controller, as Flutter's _handleDragEnd uses it.
+    // ignore: invalid_use_of_protected_member
+    final AnimationController controller = route.controller!;
+    if (route.isCurrent) {
+      // These timings are Flutter's (eyeballed against Android API 34): the
+      // closer the page is to its target, the shorter the settle.
+      if (commit) {
+        navigator?.pop();
+        // The pop may already have finished if the value reached 0.
+        if (controller.isAnimating) {
+          controller.animateBack(
+            0.0,
+            duration: Duration(
+              milliseconds: ui.lerpDouble(0, 800, controller.value)!.floor(),
+            ),
+            curve: Curves.fastLinearToSlowEaseIn,
+          );
+        }
+      } else {
+        controller.animateTo(
+          1.0,
+          duration: Duration(
+            milliseconds: math.min(
+              ui.lerpDouble(800, 0, controller.value)!.floor(),
+              300,
+            ),
+          ),
+          curve: Curves.fastLinearToSlowEaseIn,
+        );
+      }
+    }
+    _stopUserGestureWhenSettled(navigator, controller);
   }
 
   // iOS edge swipe.
@@ -252,16 +300,25 @@ class _EdgeSwipe {
       }
     }
 
-    if (controller.isAnimating) {
-      // Keep userGestureInProgress until the settle ends, as Cupertino does.
-      late final AnimationStatusListener onStatus;
-      onStatus = (AnimationStatus status) {
-        navigator.didStopUserGesture();
-        controller.removeStatusListener(onStatus);
-      };
-      controller.addStatusListener(onStatus);
-    } else {
-      navigator.didStopUserGesture();
-    }
+    _stopUserGestureWhenSettled(navigator, controller);
+  }
+}
+
+/// Ends the user gesture [navigator] started, once [controller] has settled:
+/// at its next status change if it is animating, otherwise now. Keeping
+/// `userGestureInProgress` through the settle is what Flutter's routes do.
+void _stopUserGestureWhenSettled(
+  NavigatorState? navigator,
+  AnimationController controller,
+) {
+  if (controller.isAnimating) {
+    late final AnimationStatusListener onStatus;
+    onStatus = (AnimationStatus status) {
+      navigator?.didStopUserGesture();
+      controller.removeStatusListener(onStatus);
+    };
+    controller.addStatusListener(onStatus);
+  } else {
+    navigator?.didStopUserGesture();
   }
 }

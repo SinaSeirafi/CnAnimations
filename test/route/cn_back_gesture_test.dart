@@ -142,6 +142,57 @@ Future<void> _backGesture(
   await t.pump();
 }
 
+/// Counts the predictive-back calls a route receives, to catch a gesture
+/// handled by more than one observer (Flutter 3.35+ dispatches it to every
+/// observer that claims it, where 3.32 stopped at the first).
+mixin _CountsBackGesture<T> on TransitionRoute<T> {
+  int starts = 0;
+  int updates = 0;
+  int routeCommits = 0;
+  int routeCancels = 0;
+
+  @override
+  void handleStartBackGesture({double progress = 0.0}) {
+    starts++;
+    super.handleStartBackGesture(progress: progress);
+  }
+
+  @override
+  void handleUpdateBackGestureProgress({required double progress}) {
+    updates++;
+    super.handleUpdateBackGestureProgress(progress: progress);
+  }
+
+  @override
+  void handleCommitBackGesture() {
+    routeCommits++;
+    super.handleCommitBackGesture();
+  }
+
+  @override
+  void handleCancelBackGesture() {
+    routeCancels++;
+    super.handleCancelBackGesture();
+  }
+}
+
+class _CountingCnPageRoute extends CnPageRoute<void>
+    with _CountsBackGesture<void> {
+  _CountingCnPageRoute({required super.builder});
+}
+
+class _CountingMaterialPageRoute extends MaterialPageRoute<void>
+    with _CountsBackGesture<void> {
+  _CountingMaterialPageRoute({required super.builder});
+}
+
+class _PopCounter extends NavigatorObserver {
+  int pops = 0;
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) => pops++;
+}
+
 void main() {
   for (final _Install install in _Install.values) {
     group('Android predictive back, ${install.name}', () {
@@ -164,8 +215,25 @@ void main() {
         // The top page leaves on its fade-out window: gone below 0.6.
         expect(_opacity(t, 't'), lessThan(1.0));
 
+        final double released = s.top.animation!.value;
+        final double releasedOpacity = _opacity(t, 't');
         await _backGesture(t, 'commitBackGesture');
         expect(s.top.animation!.status, AnimationStatus.reverse);
+        // The pop continues from where the finger let go: the page never
+        // comes back (Flutter 3.35+ restarts the route's own commit from
+        // 1.0, which the detector must not inherit).
+        double last = released;
+        double lastOpacity = releasedOpacity;
+        // A popped route is no longer active; follow its animation instead.
+        while (!s.top.animation!.isDismissed) {
+          final double v = s.top.animation!.value;
+          expect(v, lessThanOrEqualTo(last + 1e-9), reason: 'pops one way');
+          final double o = _opacity(t, 't');
+          expect(o, lessThanOrEqualTo(lastOpacity + 1e-9));
+          last = v;
+          lastOpacity = o;
+          await t.pump(const Duration(milliseconds: 16));
+        }
         await t.pumpAndSettle();
         expect(s.top.isActive, isFalse);
         expect(s.below.isCurrent, isTrue);
@@ -269,6 +337,69 @@ void main() {
         await t.pumpAndSettle();
         expect(s.below.isCurrent, isTrue);
       });
+    });
+  }
+
+  for (final _Install install in _Install.values) {
+    testWidgets(
+        'one handler per gesture: Flutter adds no observer of its own to the '
+        'page, and the stock detector of the page below stays out, '
+        '${install.name}', (WidgetTester t) async {
+      final GlobalKey<NavigatorState> key = GlobalKey<NavigatorState>();
+      final _PopCounter pops = _PopCounter();
+      await t.pumpWidget(
+        MaterialApp(
+          navigatorKey: key,
+          navigatorObservers: <NavigatorObserver>[pops],
+          // The CnPageRoute install sits over Flutter's predictive-back
+          // builder, so the page below carries Flutter's own detector.
+          theme: install == _Install.cnPageRoute
+              ? ThemeData(
+                  platform: TargetPlatform.android,
+                  pageTransitionsTheme: const PageTransitionsTheme(
+                    builders: <TargetPlatform, PageTransitionsBuilder>{
+                      TargetPlatform.android:
+                          PredictiveBackPageTransitionsBuilder(),
+                    },
+                  ),
+                )
+              : _theme(install, TargetPlatform.android),
+          home: const SizedBox(),
+        ),
+      );
+      key.currentState!.push(
+        MaterialPageRoute<void>(builder: (_) => _element('b')),
+      );
+      await t.pumpAndSettle();
+      final _CountsBackGesture<void> top = switch (install) {
+        _Install.cnPageRoute =>
+          _CountingCnPageRoute(builder: (_) => _element('t')),
+        _Install.themeOverMaterial =>
+          _CountingMaterialPageRoute(builder: (_) => _element('t')),
+      };
+      key.currentState!.push(top);
+      await t.pumpAndSettle();
+      expect(pops.pops, 0);
+
+      await _backGesture(t, 'startBackGesture');
+      await _backGesture(t, 'updateBackGestureProgress', progress: 0.4);
+      await _backGesture(t, 'cancelBackGesture');
+      await t.pumpAndSettle();
+      expect(top.isCurrent, isTrue);
+
+      await _backGesture(t, 'startBackGesture');
+      await _backGesture(t, 'updateBackGestureProgress', progress: 0.6);
+      await _backGesture(t, 'commitBackGesture');
+      await t.pumpAndSettle();
+
+      expect(top.starts, 2);
+      expect(top.updates, 2);
+      // The detector settles the release itself (see _settlePredictive).
+      expect(top.routeCommits, 0);
+      expect(top.routeCancels, 0);
+      expect(pops.pops, 1);
+      expect(key.currentState!.canPop(), isTrue, reason: "'b' remains");
+      expect(key.currentState!.userGestureInProgress, isFalse);
     });
   }
 

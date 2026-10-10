@@ -246,10 +246,19 @@ void main() {
       route.handleCommitBackGesture();
       await tester.pump();
       expect(route.animation!.status, AnimationStatus.reverse);
+      // Through Flutter 3.32 the route's own commit continues from the drag
+      // value; since 3.35 (flutter/flutter#154718) it restarts at 1.0 and
+      // plays the whole reverse. Either way, every frame between the rests
+      // is on the exit curve. (CnBackGestureDetector does not use this
+      // commit; see its tests for what the user sees.)
+      final steps = <String>[];
       while (route.animation!.value > 0.0) {
-        expect(curveInUse(animation), 'exit');
+        steps.add(curveInUse(animation));
         await tester.pump(const Duration(milliseconds: 16));
       }
+      final moving = steps.where((s) => s != 'rest');
+      expect(moving, isNotEmpty);
+      expect(moving, everyElement('exit'));
       await tester.pumpAndSettle();
     },
   );
