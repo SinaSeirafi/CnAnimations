@@ -96,7 +96,8 @@ class Sampler {
     sibling4.add(offsetOf(tester, 's4').dy);
     expect(offsetOf(tester, 's2'), Offset.zero, reason: 'subject stays');
     expect(opacityOf(tester, 's2'), 1.0, reason: 'subject stays');
-    if (stack.top.isActive) {
+    // Until the top page is gone (a popping route is no longer active).
+    if (!stack.top.animation!.isDismissed) {
       final double a = stack.top.animation!.value;
       expect(sv, moreOrLessEquals(a, epsilon: eps));
       topOpacity.add(opacityOf(tester, 't'));
@@ -191,19 +192,32 @@ Future<void> scrubAndCommit(
   Sampler sampler,
 ) async {
   final ModalRoute<Object?> top = stack.top;
-  top.handleStartBackGesture(progress: 1.0);
+  // Through the system channel, so the commit is the one the page's
+  // back-gesture detector performs (since Flutter 3.35 the route's own
+  // handleCommitBackGesture restarts the pop from 1.0).
+  await sendBackGesture(tester, 'startBackGesture');
   await tester.pump();
   for (int i = 1; i <= 6; i++) {
-    top.handleUpdateBackGestureProgress(progress: 1.0 - 0.05 * i);
+    await sendBackGesture(
+      tester,
+      'updateBackGestureProgress',
+      progress: 0.05 * i,
+    );
     await tester.pump();
     sampler.sample();
   }
-  top.handleCommitBackGesture();
+  await sendBackGesture(tester, 'commitBackGesture');
   await tester.pump();
   sampler.sample();
-  for (int i = 0; i < 60 && top.isActive; i++) {
+  // A popped route is no longer active: follow its animation to the end.
+  for (int i = 0; i < 60 && !top.animation!.isDismissed; i++) {
     await tester.pump(const Duration(milliseconds: 16));
     sampler.sample();
+  }
+  // The pop continues from the release point: S only falls.
+  for (int i = 1; i < sampler.s.length; i++) {
+    expect(sampler.s[i], lessThanOrEqualTo(sampler.s[i - 1] + 1e-9),
+        reason: 'frame $i');
   }
   await tester.pumpAndSettle();
   sampler.sample();
