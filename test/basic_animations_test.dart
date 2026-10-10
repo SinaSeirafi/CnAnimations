@@ -185,6 +185,23 @@ void main() {
       await tester.pump(const Duration(milliseconds: 350)); // t = 0.75
       expect(_offset(tester).dx, closeTo(0.5, 0.01));
     });
+
+    testWidgets('CnFade honors durationInMilliseconds', (tester) async {
+      await tester.pumpWidget(
+        wrap(
+          const CnFade(
+            duration: Duration(seconds: 2),
+            // ignore: deprecated_member_use_from_same_package
+            durationInMilliseconds: 100,
+            delay: Duration.zero,
+            child: _box,
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 1)); // start timer fires
+      await tester.pump(const Duration(milliseconds: 150));
+      expect(_opacity(tester), 1);
+    });
   });
 
   group('reduced motion shows the final state immediately', () {

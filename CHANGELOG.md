@@ -1,26 +1,20 @@
-## 1.0.0
-Breaking: removed everything that 0.9.0 deprecated. Nothing else changed in behaviour.
-
-This release completes a rework of the 2023 package (0.0.1 to 0.0.3), done with Claude (Anthropic).
-
-* Removed `CnRouteAwareAnimation`: use `CnRouteAnimation` (see "Migrating from 0.1.0" in the README for the parameter mapping).
-* Removed `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver`: no longer needed by the package. Delete the observer from `navigatorObservers` (`[routeObserver]` in 0.0.x, `[RouteAwareWidget.routeObserver]` in 0.1.0).
-* Removed `CnFade.durationInMilliseconds`: use `duration`.
-* Removed `CnSlide.reverseControllerValue`: it had no effect.
-* Removed the `timing` parameter of `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute`: it had no effect. Element timing comes from `CnRouteChoreography` and `CnRouteAnimation`.
-
 ## 0.9.0
-0.9.0 is the migration bridge: it adds the new navigation-driven APIs and keeps the old route-aware widgets as deprecated. `CnRouteAwareAnimation`, `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver` will be removed in 1.0.0.
+0.9.0 is the migration bridge: it adds the new navigation-driven APIs and keeps the old route-aware widgets as deprecated. Everything deprecated in 0.9.0 is removed in 1.0.0.
 
-Requires Flutter 3.29 / Dart 3.7 or newer.
+* This release is a rework of the 2023 package (0.0.1 to 0.0.3), done with Claude (Anthropic).
+* Requires Flutter 3.29 / Dart 3.7 or newer.
 
 New
 * `CnRouteAnimation`: wraps a page element so it enters with the page, exits when another page covers it and follows swipe-back and predictive-back gestures, driven by route progress and no `RouteObserver`. Parts around the tapped item (pointer detection on by default, 700 ms window; `subject:` and `CnRouteChoreography.select()` override). `enterOffset` defaults to `Offset(0, 0.1)` (from below) and `exitOffset` to `-enterOffset`. Also exports `CnElementProgress`, `CnElementRole` and `CnRouteAnimationBuilder` for the `builder:` form.
 * `CnRouteChoreography`: optional scope for app-wide or per-page defaults. Configured with `CnRouteTiming`, `CnPartingSpec`, `CnScrollReveal`, `CnReducedMotionMode`, `CnSubjectDetection` and `CnSubjectBehavior` (all exported). Reduced motion is respected by default (`fadeOnly`); opt out with `respectReducedMotion: false`, or show elements at rest with `reducedMotionMode: none`; precedence is widget, then scope, then default.
 * `CnDirectionalCurvedAnimation`: curves a progress value by the rest value (0 or 1) it last left, so the same animation can use different curves going in and coming back.
-* `CnRouteTiming.uncover` (default `Interval(0.3, 0.65)` of the cover progress, as long as `exit`): when the page above pops or is dragged back (predictive back, iOS edge swipe), covered elements return over this slice instead of the exit slice played backwards. They start returning as the top page's elements finish leaving, so a pop no longer has a stretch of about a quarter of its length where neither page's elements show. It shares `exitStagger` and `exitCurve` with `exit`; set `uncover:` to the `exit` slice for the old behaviour.
+* `CnRouteTiming.uncover` (default `Interval(0.3, 0.65)`): when the page above pops or is dragged back, covered elements return over their own slice, so a pop has no stretch where neither page's elements show. Set `uncover:` to the `exit` slice for the old behaviour.
 * `CnFadeThroughPageTransitionsBuilder` (for `pageTransitionsTheme`) and `CnPageRoute`: a fade-through route that keeps the page below still while its elements exit. The transition has fixed intervals and runs 400 ms.
 * `animation:` parameter on `CnFade`, `CnSlide` and `CnScale` to drive them from an `Animation<double>`. An external `controller:` or `animation:` is never overridden by reduced motion.
+
+Predictive back on Flutter 3.35+
+* `CnPageRoute` and `CnFadeThroughPageTransitionsBuilder` settle a committed or cancelled predictive back from the release point, as on 3.29–3.32. Flutter 3.35+ restarts a committed back from fully shown, which made the page snap back before popping.
+* With Flutter's stock `PredictiveBackPageTransitionsBuilder` (the Android default on 3.35+), `CnRouteAnimation` elements no longer jump on commit: the page below's elements keep returning and the top page's elements stay gone.
 
 Behavior notes
 * Element curves come from `CnRouteTiming.exitCurve` / `enterCurve`. Curves set on the `exit` / `enter` / `uncover` `Interval`s are ignored, and assert in debug.
@@ -31,6 +25,8 @@ Behavior notes
 Deprecations (all removed in 1.0.0)
 * `CnRouteAwareAnimation`: use `CnRouteAnimation`.
 * `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver`: no longer needed by the package.
+* `CnFade.durationInMilliseconds`: use `duration`.
+* `CnSlide.reverseControllerValue`: it has no effect.
 * `timing` on `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute`: it has no effect. Element timing comes from `CnRouteChoreography` and `CnRouteAnimation`.
 
 ## 0.1.0 (never published to pub.dev)

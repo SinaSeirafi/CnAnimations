@@ -1,3 +1,4 @@
+import 'package:cn_animations/src/choreography/cn_route_choreography.dart';
 import 'package:cn_animations/src/route/cn_fade_through_page_transitions_builder.dart';
 import 'package:cn_animations/src/route/cn_page_route.dart';
 import 'package:flutter/material.dart';
@@ -278,6 +279,32 @@ void main() {
       );
       await _pumpFrames(t);
       expect(cn.secondary.value, 0.0);
+    });
+  });
+
+  // Review R8: `timing` never did anything on the routes. It is deprecated
+  // in 0.9.0 and removed in 1.0.0; this group pins the deprecated surface
+  // and goes with it.
+  group('deprecated timing parameter', () {
+    test('still accepted and stored, with no effect on the transition', () {
+      expect(
+        // ignore: deprecated_member_use_from_same_package
+        const CnFadeThroughPageTransitionsBuilder().timing,
+        CnRouteTiming.standard,
+      );
+      final route = CnPageRoute<void>(builder: (_) => const SizedBox());
+      // ignore: deprecated_member_use_from_same_package
+      expect(route.timing, CnRouteTiming.standard);
+      const custom = CnRouteTiming(exitStagger: 0.5);
+      final r2 = CnPageRoute<void>(
+        builder: (_) => const SizedBox(),
+        // ignore: deprecated_member_use_from_same_package
+        timing: custom,
+      );
+      // ignore: deprecated_member_use_from_same_package
+      expect(r2.timing, same(custom));
+      expect(r2.transitionDuration, route.transitionDuration);
+      expect(r2.reverseTransitionDuration, route.reverseTransitionDuration);
     });
   });
 
