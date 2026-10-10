@@ -131,7 +131,7 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
    - CI must be green on both commits. Run it with `workflow_dispatch` on the 0.9.0 commit, and PR #1 covers the head.
 4. **Fresh-context review** (opus, read-only) of the final 0.9.0 and 1.0.0 commits. Owner: "clear to merge after a fresh context agent review".
 5. **Merge PR #1 → `master`** and tag `v1.0.0`. Owner-authorized once 4 passes and CI is green.
-6. **Owner reviews `.dev/publishing-suggestions.md`** (Fable, in progress). It covers topics, screenshots, the README first screen, release mechanics and discoverability. Publishing order once approved: 0.9.0 (from `v0.9.0`), then 1.0.0.
+6. **Owner reviews `.dev/publishing-suggestions.md`** (Fable, done; nothing in it is applied yet). It covers topics, screenshots, the README first screen, release mechanics and discoverability. Publishing order once approved: 0.9.0 (from `v0.9.0`), then 1.0.0.
 7. **Owner's local `master` checkout:** the 2023 WIP (3 files) is fully superseded (see Session 3). The owner discards it and pulls after the merge.
 
 Deferred past 1.0.0 (not blocking): `CnPage` and `MaterialPageRoute` parity on `CnPageRoute`; `@internal` on internal types; a dartdoc note on `CnFade`'s 10 ms default delay; `delayInMilliseconds` kept (owner, 2026-10-10).
