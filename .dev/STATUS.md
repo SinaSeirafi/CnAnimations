@@ -1,6 +1,6 @@
 # cn_animations 0.9.0 / 1.0.0: status and next steps
 
-Last updated: 2026-10-11, during the session 3 close-out. This file is the single source of truth for where the work stands. Update it at every checkpoint.
+Last updated: 2026-10-11, at the end of session 3 (PR #1 merged; nothing published). This file is the single source of truth for where the work stands. Update it at every checkpoint.
 
 ## Where everything is
 
@@ -113,7 +113,36 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 - Step 1 done: G merged (76dae93). Post-merge: root analyze "No issues found", root 164 pass; example analyze clean, 7 pass.
 - Steps 1–3 started in parallel (disjoint files): G (sonnet, `example/**`), F2 (sonnet, README/CHANGELOG/`test/exports_test.dart`/`test/readme_snippets_test.dart`), C2 (opus, new worktree `…/cn_animations-wt/slice-c2`, branch `v1/slice-c2` from 0a0d763, owns `lib/src/route/**` and `test/route/**`).
 
-## Next steps, in order (revised 2026-10-11, owner decisions of the evening)
+## Current state (end of session 3, 2026-10-11)
+
+- **PR #1 is merged into `master`** with a merge commit (06c20b9). CI on `master` is green on Flutter 3.29.0 and stable.
+- **Tags (pushed):** `v0.9.0` → 646e4fd ("Release 0.9.0") and `v1.0.0` → 3a64c0f ("Release 1.0.0"). 1.0.0 is exactly 0.9.0 minus the deprecated items, and `v0.9.0` is in master's history.
+- **Nothing is published to pub.dev.** pub.dev still shows 0.0.3.
+- **Branches:** only `master` and `feat/v1-choreography` (now equal to master) remain on origin. The only worktree is `cn_animations-wt/integration`.
+- **The owner's local `master` checkout** (`~/Development/CnPackages/cn_animations`) is still at 0f3b9bd with the superseded 2023 WIP (3 files). The owner discards it and pulls; it was never touched by agents.
+
+## Next steps, in order (for the next thread)
+
+1. **Owner reviews `.dev/publishing-suggestions.md`** (written by Fable in session 3) and decides:
+   - the pubspec `description`, `topics` and `screenshots`;
+   - the README's first screen;
+   - whether visibility changes go into 0.9.0 as well, which the suggestions advise against;
+   - when to publish.
+2. **Pre-publish fixes**, batched into one slice: the final review's N1–N4 (listed under the close-out steps below), plus any approved README/pubspec changes. Each change has to land in both releases. Do it the same way as before: fix on top, rebuild "Release 0.9.0" and "Release 1.0.0" so 1.0.0 = 0.9.0 minus deprecations, move both tags (they are unpublished, so moving them is fine), and run CI on both. Then a fresh-context **opus** review.
+3. **Screenshots and GIFs:** record them on an idle machine, following §1.3 of the suggestions: a lineup PNG first, then the iOS swipe-back GIF, the Android predictive-back GIF, and the renamed 2023 basics GIF. Use a separate branch and let the owner review the files before they go in.
+4. **Publish** only on the owner's explicit go-ahead: 0.9.0 from `v0.9.0`, then 1.0.0 from `v1.0.0`. Check out the tag in a clean worktree and run `flutter pub publish --dry-run` first.
+5. After publishing: the discoverability steps in the suggestions (§4), then the concept document and the sister packages (see "Scheduled after the package").
+
+Deferred past 1.0.0 (not blocking):
+- `CnPage` and `MaterialPageRoute` parity on `CnPageRoute`;
+- `@internal` on internal types;
+- a dartdoc note on `CnFade`'s 10 ms default delay;
+- testing `PredictiveBackFullscreenPageTransitionsBuilder`;
+- nested-navigator double handling on Flutter 3.47 (it affects stock routes too).
+
+`delayInMilliseconds` stays (owner, 2026-10-10).
+
+### Session 3 close-out steps (all done; kept for the record)
 
 **Release shape (owner):** 0.9.0 gets every fix. 1.0.0 is exactly 0.9.0 minus the items deprecated in 0.9.0. The `v0.9.0` tag (869bb94, pushed, never published) is moved to the new 0.9.0 commit. **Publishing is the owner's call, after reviewing `.dev/publishing-suggestions.md`. Do not publish without an explicit go-ahead.**
 
