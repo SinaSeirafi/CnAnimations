@@ -27,7 +27,7 @@ class CnSlide extends StatefulWidget {
   final Animation<double>? animation;
 
   /// When true (default) and the platform asks to reduce motion
-  /// ([MediaQuery.disableAnimations]), the final state is shown immediately.
+  /// ([MediaQueryData.disableAnimations]), the final state is shown immediately.
   /// Set to false to animate regardless of that setting.
   ///
   /// Applies only when both [controller] and [animation] are null. With an
@@ -50,9 +50,9 @@ class CnSlide extends StatefulWidget {
     this.respectReducedMotion = true,
     super.key,
   }) : assert(
-          controller == null || animation == null,
-          'Provide either controller or animation, not both.',
-        );
+         controller == null || animation == null,
+         'Provide either controller or animation, not both.',
+       );
 
   @override
   State<CnSlide> createState() => _CnSlideState();
@@ -151,10 +151,7 @@ class _CnSlideState extends State<CnSlide> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
 
     _updateSlideAnimation();
 

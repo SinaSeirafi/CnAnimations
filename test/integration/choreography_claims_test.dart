@@ -23,115 +23,124 @@ double factorOf(int i, {double anchor = 0}) {
 }
 
 double coveredWith(double f, double s) => Interval(
-      f * exitStagger,
-      0.35 + f * exitStagger,
-      curve: Curves.easeIn,
-    ).transform(s);
+  f * exitStagger,
+  0.35 + f * exitStagger,
+  curve: Curves.easeIn,
+).transform(s);
 
 double enteredWith(double f, double a) => Interval(
-      0.35 + f * enterStagger,
-      1.0,
-      curve: Curves.easeOutCubic,
-    ).transform(a);
+  0.35 + f * enterStagger,
+  1.0,
+  curve: Curves.easeOutCubic,
+).transform(a);
 
 /// A 200-item list of 100 px items with the default (staggered) timing.
 Widget longList({void Function(BuildContext context)? onTap}) => Builder(
-      builder: (BuildContext context) => ListView.builder(
-        itemCount: 200,
-        itemExtent: 100,
-        itemBuilder: (BuildContext context, int i) => item(
-          'L$i',
-          timing: null,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onTap == null ? null : () => onTap(context),
-            child: SizedBox(height: 100, child: Text('L$i')),
-          ),
-        ),
+  builder: (BuildContext context) => ListView.builder(
+    itemCount: 200,
+    itemExtent: 100,
+    itemBuilder: (BuildContext context, int i) => item(
+      'L$i',
+      timing: null,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap == null ? null : () => onTap(context),
+        child: SizedBox(height: 100, child: Text('L$i')),
       ),
-    );
+    ),
+  ),
+);
 
 /// The items of [longList] that exist (built, on screen or in the cache
 /// extent).
 List<int> builtItems() => <int>[
-      for (int i = 0; i < 200; i++)
-        if (exists('L$i')) i,
-    ];
+  for (int i = 0; i < 200; i++)
+    if (exists('L$i')) i,
+];
 
-void pushBlank(BuildContext context) => Navigator.of(context).push(
-      CnPageRoute<void>(builder: (_) => const SizedBox()),
-    );
+void pushBlank(BuildContext context) =>
+    Navigator.of(context)
+        .push(CnPageRoute<void>(builder: (_) => const SizedBox()));
 
 void main() {
   group('stagger bound (§3.4)', () {
     testWidgets(
-        'a 200-item list: only the built items animate, each on its own '
-        'geometric slice, and all are covered by S = exit.end + exitStagger',
-        (WidgetTester tester) async {
-      final GlobalKey<NavigatorState> nav = await pumpApp(
-        tester,
-        const SizedBox(),
-        theme: themeFor(Install.cnPageRoute),
-      );
-      nav.currentState!.push(CnPageRoute<void>(builder: (_) => longList()));
-      await tester.pumpAndSettle();
-      // 6 on screen plus the cache extent: the list length does not matter.
-      final List<int> built = builtItems();
-      expect(built, <int>[for (int i = 0; i < 9; i++) i]);
-      final ModalRoute<Object?> page = routeOf(tester, 'L0');
-      for (final int i in built) {
-        expect(opacityOf(tester, 'L$i'), 1.0, reason: 'L$i at rest');
-        expect(offsetOf(tester, 'L$i'), Offset.zero, reason: 'L$i at rest');
-      }
-
-      // Programmatic push: no subject, every item exits as a plain element
-      // staggered from the viewport's top edge.
-      nav.currentState!
-          .push(CnPageRoute<void>(builder: (_) => const SizedBox()));
-      await tester.pump();
-      final Map<int, double> exitStart = <int, double>{};
-      double previousS = 0;
-      while (!page.secondaryAnimation!.isCompleted) {
-        await tester.pump(const Duration(milliseconds: 8));
-        final double s = page.secondaryAnimation!.value;
+      'a 200-item list: only the built items animate, each on its own '
+      'geometric slice, and all are covered by S = exit.end + exitStagger',
+      (WidgetTester tester) async {
+        final GlobalKey<NavigatorState> nav = await pumpApp(
+          tester,
+          const SizedBox(),
+          theme: themeFor(Install.cnPageRoute),
+        );
+        nav.currentState!.push(CnPageRoute<void>(builder: (_) => longList()));
+        await tester.pumpAndSettle();
+        // 6 on screen plus the cache extent: the list length does not matter.
+        final List<int> built = builtItems();
+        expect(built, <int>[for (int i = 0; i < 9; i++) i]);
+        final ModalRoute<Object?> page = routeOf(tester, 'L0');
         for (final int i in built) {
-          final double c = coveredWith(factorOf(i), s);
-          expect(
-              opacityOf(tester, 'L$i'), moreOrLessEquals(1 - c, epsilon: eps),
-              reason: 'L$i at S = $s');
-          expect(offsetOf(tester, 'L$i'),
+          expect(opacityOf(tester, 'L$i'), 1.0, reason: 'L$i at rest');
+          expect(offsetOf(tester, 'L$i'), Offset.zero, reason: 'L$i at rest');
+        }
+
+        // Programmatic push: no subject, every item exits as a plain element
+        // staggered from the viewport's top edge.
+        nav.currentState!.push(
+          CnPageRoute<void>(builder: (_) => const SizedBox()),
+        );
+        await tester.pump();
+        final Map<int, double> exitStart = <int, double>{};
+        double previousS = 0;
+        while (!page.secondaryAnimation!.isCompleted) {
+          await tester.pump(const Duration(milliseconds: 8));
+          final double s = page.secondaryAnimation!.value;
+          for (final int i in built) {
+            final double c = coveredWith(factorOf(i), s);
+            expect(
+              opacityOf(tester, 'L$i'),
+              moreOrLessEquals(1 - c, epsilon: eps),
+              reason: 'L$i at S = $s',
+            );
+            expect(
+              offsetOf(tester, 'L$i'),
               offsetMoreOrLessEquals(Offset(0, -0.1 * c), epsilon: eps),
-              reason: 'L$i at S = $s');
-          if (opacityOf(tester, 'L$i') < 1.0) {
-            exitStart.putIfAbsent(i, () => previousS);
+              reason: 'L$i at S = $s',
+            );
+            if (opacityOf(tester, 'L$i') < 1.0) {
+              exitStart.putIfAbsent(i, () => previousS);
+            }
+            if (s >= 0.35 + exitStagger) {
+              expect(opacityOf(tester, 'L$i'), 0.0, reason: 'L$i done by 0.47');
+            }
           }
-          if (s >= 0.35 + exitStagger) {
-            expect(opacityOf(tester, 'L$i'), 0.0, reason: 'L$i done by 0.47');
+          previousS = s;
+        }
+        // Nearer the top starts first, and nothing starts after exitStagger.
+        for (final int i in built) {
+          expect(exitStart[i], lessThanOrEqualTo(exitStagger), reason: 'L$i');
+          if (i > 0) {
+            expect(
+              exitStart[i],
+              greaterThanOrEqualTo(exitStart[i - 1]!),
+              reason: 'L$i',
+            );
           }
         }
-        previousS = s;
-      }
-      // Nearer the top starts first, and nothing starts after exitStagger.
-      for (final int i in built) {
-        expect(exitStart[i], lessThanOrEqualTo(exitStagger), reason: 'L$i');
-        if (i > 0) {
-          expect(exitStart[i], greaterThanOrEqualTo(exitStart[i - 1]!),
-              reason: 'L$i');
+
+        nav.currentState!.pop();
+        await tester.pumpAndSettle();
+        for (final int i in built) {
+          expect(opacityOf(tester, 'L$i'), 1.0, reason: 'L$i back at rest');
+          expect(offsetOf(tester, 'L$i'), Offset.zero, reason: 'L$i');
         }
-      }
+      },
+    );
 
-      nav.currentState!.pop();
-      await tester.pumpAndSettle();
-      for (final int i in built) {
-        expect(opacityOf(tester, 'L$i'), 1.0, reason: 'L$i back at rest');
-        expect(offsetOf(tester, 'L$i'), Offset.zero, reason: 'L$i');
-      }
-    });
-
-    testWidgets(
-        'a 200-item list: off-screen built items part with f = 1 (the '
-        'farthest distance) and nearer siblings part less',
-        (WidgetTester tester) async {
+    testWidgets('a 200-item list: off-screen built items part with f = 1 (the '
+        'farthest distance) and nearer siblings part less', (
+      WidgetTester tester,
+    ) async {
       final GlobalKey<NavigatorState> nav = await pumpApp(
         tester,
         const SizedBox(),
@@ -163,10 +172,10 @@ void main() {
       expect(offsetOf(tester, 'L7').dy, moreOrLessEquals(0.9));
     });
 
-    testWidgets(
-        'entrance: each built item enters on its geometric slice, the '
-        'farthest by enter.begin + enterStagger, and all rest when A = 1',
-        (WidgetTester tester) async {
+    testWidgets('entrance: each built item enters on its geometric slice, the '
+        'farthest by enter.begin + enterStagger, and all rest when A = 1', (
+      WidgetTester tester,
+    ) async {
       final GlobalKey<NavigatorState> nav = await pumpApp(
         tester,
         const SizedBox(),
@@ -201,20 +210,20 @@ void main() {
   group('parting via tap on a CnPageRoute page (README, §3.5)', () {
     /// Nine 60 px items; a tap pushes the route made by [next].
     Widget partingList(Route<void> Function() next) => Builder(
-          builder: (BuildContext context) => ListView.builder(
-            itemCount: 9,
-            itemExtent: 60,
-            itemBuilder: (BuildContext context, int i) => item(
-              'p$i',
-              timing: null,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.of(context).push(next()),
-                child: SizedBox(height: 60, child: Text('p$i')),
-              ),
-            ),
+      builder: (BuildContext context) => ListView.builder(
+        itemCount: 9,
+        itemExtent: 60,
+        itemBuilder: (BuildContext context, int i) => item(
+          'p$i',
+          timing: null,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.of(context).push(next()),
+            child: SizedBox(height: 60, child: Text('p$i')),
           ),
-        );
+        ),
+      ),
+    );
 
     void expectParted(WidgetTester tester) {
       expect(offsetOf(tester, 'p4'), Offset.zero);
@@ -237,15 +246,17 @@ void main() {
 
     final Map<String, Route<void> Function()> nextRoutes =
         <String, Route<void> Function()>{
-      'CnPageRoute': () => CnPageRoute<void>(builder: (_) => const SizedBox()),
-      'a stock MaterialPageRoute': () =>
-          MaterialPageRoute<void>(builder: (_) => const SizedBox()),
-    };
+          'CnPageRoute': () =>
+              CnPageRoute<void>(builder: (_) => const SizedBox()),
+          'a stock MaterialPageRoute': () =>
+              MaterialPageRoute<void>(builder: (_) => const SizedBox()),
+        };
 
     for (final MapEntry<String, Route<void> Function()> next
         in nextRoutes.entries) {
-      testWidgets('list: tapping item 4 of 9 and pushing ${next.key}',
-          (WidgetTester tester) async {
+      testWidgets('list: tapping item 4 of 9 and pushing ${next.key}', (
+        WidgetTester tester,
+      ) async {
         final GlobalKey<NavigatorState> nav = await pumpApp(
           tester,
           const SizedBox(),
@@ -273,8 +284,9 @@ void main() {
       });
     }
 
-    testWidgets('grid: same-row cells part sideways, other rows vertically',
-        (WidgetTester tester) async {
+    testWidgets('grid: same-row cells part sideways, other rows vertically', (
+      WidgetTester tester,
+    ) async {
       final GlobalKey<NavigatorState> nav = await pumpApp(
         tester,
         const SizedBox(),
@@ -329,52 +341,52 @@ void main() {
 
   group('mounts at rest (§3.6, §5 zero-duration)', () {
     testWidgets(
-        'zero-duration push: the page below snaps covered in one frame and '
-        'back on pop; the new page plays the timed entrance',
-        (WidgetTester tester) async {
-      final GlobalKey<NavigatorState> nav = await pumpApp(
-        tester,
-        column(<Widget>[item('h')]),
-      );
-      await tester.pumpAndSettle();
-      final ModalRoute<Object?> home = routeOf(tester, 'h');
-      nav.currentState!.push(
-        _InstantMaterialRoute(builder: (_) => column(<Widget>[item('z')])),
-      );
-      await tester.pump();
-      expect(home.secondaryAnimation!.value, 1.0);
-      expect(opacityOf(tester, 'h'), 0.0);
-      expect(offsetOf(tester, 'h'), const Offset(0, -0.1));
-      // The new page is at rest from its first frame: an initial mount.
-      expect(routeOf(tester, 'z').animation!.value, 1.0);
-      expect(opacityOf(tester, 'z'), 0.0);
-      await tester.pump(const Duration(milliseconds: 150));
-      expect(opacityOf(tester, 'z'), greaterThan(0.0));
-      expect(opacityOf(tester, 'z'), lessThan(1.0));
-      await tester.pump(const Duration(milliseconds: 150));
-      expect(opacityOf(tester, 'z'), 1.0);
-      expect(offsetOf(tester, 'z'), Offset.zero);
+      'zero-duration push: the page below snaps covered in one frame and '
+      'back on pop; the new page plays the timed entrance',
+      (WidgetTester tester) async {
+        final GlobalKey<NavigatorState> nav = await pumpApp(
+          tester,
+          column(<Widget>[item('h')]),
+        );
+        await tester.pumpAndSettle();
+        final ModalRoute<Object?> home = routeOf(tester, 'h');
+        nav.currentState!.push(
+          _InstantMaterialRoute(builder: (_) => column(<Widget>[item('z')])),
+        );
+        await tester.pump();
+        expect(home.secondaryAnimation!.value, 1.0);
+        expect(opacityOf(tester, 'h'), 0.0);
+        expect(offsetOf(tester, 'h'), const Offset(0, -0.1));
+        // The new page is at rest from its first frame: an initial mount.
+        expect(routeOf(tester, 'z').animation!.value, 1.0);
+        expect(opacityOf(tester, 'z'), 0.0);
+        await tester.pump(const Duration(milliseconds: 150));
+        expect(opacityOf(tester, 'z'), greaterThan(0.0));
+        expect(opacityOf(tester, 'z'), lessThan(1.0));
+        await tester.pump(const Duration(milliseconds: 150));
+        expect(opacityOf(tester, 'z'), 1.0);
+        expect(offsetOf(tester, 'z'), Offset.zero);
 
-      nav.currentState!.pop();
-      await tester.pump();
-      expect(home.secondaryAnimation!.value, 0.0);
-      expect(opacityOf(tester, 'h'), 1.0);
-      expect(offsetOf(tester, 'h'), Offset.zero);
-      expect(exists('z'), isFalse);
-    });
+        nav.currentState!.pop();
+        await tester.pump();
+        expect(home.secondaryAnimation!.value, 0.0);
+        expect(opacityOf(tester, 'h'), 1.0);
+        expect(offsetOf(tester, 'h'), Offset.zero);
+        expect(exists('z'), isFalse);
+      },
+    );
 
     Widget growingPage(ValueNotifier<int> count) => ValueListenableBuilder<int>(
-          valueListenable: count,
-          builder: (_, int n, _) => column(<Widget>[
-            for (int i = 0; i < n; i++) item('m$i'),
-          ]),
-        );
+      valueListenable: count,
+      builder: (_, int n, _) =>
+          column(<Widget>[for (int i = 0; i < n; i++) item('m$i')]),
+    );
 
     for (final bool reveal in <bool>[false, true]) {
-      testWidgets(
-          'an element added to a page at rest '
-          '${reveal ? 'reveals once with scrollReveal' : 'renders at rest'}',
-          (WidgetTester tester) async {
+      testWidgets('an element added to a page at rest '
+          '${reveal ? 'reveals once with scrollReveal' : 'renders at rest'}', (
+        WidgetTester tester,
+      ) async {
         final ValueNotifier<int> count = ValueNotifier<int>(1);
         addTearDown(count.dispose);
         final GlobalKey<NavigatorState> nav = await pumpApp(
@@ -382,9 +394,9 @@ void main() {
           const SizedBox(),
           builder: reveal
               ? (_, Widget? child) => CnRouteChoreography(
-                    scrollReveal: const CnScrollReveal(),
-                    child: child!,
-                  )
+                  scrollReveal: const CnScrollReveal(),
+                  child: child!,
+                )
               : null,
         );
         nav.currentState!.push(
@@ -419,15 +431,15 @@ void main() {
       Widget Function(Widget child)? scope,
     }) =>
         (BuildContext context, Widget? child) => ValueListenableBuilder<bool>(
-              valueListenable: reduce,
-              builder: (BuildContext context, bool on, _) {
-                final Widget reduced = MediaQuery(
-                  data: MediaQuery.of(context).copyWith(disableAnimations: on),
-                  child: child!,
-                );
-                return scope == null ? reduced : scope(reduced);
-              },
+          valueListenable: reduce,
+          builder: (BuildContext context, bool on, _) {
+            final Widget reduced = MediaQuery(
+              data: MediaQuery.of(context).copyWith(disableAnimations: on),
+              child: child!,
             );
+            return scope == null ? reduced : scope(reduced);
+          },
+        );
 
     Widget scaled(String label, {CnReducedMotionMode? mode}) =>
         CnRouteAnimation(
@@ -440,22 +452,20 @@ void main() {
 
     /// Home with h0 and a tappable h1 (pushes a page holding 'n').
     Widget home() => Builder(
-          builder: (BuildContext context) => column(<Widget>[
-            scaled('h0'),
-            item(
-              'h1',
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.of(context).push(
-                  CnPageRoute<void>(
-                    builder: (_) => column(<Widget>[scaled('n')]),
-                  ),
-                ),
-                child: const SizedBox(height: 100, child: Text('h1')),
-              ),
+      builder: (BuildContext context) => column(<Widget>[
+        scaled('h0'),
+        item(
+          'h1',
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.of(context).push(
+              CnPageRoute<void>(builder: (_) => column(<Widget>[scaled('n')])),
             ),
-          ]),
-        );
+            child: const SizedBox(height: 100, child: Text('h1')),
+          ),
+        ),
+      ]),
+    );
 
     /// Initial entrance, a tap-push that parts the home page, and a pop,
     /// calling [check] after every pump.
@@ -478,54 +488,61 @@ void main() {
     }
 
     List<String> present() => <String>[
-          for (final String label in <String>['h0', 'h1', 'n'])
-            if (exists(label)) label,
-        ];
+      for (final String label in <String>['h0', 'h1', 'n'])
+        if (exists(label)) label,
+    ];
 
     testWidgets(
-        'fadeOnly (default): no translation or scale at any pump, while '
-        'opacity follows the route', (WidgetTester tester) async {
-      final ValueNotifier<bool> reduce = ValueNotifier<bool>(true);
-      addTearDown(reduce.dispose);
-      await pumpApp(tester, home(), builder: reducedApp(reduce));
-      bool sawPartial = false;
-      await journey(tester, () {
-        for (final String label in present()) {
-          expect(offsetOf(tester, label), Offset.zero, reason: label);
-          if (label != 'h1') {
-            expect(scaleOf(tester, label), 1.0, reason: label);
+      'fadeOnly (default): no translation or scale at any pump, while '
+      'opacity follows the route',
+      (WidgetTester tester) async {
+        final ValueNotifier<bool> reduce = ValueNotifier<bool>(true);
+        addTearDown(reduce.dispose);
+        await pumpApp(tester, home(), builder: reducedApp(reduce));
+        bool sawPartial = false;
+        await journey(tester, () {
+          for (final String label in present()) {
+            expect(offsetOf(tester, label), Offset.zero, reason: label);
+            if (label != 'h1') {
+              expect(scaleOf(tester, label), 1.0, reason: label);
+            }
+            final double o = opacityOf(tester, label);
+            if (o > 0.05 && o < 0.95) sawPartial = true;
           }
-          final double o = opacityOf(tester, label);
-          if (o > 0.05 && o < 0.95) sawPartial = true;
-        }
-        if (exists('n')) {
-          final ModalRoute<Object?> top = routeOf(tester, 'n');
-          final ModalRoute<Object?> below = routeOf(tester, 'h0');
-          final double s = below.secondaryAnimation!.value;
-          // h1 is the tapped subject; h0 a sibling that still fades.
-          expect(opacityOf(tester, 'h1'), 1.0);
-          // Pushed: the cover left 0 (exit slice). Popping: it left 1
-          // (uncover slice).
-          final double covered =
-              top.animation!.status == AnimationStatus.reverse
-                  ? uncoveredAt(s)
-                  : coveredAt(s);
-          expect(opacityOf(tester, 'h0'),
-              moreOrLessEquals(1 - covered, epsilon: eps));
-          final double a = top.animation!.value;
-          final double expected =
-              top.animation!.status == AnimationStatus.reverse
-                  ? shownLeaving(a)
-                  : shownEntering(a);
-          expect(
-              opacityOf(tester, 'n'), moreOrLessEquals(expected, epsilon: eps));
-        }
-      });
-      expect(sawPartial, isTrue, reason: 'opacity still animates');
-    });
+          if (exists('n')) {
+            final ModalRoute<Object?> top = routeOf(tester, 'n');
+            final ModalRoute<Object?> below = routeOf(tester, 'h0');
+            final double s = below.secondaryAnimation!.value;
+            // h1 is the tapped subject; h0 a sibling that still fades.
+            expect(opacityOf(tester, 'h1'), 1.0);
+            // Pushed: the cover left 0 (exit slice). Popping: it left 1
+            // (uncover slice).
+            final double covered =
+                top.animation!.status == AnimationStatus.reverse
+                ? uncoveredAt(s)
+                : coveredAt(s);
+            expect(
+              opacityOf(tester, 'h0'),
+              moreOrLessEquals(1 - covered, epsilon: eps),
+            );
+            final double a = top.animation!.value;
+            final double expected =
+                top.animation!.status == AnimationStatus.reverse
+                ? shownLeaving(a)
+                : shownEntering(a);
+            expect(
+              opacityOf(tester, 'n'),
+              moreOrLessEquals(expected, epsilon: eps),
+            );
+          }
+        });
+        expect(sawPartial, isTrue, reason: 'opacity still animates');
+      },
+    );
 
-    testWidgets('none: every element at rest at every pump',
-        (WidgetTester tester) async {
+    testWidgets('none: every element at rest at every pump', (
+      WidgetTester tester,
+    ) async {
       final ValueNotifier<bool> reduce = ValueNotifier<bool>(true);
       addTearDown(reduce.dispose);
       await pumpApp(
@@ -575,8 +592,9 @@ void main() {
       return (opacityOf(tester, 'p'), offsetOf(tester, 'p'));
     }
 
-    testWidgets('mode precedence: widget fadeOnly beats scope none',
-        (WidgetTester tester) async {
+    testWidgets('mode precedence: widget fadeOnly beats scope none', (
+      WidgetTester tester,
+    ) async {
       final (double opacity, Offset offset) = await midPush(
         tester,
         scope: (Widget child) => CnRouteChoreography(
@@ -590,8 +608,9 @@ void main() {
       expect(offset, Offset.zero);
     });
 
-    testWidgets('mode precedence: widget none beats the default fadeOnly',
-        (WidgetTester tester) async {
+    testWidgets('mode precedence: widget none beats the default fadeOnly', (
+      WidgetTester tester,
+    ) async {
       final (double opacity, Offset offset) = await midPush(
         tester,
         scope: (Widget child) => child,
@@ -602,22 +621,28 @@ void main() {
     });
 
     testWidgets(
-        'nested scopes merge field by field: inner respectReducedMotion '
-        'with the outer mode', (WidgetTester tester) async {
-      final (double opacity, Offset offset) = await midPush(
-        tester,
-        scope: (Widget child) => CnRouteChoreography(
-          respectReducedMotion: false,
-          reducedMotionMode: CnReducedMotionMode.none,
-          child: CnRouteChoreography(respectReducedMotion: true, child: child),
-        ),
-      );
-      expect(opacity, 1.0, reason: 'inner respects it, outer mode is none');
-      expect(offset, Offset.zero);
-    });
+      'nested scopes merge field by field: inner respectReducedMotion '
+      'with the outer mode',
+      (WidgetTester tester) async {
+        final (double opacity, Offset offset) = await midPush(
+          tester,
+          scope: (Widget child) => CnRouteChoreography(
+            respectReducedMotion: false,
+            reducedMotionMode: CnReducedMotionMode.none,
+            child: CnRouteChoreography(
+              respectReducedMotion: true,
+              child: child,
+            ),
+          ),
+        );
+        expect(opacity, 1.0, reason: 'inner respects it, outer mode is none');
+        expect(offset, Offset.zero);
+      },
+    );
 
-    testWidgets('the outer scope alone opts out: full motion',
-        (WidgetTester tester) async {
+    testWidgets('the outer scope alone opts out: full motion', (
+      WidgetTester tester,
+    ) async {
       final (double opacity, Offset offset) = await midPush(
         tester,
         scope: (Widget child) => CnRouteChoreography(
@@ -631,56 +656,60 @@ void main() {
     });
 
     testWidgets(
-        'toggling disableAnimations mid-transition switches at once, keeps '
-        'following progress and keeps the child State',
-        (WidgetTester tester) async {
-      final ValueNotifier<bool> reduce = ValueNotifier<bool>(false);
-      addTearDown(reduce.dispose);
-      final List<State> states = <State>[];
-      final GlobalKey<NavigatorState> nav = await pumpApp(
-        tester,
-        const SizedBox(),
-        builder: reducedApp(reduce),
-      );
-      nav.currentState!.push(
-        CnPageRoute<void>(
-          builder: (_) => column(<Widget>[
-            item('t', child: _StateProbe(states)),
-          ]),
-        ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 220));
-      final ModalRoute<Object?> route = routeOf(tester, 't');
-      void expectMotion({required bool reduced}) {
-        final double shown = shownEntering(route.animation!.value);
-        expect(opacityOf(tester, 't'), moreOrLessEquals(shown, epsilon: eps));
-        expect(
-          offsetOf(tester, 't'),
-          offsetMoreOrLessEquals(
-            reduced ? Offset.zero : Offset(0, 0.1 * (1 - shown)),
-            epsilon: eps,
+      'toggling disableAnimations mid-transition switches at once, keeps '
+      'following progress and keeps the child State',
+      (WidgetTester tester) async {
+        final ValueNotifier<bool> reduce = ValueNotifier<bool>(false);
+        addTearDown(reduce.dispose);
+        final List<State> states = <State>[];
+        final GlobalKey<NavigatorState> nav = await pumpApp(
+          tester,
+          const SizedBox(),
+          builder: reducedApp(reduce),
+        );
+        nav.currentState!.push(
+          CnPageRoute<void>(
+            builder: (_) =>
+                column(<Widget>[item('t', child: _StateProbe(states))]),
           ),
         );
-      }
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 220));
+        final ModalRoute<Object?> route = routeOf(tester, 't');
+        void expectMotion({required bool reduced}) {
+          final double shown = shownEntering(route.animation!.value);
+          expect(opacityOf(tester, 't'), moreOrLessEquals(shown, epsilon: eps));
+          expect(
+            offsetOf(tester, 't'),
+            offsetMoreOrLessEquals(
+              reduced ? Offset.zero : Offset(0, 0.1 * (1 - shown)),
+              epsilon: eps,
+            ),
+          );
+        }
 
-      expectMotion(reduced: false);
-      expect(offsetOf(tester, 't').dy, greaterThan(0));
-      reduce.value = true;
-      await tester.pump();
-      expectMotion(reduced: true);
-      await tester.pump(const Duration(milliseconds: 40));
-      expectMotion(reduced: true);
-      reduce.value = false;
-      await tester.pump();
-      expectMotion(reduced: false);
-      expect(offsetOf(tester, 't').dy, greaterThan(0));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-      expect(opacityOf(tester, 't'), 1.0);
-      expect(states, hasLength(1), reason: 'the child was never rebuilt anew');
-      expect(tester.state(find.byType(_StateProbe)), same(states.single));
-    });
+        expectMotion(reduced: false);
+        expect(offsetOf(tester, 't').dy, greaterThan(0));
+        reduce.value = true;
+        await tester.pump();
+        expectMotion(reduced: true);
+        await tester.pump(const Duration(milliseconds: 40));
+        expectMotion(reduced: true);
+        reduce.value = false;
+        await tester.pump();
+        expectMotion(reduced: false);
+        expect(offsetOf(tester, 't').dy, greaterThan(0));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(opacityOf(tester, 't'), 1.0);
+        expect(
+          states,
+          hasLength(1),
+          reason: 'the child was never rebuilt anew',
+        );
+        expect(tester.state(find.byType(_StateProbe)), same(states.single));
+      },
+    );
   });
 }
 

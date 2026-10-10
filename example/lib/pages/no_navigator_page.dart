@@ -46,10 +46,16 @@ class _Pane extends StatefulWidget {
 }
 
 class _PaneState extends State<_Pane> {
-  late final _PageAnimation _enter =
-      _PageAnimation(widget.controller, widget.index, entering: true);
-  late final _PageAnimation _cover =
-      _PageAnimation(widget.controller, widget.index, entering: false);
+  late final _PageAnimation _enter = _PageAnimation(
+    widget.controller,
+    widget.index,
+    entering: true,
+  );
+  late final _PageAnimation _cover = _PageAnimation(
+    widget.controller,
+    widget.index,
+    entering: false,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -64,15 +70,15 @@ class _PaneState extends State<_Pane> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CnRouteAnimation(
-              child: Text('Pane ${widget.index + 1}',
-                  style: Theme.of(context).textTheme.headlineMedium),
+              child: Text(
+                'Pane ${widget.index + 1}',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
             ),
             const SizedBox(height: 12),
             for (int j = 0; j < 3; j++)
               CnRouteAnimation(
-                child: Card(
-                  child: ListTile(title: Text('Element $j')),
-                ),
+                child: Card(child: ListTile(title: Text('Element $j'))),
               ),
           ],
         ),
@@ -95,9 +101,10 @@ class _PageAnimation extends Animation<double>
 
   @override
   double get value {
-    final double page = _controller.hasClients
-        ? (_controller.page ?? _controller.initialPage.toDouble())
-        : _controller.initialPage.toDouble();
+    final double page =
+        _controller.hasClients
+            ? (_controller.page ?? _controller.initialPage.toDouble())
+            : _controller.initialPage.toDouble();
     final double raw = entering ? 1 - (_index - page) : page - _index;
     return raw.clamp(0.0, 1.0).toDouble();
   }

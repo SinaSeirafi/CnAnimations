@@ -24,8 +24,8 @@ class CnPageRoute<T> extends PageRoute<T> with MaterialRouteTransitionMixin<T> {
     this.maintainState = true,
     this.backgroundColor,
   }) : _transitions = CnFadeThroughPageTransitionsBuilder(
-          backgroundColor: backgroundColor,
-        );
+         backgroundColor: backgroundColor,
+       );
 
   /// Builds the page content.
   final WidgetBuilder builder;
@@ -64,14 +64,13 @@ class CnPageRoute<T> extends PageRoute<T> with MaterialRouteTransitionMixin<T> {
     Animation<double> animation,
     Animation<double> secondaryAnimation,
     Widget child,
-  ) =>
-      _transitions.buildTransitions<T>(
-        this,
-        context,
-        animation,
-        secondaryAnimation,
-        child,
-      );
+  ) => _transitions.buildTransitions<T>(
+    this,
+    context,
+    animation,
+    secondaryAnimation,
+    child,
+  );
 
   /// The route's type, followed by its name in parentheses when it has one.
   @override

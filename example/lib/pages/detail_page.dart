@@ -62,62 +62,72 @@ class DetailPage extends StatelessWidget {
               runSpacing: 8,
               children: <Widget>[
                 FilledButton(
-                  onPressed: () => showDialog<void>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('A dialog'),
-                      content: const Text(
-                          'Dialogs do not cover the page: nothing exits.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Close'),
-                        ),
-                      ],
-                    ),
-                  ),
+                  onPressed:
+                      () => showDialog<void>(
+                        context: context,
+                        builder:
+                            (context) => AlertDialog(
+                              title: const Text('A dialog'),
+                              content: const Text(
+                                'Dialogs do not cover the page: nothing exits.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            ),
+                      ),
                   child: const Text('Open dialog'),
                 ),
                 FilledButton.tonal(
-                  onPressed: () => Navigator.push(
-                    context,
-                    // Counter-demo: a transparent overlay does not cover this
-                    // page, so its elements stay. Neither a theme-installed
-                    // Material page (this one) nor a CnPageRoute lets a plain
-                    // PageRouteBuilder drive its exits; only a page that is
-                    // itself a plain PageRouteBuilder would.
-                    PageRouteBuilder<void>(
-                      opaque: false,
-                      barrierColor: Colors.black54,
-                      pageBuilder: (context, _, _) => Center(
-                        child: Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: FilledButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Close overlay'),
-                            ),
-                          ),
+                  onPressed:
+                      () => Navigator.push(
+                        context,
+                        // Counter-demo: a transparent overlay does not cover this
+                        // page, so its elements stay. Neither a theme-installed
+                        // Material page (this one) nor a CnPageRoute lets a plain
+                        // PageRouteBuilder drive its exits; only a page that is
+                        // itself a plain PageRouteBuilder would.
+                        PageRouteBuilder<void>(
+                          opaque: false,
+                          barrierColor: Colors.black54,
+                          pageBuilder:
+                              (context, _, _) => Center(
+                                child: Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: FilledButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Close overlay'),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          transitionsBuilder:
+                              (_, animation, _, child) => FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
                         ),
                       ),
-                      transitionsBuilder: (_, animation, _, child) =>
-                          FadeTransition(opacity: animation, child: child),
-                    ),
-                  ),
                   child: const Text('Overlay (elements stay)'),
                 ),
                 OutlinedButton(
-                  onPressed: () => Navigator.pushReplacement(
-                    context,
-                    CnPageRoute<void>(
-                      builder: (_) => DetailPage(index: index + 1),
-                    ),
-                  ),
+                  onPressed:
+                      () => Navigator.pushReplacement(
+                        context,
+                        CnPageRoute<void>(
+                          builder: (_) => DetailPage(index: index + 1),
+                        ),
+                      ),
                   child: const Text('Replace'),
                 ),
                 OutlinedButton(
-                  onPressed: () =>
-                      Navigator.popUntil(context, (route) => route.isFirst),
+                  onPressed:
+                      () =>
+                          Navigator.popUntil(context, (route) => route.isFirst),
                   child: const Text('Pop to root'),
                 ),
               ],

@@ -33,31 +33,40 @@ class _ExampleAppState extends State<ExampleApp> {
       model: _settings,
       child: ListenableBuilder(
         listenable: _settings,
-        builder: (context, _) => MaterialApp(
-          title: 'Cn Animations Example',
-          theme: ThemeData(
-            colorSchemeSeed: Colors.teal,
-            useMaterial3: true,
-            pageTransitionsTheme: _settings.useFadeThrough
-                ? PageTransitionsTheme(builders: {
-                    for (final platform in TargetPlatform.values)
-                      platform: const CnFadeThroughPageTransitionsBuilder(),
-                  })
-                : null,
-          ),
-          // App-wide defaults for every CnRouteAnimation below the Navigator.
-          builder: (context, child) => CnRouteChoreography(
-            respectReducedMotion: _settings.respectReducedMotion,
-            reducedMotionMode: _settings.reducedMotionMode,
-            scrollReveal: _settings.scrollReveal
-                ? const CnScrollReveal()
-                : CnScrollReveal.off,
-            subjectDetection: _settings.subjectDetection,
-            parting: CnPartingSpec(subjectBehavior: _settings.subjectBehavior),
-            child: child!,
-          ),
-          home: const BasicsPage(),
-        ),
+        builder:
+            (context, _) => MaterialApp(
+              title: 'Cn Animations Example',
+              theme: ThemeData(
+                colorSchemeSeed: Colors.teal,
+                useMaterial3: true,
+                pageTransitionsTheme:
+                    _settings.useFadeThrough
+                        ? PageTransitionsTheme(
+                          builders: {
+                            for (final platform in TargetPlatform.values)
+                              platform:
+                                  const CnFadeThroughPageTransitionsBuilder(),
+                          },
+                        )
+                        : null,
+              ),
+              // App-wide defaults for every CnRouteAnimation below the Navigator.
+              builder:
+                  (context, child) => CnRouteChoreography(
+                    respectReducedMotion: _settings.respectReducedMotion,
+                    reducedMotionMode: _settings.reducedMotionMode,
+                    scrollReveal:
+                        _settings.scrollReveal
+                            ? const CnScrollReveal()
+                            : CnScrollReveal.off,
+                    subjectDetection: _settings.subjectDetection,
+                    parting: CnPartingSpec(
+                      subjectBehavior: _settings.subjectBehavior,
+                    ),
+                    child: child!,
+                  ),
+              home: const BasicsPage(),
+            ),
       ),
     );
   }

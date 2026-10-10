@@ -16,17 +16,16 @@ PageRoute<void> _route(
   _Install install,
   WidgetBuilder builder, {
   bool fullscreenDialog = false,
-}) =>
-    switch (install) {
-      _Install.cnPageRoute => CnPageRoute<void>(
-          builder: builder,
-          fullscreenDialog: fullscreenDialog,
-        ),
-      _Install.themeOverMaterial => MaterialPageRoute<void>(
-          builder: builder,
-          fullscreenDialog: fullscreenDialog,
-        ),
-    };
+}) => switch (install) {
+  _Install.cnPageRoute => CnPageRoute<void>(
+    builder: builder,
+    fullscreenDialog: fullscreenDialog,
+  ),
+  _Install.themeOverMaterial => MaterialPageRoute<void>(
+    builder: builder,
+    fullscreenDialog: fullscreenDialog,
+  ),
+};
 
 /// CnPageRoute must work under the stock theme; the theme install puts the
 /// fade-through on every platform.
@@ -34,22 +33,22 @@ ThemeData _theme(_Install install, TargetPlatform platform) =>
     switch (install) {
       _Install.cnPageRoute => ThemeData(platform: platform),
       _Install.themeOverMaterial => ThemeData(
-          platform: platform,
-          pageTransitionsTheme: PageTransitionsTheme(
-            builders: <TargetPlatform, PageTransitionsBuilder>{
-              for (final TargetPlatform p in TargetPlatform.values)
-                p: const CnFadeThroughPageTransitionsBuilder(),
-            },
-          ),
+        platform: platform,
+        pageTransitionsTheme: PageTransitionsTheme(
+          builders: <TargetPlatform, PageTransitionsBuilder>{
+            for (final TargetPlatform p in TargetPlatform.values)
+              p: const CnFadeThroughPageTransitionsBuilder(),
+          },
         ),
+      ),
     };
 
 /// A plain choreographed element.
 Widget _element(String label) => CnRouteAnimation(
-      key: ValueKey<String>(label),
-      timing: _flat,
-      child: SizedBox(height: 100, child: Text(label)),
-    );
+  key: ValueKey<String>(label),
+  timing: _flat,
+  child: SizedBox(height: 100, child: Text(label)),
+);
 
 /// The element's own opacity (offstage included: a covered page is offstage).
 double _opacity(WidgetTester t, String label) => t
@@ -65,8 +64,8 @@ double _opacity(WidgetTester t, String label) => t
     .value;
 
 ModalRoute<Object?> _routeOf(WidgetTester t, String label) => ModalRoute.of(
-      t.element(find.byKey(ValueKey<String>(label), skipOffstage: false)),
-    )!;
+  t.element(find.byKey(ValueKey<String>(label), skipOffstage: false)),
+)!;
 
 class _Stack {
   _Stack(this.nav, this.below, this.top);
@@ -105,8 +104,11 @@ Future<_Stack> _twoPages(
     ),
   );
   await t.pumpAndSettle();
-  final _Stack stack =
-      _Stack(key.currentState!, _routeOf(t, 'b'), _routeOf(t, 't'));
+  final _Stack stack = _Stack(
+    key.currentState!,
+    _routeOf(t, 'b'),
+    _routeOf(t, 't'),
+  );
   expect(stack.top.isCurrent, isTrue);
   expect(stack.top.animation!.value, 1.0);
   return stack;
@@ -197,53 +199,56 @@ void main() {
   for (final _Install install in _Install.values) {
     group('Android predictive back, ${install.name}', () {
       testWidgets(
-          'the system gesture scrubs the route and the elements, and commit '
-          'pops', (WidgetTester t) async {
-        final _Stack s = await _twoPages(t, install);
-        final double covered = _opacity(t, 'b');
+        'the system gesture scrubs the route and the elements, and commit '
+        'pops',
+        (WidgetTester t) async {
+          final _Stack s = await _twoPages(t, install);
+          final double covered = _opacity(t, 'b');
 
-        await _backGesture(t, 'startBackGesture');
-        expect(s.nav.userGestureInProgress, isTrue);
-        await _backGesture(t, 'updateBackGestureProgress', progress: 0.4);
-        expect(s.top.animation!.value, moreOrLessEquals(0.6));
-        expect(s.top.animation!.status, AnimationStatus.forward);
-        expect(s.below.secondaryAnimation!.value, moreOrLessEquals(0.6));
-        await _backGesture(t, 'updateBackGestureProgress', progress: 0.7);
-        expect(s.top.animation!.value, moreOrLessEquals(0.3));
-        // The page below's element follows the finger out of its exit slice.
-        expect(_opacity(t, 'b'), greaterThan(covered));
-        // The top page leaves on its fade-out window: gone below 0.6.
-        expect(_opacity(t, 't'), lessThan(1.0));
+          await _backGesture(t, 'startBackGesture');
+          expect(s.nav.userGestureInProgress, isTrue);
+          await _backGesture(t, 'updateBackGestureProgress', progress: 0.4);
+          expect(s.top.animation!.value, moreOrLessEquals(0.6));
+          expect(s.top.animation!.status, AnimationStatus.forward);
+          expect(s.below.secondaryAnimation!.value, moreOrLessEquals(0.6));
+          await _backGesture(t, 'updateBackGestureProgress', progress: 0.7);
+          expect(s.top.animation!.value, moreOrLessEquals(0.3));
+          // The page below's element follows the finger out of its exit slice.
+          expect(_opacity(t, 'b'), greaterThan(covered));
+          // The top page leaves on its fade-out window: gone below 0.6.
+          expect(_opacity(t, 't'), lessThan(1.0));
 
-        final double released = s.top.animation!.value;
-        final double releasedOpacity = _opacity(t, 't');
-        await _backGesture(t, 'commitBackGesture');
-        expect(s.top.animation!.status, AnimationStatus.reverse);
-        // The pop continues from where the finger let go: the page never
-        // comes back (Flutter 3.35+ restarts the route's own commit from
-        // 1.0, which the detector must not inherit).
-        double last = released;
-        double lastOpacity = releasedOpacity;
-        // A popped route is no longer active; follow its animation instead.
-        while (!s.top.animation!.isDismissed) {
-          final double v = s.top.animation!.value;
-          expect(v, lessThanOrEqualTo(last + 1e-9), reason: 'pops one way');
-          final double o = _opacity(t, 't');
-          expect(o, lessThanOrEqualTo(lastOpacity + 1e-9));
-          last = v;
-          lastOpacity = o;
-          await t.pump(const Duration(milliseconds: 16));
-        }
-        await t.pumpAndSettle();
-        expect(s.top.isActive, isFalse);
-        expect(s.below.isCurrent, isTrue);
-        expect(s.below.secondaryAnimation!.value, 0.0);
-        expect(_opacity(t, 'b'), 1.0);
-        expect(s.nav.userGestureInProgress, isFalse);
-      });
+          final double released = s.top.animation!.value;
+          final double releasedOpacity = _opacity(t, 't');
+          await _backGesture(t, 'commitBackGesture');
+          expect(s.top.animation!.status, AnimationStatus.reverse);
+          // The pop continues from where the finger let go: the page never
+          // comes back (Flutter 3.35+ restarts the route's own commit from
+          // 1.0, which the detector must not inherit).
+          double last = released;
+          double lastOpacity = releasedOpacity;
+          // A popped route is no longer active; follow its animation instead.
+          while (!s.top.animation!.isDismissed) {
+            final double v = s.top.animation!.value;
+            expect(v, lessThanOrEqualTo(last + 1e-9), reason: 'pops one way');
+            final double o = _opacity(t, 't');
+            expect(o, lessThanOrEqualTo(lastOpacity + 1e-9));
+            last = v;
+            lastOpacity = o;
+            await t.pump(const Duration(milliseconds: 16));
+          }
+          await t.pumpAndSettle();
+          expect(s.top.isActive, isFalse);
+          expect(s.below.isCurrent, isTrue);
+          expect(s.below.secondaryAnimation!.value, 0.0);
+          expect(_opacity(t, 'b'), 1.0);
+          expect(s.nav.userGestureInProgress, isFalse);
+        },
+      );
 
-      testWidgets('cancel settles back to the covering state',
-          (WidgetTester t) async {
+      testWidgets('cancel settles back to the covering state', (
+        WidgetTester t,
+      ) async {
         final _Stack s = await _twoPages(t, install);
         final double covered = _opacity(t, 'b');
         await _backGesture(t, 'startBackGesture');
@@ -268,139 +273,149 @@ void main() {
       });
 
       testWidgets(
-          'PopScope(canPop: false) refuses the gesture; commit asks the '
-          'PopScope instead of popping', (WidgetTester t) async {
-        int refused = 0;
-        final _Stack s = await _twoPages(
-          t,
-          install,
-          wrapTop: (Widget page) => PopScope<Object?>(
-            canPop: false,
-            onPopInvokedWithResult: (bool didPop, Object? _) {
-              if (!didPop) refused++;
-            },
-            child: page,
-          ),
-        );
-        await _backGesture(t, 'startBackGesture');
-        await _backGesture(t, 'updateBackGestureProgress', progress: 0.7);
-        expect(s.top.animation!.value, 1.0);
-        expect(s.nav.userGestureInProgress, isFalse);
-        await _backGesture(t, 'commitBackGesture');
-        await t.pumpAndSettle();
-        expect(s.top.isCurrent, isTrue);
-        expect(refused, 1);
-      });
+        'PopScope(canPop: false) refuses the gesture; commit asks the '
+        'PopScope instead of popping',
+        (WidgetTester t) async {
+          int refused = 0;
+          final _Stack s = await _twoPages(
+            t,
+            install,
+            wrapTop: (Widget page) => PopScope<Object?>(
+              canPop: false,
+              onPopInvokedWithResult: (bool didPop, Object? _) {
+                if (!didPop) refused++;
+              },
+              child: page,
+            ),
+          );
+          await _backGesture(t, 'startBackGesture');
+          await _backGesture(t, 'updateBackGestureProgress', progress: 0.7);
+          expect(s.top.animation!.value, 1.0);
+          expect(s.nav.userGestureInProgress, isFalse);
+          await _backGesture(t, 'commitBackGesture');
+          await t.pumpAndSettle();
+          expect(s.top.isCurrent, isTrue);
+          expect(refused, 1);
+        },
+      );
 
       testWidgets(
-          'a route that is not current does not claim the gesture (a dialog '
-          'above gets the plain pop)', (WidgetTester t) async {
-        final _Stack s = await _twoPages(t, install);
-        showDialog<void>(
-          context: s.nav.context,
-          builder: (_) => const Text('dialog'),
-        );
-        await t.pumpAndSettle();
-        expect(s.top.isCurrent, isFalse);
-        await _backGesture(t, 'startBackGesture');
-        await _backGesture(t, 'updateBackGestureProgress', progress: 0.7);
-        expect(s.top.animation!.value, 1.0);
-        await _backGesture(t, 'commitBackGesture');
-        await t.pumpAndSettle();
-        expect(find.text('dialog'), findsNothing);
-        expect(s.top.isCurrent, isTrue);
-        expect(s.top.animation!.value, 1.0);
-      });
+        'a route that is not current does not claim the gesture (a dialog '
+        'above gets the plain pop)',
+        (WidgetTester t) async {
+          final _Stack s = await _twoPages(t, install);
+          showDialog<void>(
+            context: s.nav.context,
+            builder: (_) => const Text('dialog'),
+          );
+          await t.pumpAndSettle();
+          expect(s.top.isCurrent, isFalse);
+          await _backGesture(t, 'startBackGesture');
+          await _backGesture(t, 'updateBackGestureProgress', progress: 0.7);
+          expect(s.top.animation!.value, 1.0);
+          await _backGesture(t, 'commitBackGesture');
+          await t.pumpAndSettle();
+          expect(find.text('dialog'), findsNothing);
+          expect(s.top.isCurrent, isTrue);
+          expect(s.top.animation!.value, 1.0);
+        },
+      );
 
       testWidgets(
-          'the back-button form of the message is left to the plain pop',
-          (WidgetTester t) async {
-        final _Stack s = await _twoPages(t, install);
-        await _backGesture(t, 'startBackGesture', button: true);
-        expect(s.nav.userGestureInProgress, isFalse);
-        expect(s.top.animation!.value, 1.0);
-      });
+        'the back-button form of the message is left to the plain pop',
+        (WidgetTester t) async {
+          final _Stack s = await _twoPages(t, install);
+          await _backGesture(t, 'startBackGesture', button: true);
+          expect(s.nav.userGestureInProgress, isFalse);
+          expect(s.top.animation!.value, 1.0);
+        },
+      );
 
       testWidgets(
-          'removing the route mid-gesture releases the navigator gesture flag',
-          (WidgetTester t) async {
-        final _Stack s = await _twoPages(t, install);
-        await _backGesture(t, 'startBackGesture');
-        await _backGesture(t, 'updateBackGestureProgress', progress: 0.5);
-        expect(s.nav.userGestureInProgress, isTrue);
-        s.nav.removeRoute(s.top);
-        await t.pumpAndSettle();
-        expect(s.below.isCurrent, isTrue);
-        expect(s.nav.userGestureInProgress, isFalse);
-        // A late cancel from the system is then a no-op.
-        await _backGesture(t, 'cancelBackGesture');
-        await t.pumpAndSettle();
-        expect(s.below.isCurrent, isTrue);
-      });
+        'removing the route mid-gesture releases the navigator gesture flag',
+        (WidgetTester t) async {
+          final _Stack s = await _twoPages(t, install);
+          await _backGesture(t, 'startBackGesture');
+          await _backGesture(t, 'updateBackGestureProgress', progress: 0.5);
+          expect(s.nav.userGestureInProgress, isTrue);
+          s.nav.removeRoute(s.top);
+          await t.pumpAndSettle();
+          expect(s.below.isCurrent, isTrue);
+          expect(s.nav.userGestureInProgress, isFalse);
+          // A late cancel from the system is then a no-op.
+          await _backGesture(t, 'cancelBackGesture');
+          await t.pumpAndSettle();
+          expect(s.below.isCurrent, isTrue);
+        },
+      );
     });
   }
 
   for (final _Install install in _Install.values) {
     testWidgets(
-        'one handler per gesture: Flutter adds no observer of its own to the '
-        'page, and the stock detector of the page below stays out, '
-        '${install.name}', (WidgetTester t) async {
-      final GlobalKey<NavigatorState> key = GlobalKey<NavigatorState>();
-      final _PopCounter pops = _PopCounter();
-      await t.pumpWidget(
-        MaterialApp(
-          navigatorKey: key,
-          navigatorObservers: <NavigatorObserver>[pops],
-          // The CnPageRoute install sits over Flutter's predictive-back
-          // builder, so the page below carries Flutter's own detector.
-          theme: install == _Install.cnPageRoute
-              ? ThemeData(
-                  platform: TargetPlatform.android,
-                  pageTransitionsTheme: const PageTransitionsTheme(
-                    builders: <TargetPlatform, PageTransitionsBuilder>{
-                      TargetPlatform.android:
-                          PredictiveBackPageTransitionsBuilder(),
-                    },
-                  ),
-                )
-              : _theme(install, TargetPlatform.android),
-          home: const SizedBox(),
-        ),
-      );
-      key.currentState!.push(
-        MaterialPageRoute<void>(builder: (_) => _element('b')),
-      );
-      await t.pumpAndSettle();
-      final _CountsBackGesture<void> top = switch (install) {
-        _Install.cnPageRoute =>
-          _CountingCnPageRoute(builder: (_) => _element('t')),
-        _Install.themeOverMaterial =>
-          _CountingMaterialPageRoute(builder: (_) => _element('t')),
-      };
-      key.currentState!.push(top);
-      await t.pumpAndSettle();
-      expect(pops.pops, 0);
+      'one handler per gesture: Flutter adds no observer of its own to the '
+      'page, and the stock detector of the page below stays out, '
+      '${install.name}',
+      (WidgetTester t) async {
+        final GlobalKey<NavigatorState> key = GlobalKey<NavigatorState>();
+        final _PopCounter pops = _PopCounter();
+        await t.pumpWidget(
+          MaterialApp(
+            navigatorKey: key,
+            navigatorObservers: <NavigatorObserver>[pops],
+            // The CnPageRoute install sits over Flutter's predictive-back
+            // builder, so the page below carries Flutter's own detector.
+            theme: install == _Install.cnPageRoute
+                ? ThemeData(
+                    platform: TargetPlatform.android,
+                    pageTransitionsTheme: const PageTransitionsTheme(
+                      builders: <TargetPlatform, PageTransitionsBuilder>{
+                        TargetPlatform.android:
+                            PredictiveBackPageTransitionsBuilder(),
+                      },
+                    ),
+                  )
+                : _theme(install, TargetPlatform.android),
+            home: const SizedBox(),
+          ),
+        );
+        key.currentState!.push(
+          MaterialPageRoute<void>(builder: (_) => _element('b')),
+        );
+        await t.pumpAndSettle();
+        final _CountsBackGesture<void> top = switch (install) {
+          _Install.cnPageRoute => _CountingCnPageRoute(
+            builder: (_) => _element('t'),
+          ),
+          _Install.themeOverMaterial => _CountingMaterialPageRoute(
+            builder: (_) => _element('t'),
+          ),
+        };
+        key.currentState!.push(top);
+        await t.pumpAndSettle();
+        expect(pops.pops, 0);
 
-      await _backGesture(t, 'startBackGesture');
-      await _backGesture(t, 'updateBackGestureProgress', progress: 0.4);
-      await _backGesture(t, 'cancelBackGesture');
-      await t.pumpAndSettle();
-      expect(top.isCurrent, isTrue);
+        await _backGesture(t, 'startBackGesture');
+        await _backGesture(t, 'updateBackGestureProgress', progress: 0.4);
+        await _backGesture(t, 'cancelBackGesture');
+        await t.pumpAndSettle();
+        expect(top.isCurrent, isTrue);
 
-      await _backGesture(t, 'startBackGesture');
-      await _backGesture(t, 'updateBackGestureProgress', progress: 0.6);
-      await _backGesture(t, 'commitBackGesture');
-      await t.pumpAndSettle();
+        await _backGesture(t, 'startBackGesture');
+        await _backGesture(t, 'updateBackGestureProgress', progress: 0.6);
+        await _backGesture(t, 'commitBackGesture');
+        await t.pumpAndSettle();
 
-      expect(top.starts, 2);
-      expect(top.updates, 2);
-      // The detector settles the release itself (see _settlePredictive).
-      expect(top.routeCommits, 0);
-      expect(top.routeCancels, 0);
-      expect(pops.pops, 1);
-      expect(key.currentState!.canPop(), isTrue, reason: "'b' remains");
-      expect(key.currentState!.userGestureInProgress, isFalse);
-    });
+        expect(top.starts, 2);
+        expect(top.updates, 2);
+        // The detector settles the release itself (see _settlePredictive).
+        expect(top.routeCommits, 0);
+        expect(top.routeCancels, 0);
+        expect(pops.pops, 1);
+        expect(key.currentState!.canPop(), isTrue, reason: "'b' remains");
+        expect(key.currentState!.userGestureInProgress, isFalse);
+      },
+    );
   }
 
   /// Drags from [from] by [steps] moves of [step], pumping after each.
@@ -422,41 +437,55 @@ void main() {
   for (final _Install install in _Install.values) {
     group('iOS edge swipe-back, ${install.name}', () {
       testWidgets(
-          'an edge drag scrubs the route and the elements; releasing past '
-          'half pops', (WidgetTester t) async {
-        final _Stack s =
-            await _twoPages(t, install, platform: TargetPlatform.iOS);
-        final double covered = _opacity(t, 'b');
-        final TestGesture g =
-            await drag(t, const Offset(5, 300), const Offset(200, 0));
-        expect(s.nav.userGestureInProgress, isTrue);
-        final double a = s.top.animation!.value;
-        expect(a, inExclusiveRange(0.0, 0.5));
-        expect(s.top.animation!.status, AnimationStatus.forward);
-        expect(s.below.secondaryAnimation!.value, moreOrLessEquals(a));
-        expect(_opacity(t, 'b'), greaterThan(covered));
+        'an edge drag scrubs the route and the elements; releasing past '
+        'half pops',
+        (WidgetTester t) async {
+          final _Stack s = await _twoPages(
+            t,
+            install,
+            platform: TargetPlatform.iOS,
+          );
+          final double covered = _opacity(t, 'b');
+          final TestGesture g = await drag(
+            t,
+            const Offset(5, 300),
+            const Offset(200, 0),
+          );
+          expect(s.nav.userGestureInProgress, isTrue);
+          final double a = s.top.animation!.value;
+          expect(a, inExclusiveRange(0.0, 0.5));
+          expect(s.top.animation!.status, AnimationStatus.forward);
+          expect(s.below.secondaryAnimation!.value, moreOrLessEquals(a));
+          expect(_opacity(t, 'b'), greaterThan(covered));
 
-        // Back toward the edge a little: the route follows the finger.
-        await g.moveBy(const Offset(-80, 0));
-        await t.pump();
-        expect(s.top.animation!.value, moreOrLessEquals(a + 80 / 800));
+          // Back toward the edge a little: the route follows the finger.
+          await g.moveBy(const Offset(-80, 0));
+          await t.pump();
+          expect(s.top.animation!.value, moreOrLessEquals(a + 80 / 800));
 
-        await g.up();
-        await t.pump();
-        expect(s.top.animation!.status, AnimationStatus.reverse);
-        await t.pumpAndSettle();
-        expect(s.top.isActive, isFalse);
-        expect(s.below.isCurrent, isTrue);
-        expect(_opacity(t, 'b'), 1.0);
-        expect(s.nav.userGestureInProgress, isFalse);
-      });
+          await g.up();
+          await t.pump();
+          expect(s.top.animation!.status, AnimationStatus.reverse);
+          await t.pumpAndSettle();
+          expect(s.top.isActive, isFalse);
+          expect(s.below.isCurrent, isTrue);
+          expect(_opacity(t, 'b'), 1.0);
+          expect(s.nav.userGestureInProgress, isFalse);
+        },
+      );
 
       testWidgets('releasing before half settles back', (WidgetTester t) async {
-        final _Stack s =
-            await _twoPages(t, install, platform: TargetPlatform.iOS);
+        final _Stack s = await _twoPages(
+          t,
+          install,
+          platform: TargetPlatform.iOS,
+        );
         final double covered = _opacity(t, 'b');
-        final TestGesture g =
-            await drag(t, const Offset(5, 300), const Offset(40, 0));
+        final TestGesture g = await drag(
+          t,
+          const Offset(5, 300),
+          const Offset(40, 0),
+        );
         expect(s.top.animation!.value, inExclusiveRange(0.5, 1.0));
         await g.up();
         await t.pumpAndSettle();
@@ -467,12 +496,19 @@ void main() {
         expect(s.nav.userGestureInProgress, isFalse);
       });
 
-      testWidgets('a cancelled pointer mid-drag settles back',
-          (WidgetTester t) async {
-        final _Stack s =
-            await _twoPages(t, install, platform: TargetPlatform.iOS);
-        final TestGesture g =
-            await drag(t, const Offset(5, 300), const Offset(50, 0));
+      testWidgets('a cancelled pointer mid-drag settles back', (
+        WidgetTester t,
+      ) async {
+        final _Stack s = await _twoPages(
+          t,
+          install,
+          platform: TargetPlatform.iOS,
+        );
+        final TestGesture g = await drag(
+          t,
+          const Offset(5, 300),
+          const Offset(50, 0),
+        );
         expect(s.top.animation!.value, lessThan(1.0));
         await g.cancel();
         await t.pumpAndSettle();
@@ -481,29 +517,19 @@ void main() {
         expect(s.nav.userGestureInProgress, isFalse);
       });
 
-      testWidgets('a drag that starts away from the edge does nothing',
-          (WidgetTester t) async {
-        final _Stack s =
-            await _twoPages(t, install, platform: TargetPlatform.iOS);
-        final TestGesture g =
-            await drag(t, const Offset(100, 300), const Offset(200, 0));
-        expect(s.nav.userGestureInProgress, isFalse);
-        expect(s.top.animation!.value, 1.0);
-        await g.up();
-        await t.pumpAndSettle();
-        expect(s.top.isCurrent, isTrue);
-      });
-
-      testWidgets('fullscreenDialog routes have no edge swipe, as in Cupertino',
-          (WidgetTester t) async {
+      testWidgets('a drag that starts away from the edge does nothing', (
+        WidgetTester t,
+      ) async {
         final _Stack s = await _twoPages(
           t,
           install,
           platform: TargetPlatform.iOS,
-          fullscreenDialog: true,
         );
-        final TestGesture g =
-            await drag(t, const Offset(5, 300), const Offset(200, 0));
+        final TestGesture g = await drag(
+          t,
+          const Offset(100, 300),
+          const Offset(200, 0),
+        );
         expect(s.nav.userGestureInProgress, isFalse);
         expect(s.top.animation!.value, 1.0);
         await g.up();
@@ -511,19 +537,43 @@ void main() {
         expect(s.top.isCurrent, isTrue);
       });
 
-      testWidgets('PopScope(canPop: false) refuses the swipe',
-          (WidgetTester t) async {
+      testWidgets(
+        'fullscreenDialog routes have no edge swipe, as in Cupertino',
+        (WidgetTester t) async {
+          final _Stack s = await _twoPages(
+            t,
+            install,
+            platform: TargetPlatform.iOS,
+            fullscreenDialog: true,
+          );
+          final TestGesture g = await drag(
+            t,
+            const Offset(5, 300),
+            const Offset(200, 0),
+          );
+          expect(s.nav.userGestureInProgress, isFalse);
+          expect(s.top.animation!.value, 1.0);
+          await g.up();
+          await t.pumpAndSettle();
+          expect(s.top.isCurrent, isTrue);
+        },
+      );
+
+      testWidgets('PopScope(canPop: false) refuses the swipe', (
+        WidgetTester t,
+      ) async {
         final _Stack s = await _twoPages(
           t,
           install,
           platform: TargetPlatform.iOS,
-          wrapTop: (Widget page) => PopScope<Object?>(
-            canPop: false,
-            child: page,
-          ),
+          wrapTop: (Widget page) =>
+              PopScope<Object?>(canPop: false, child: page),
         );
-        final TestGesture g =
-            await drag(t, const Offset(5, 300), const Offset(200, 0));
+        final TestGesture g = await drag(
+          t,
+          const Offset(5, 300),
+          const Offset(200, 0),
+        );
         expect(s.nav.userGestureInProgress, isFalse);
         expect(s.top.animation!.value, 1.0);
         await g.up();
@@ -531,11 +581,15 @@ void main() {
         expect(s.top.isCurrent, isTrue);
       });
 
-      testWidgets('no edge swipe on Android (the system gesture is used)',
-          (WidgetTester t) async {
+      testWidgets('no edge swipe on Android (the system gesture is used)', (
+        WidgetTester t,
+      ) async {
         final _Stack s = await _twoPages(t, install);
-        final TestGesture g =
-            await drag(t, const Offset(5, 300), const Offset(200, 0));
+        final TestGesture g = await drag(
+          t,
+          const Offset(5, 300),
+          const Offset(200, 0),
+        );
         expect(s.nav.userGestureInProgress, isFalse);
         expect(s.top.animation!.value, 1.0);
         await g.up();
@@ -543,19 +597,21 @@ void main() {
         expect(s.top.isCurrent, isTrue);
       });
 
-      testWidgets('right-to-left: the swipe starts at the right edge',
-          (WidgetTester t) async {
+      testWidgets('right-to-left: the swipe starts at the right edge', (
+        WidgetTester t,
+      ) async {
         final _Stack s = await _twoPages(
           t,
           install,
           platform: TargetPlatform.iOS,
-          appBuilder: (BuildContext context, Widget? child) => Directionality(
-            textDirection: TextDirection.rtl,
-            child: child!,
-          ),
+          appBuilder: (BuildContext context, Widget? child) =>
+              Directionality(textDirection: TextDirection.rtl, child: child!),
         );
-        final TestGesture g =
-            await drag(t, const Offset(795, 300), const Offset(-200, 0));
+        final TestGesture g = await drag(
+          t,
+          const Offset(795, 300),
+          const Offset(-200, 0),
+        );
         expect(s.nav.userGestureInProgress, isTrue);
         expect(s.top.animation!.value, inExclusiveRange(0.0, 0.5));
         await g.up();
@@ -564,33 +620,48 @@ void main() {
       });
 
       testWidgets(
-          'a route pushed above mid-drag: release settles this route back '
-          'to fully shown', (WidgetTester t) async {
-        final _Stack s =
-            await _twoPages(t, install, platform: TargetPlatform.iOS);
-        final TestGesture g =
-            await drag(t, const Offset(5, 300), const Offset(100, 0));
-        expect(s.top.animation!.value, lessThan(1.0));
-        s.nav.push(_route(install, (_) => _element('third')));
-        await t.pump();
-        expect(s.top.isCurrent, isFalse);
-        await g.up();
-        await t.pumpAndSettle();
-        expect(s.top.isActive, isTrue);
-        expect(s.top.animation!.value, 1.0);
-        expect(s.nav.userGestureInProgress, isFalse);
-        s.nav.pop();
-        await t.pumpAndSettle();
-        expect(s.top.isCurrent, isTrue);
-        expect(_opacity(t, 't'), 1.0);
-      });
+        'a route pushed above mid-drag: release settles this route back '
+        'to fully shown',
+        (WidgetTester t) async {
+          final _Stack s = await _twoPages(
+            t,
+            install,
+            platform: TargetPlatform.iOS,
+          );
+          final TestGesture g = await drag(
+            t,
+            const Offset(5, 300),
+            const Offset(100, 0),
+          );
+          expect(s.top.animation!.value, lessThan(1.0));
+          s.nav.push(_route(install, (_) => _element('third')));
+          await t.pump();
+          expect(s.top.isCurrent, isFalse);
+          await g.up();
+          await t.pumpAndSettle();
+          expect(s.top.isActive, isTrue);
+          expect(s.top.animation!.value, 1.0);
+          expect(s.nav.userGestureInProgress, isFalse);
+          s.nav.pop();
+          await t.pumpAndSettle();
+          expect(s.top.isCurrent, isTrue);
+          expect(_opacity(t, 't'), 1.0);
+        },
+      );
 
-      testWidgets('a programmatic pop mid-drag finishes the pop cleanly',
-          (WidgetTester t) async {
-        final _Stack s =
-            await _twoPages(t, install, platform: TargetPlatform.iOS);
-        final TestGesture g =
-            await drag(t, const Offset(5, 300), const Offset(50, 0));
+      testWidgets('a programmatic pop mid-drag finishes the pop cleanly', (
+        WidgetTester t,
+      ) async {
+        final _Stack s = await _twoPages(
+          t,
+          install,
+          platform: TargetPlatform.iOS,
+        );
+        final TestGesture g = await drag(
+          t,
+          const Offset(5, 300),
+          const Offset(50, 0),
+        );
         s.nav.pop();
         await t.pump();
         await g.up();

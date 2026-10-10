@@ -1,18 +1,18 @@
 import 'package:flutter/widgets.dart';
 
 // ---------------------------------------------------------------------------
-// Defaults pending an owner decision (design §10). Each is one named constant
+// Package defaults (owner decisions, design §10). Each is one named constant
 // so a change is a one-line edit. They are package-internal: export the public
 // types from this file with `show`, not these constants.
 // ---------------------------------------------------------------------------
 
 /// What reduced motion means when it applies and nothing overrides it
-/// (design §10 Q2, recommended `fadeOnly`).
+/// (design §10 Q2, decided: `fadeOnly`).
 const CnReducedMotionMode kCnDefaultReducedMotionMode =
     CnReducedMotionMode.fadeOnly;
 
 /// How the subject of a cover transition is detected when nothing overrides
-/// it (design §10 Q3, recommended `pointer`).
+/// it (design §10 Q3, decided: `pointer`).
 const CnSubjectDetection kCnDefaultSubjectDetection =
     CnSubjectDetection.pointer;
 
@@ -41,8 +41,8 @@ class CnRouteTiming {
     this.exitCurve = Curves.easeIn,
     this.enterCurve = Curves.easeOutCubic,
     this.fallbackDuration = const Duration(milliseconds: 300),
-  })  : assert(exitStagger >= 0 && exitStagger <= 1),
-        assert(enterStagger >= 0 && enterStagger <= 1);
+  }) : assert(exitStagger >= 0 && exitStagger <= 1),
+       assert(enterStagger >= 0 && enterStagger <= 1);
 
   /// Slice of progress during which an element leaves: when a page is pushed
   /// over this one (measured on the cover progress as it rises from 0), and
@@ -156,21 +156,21 @@ class CnRouteTiming {
 
   @override
   int get hashCode => Object.hash(
-        exit.begin,
-        exit.end,
-        exit.curve,
-        enter.begin,
-        enter.end,
-        enter.curve,
-        uncover.begin,
-        uncover.end,
-        uncover.curve,
-        exitStagger,
-        enterStagger,
-        exitCurve,
-        enterCurve,
-        fallbackDuration,
-      );
+    exit.begin,
+    exit.end,
+    exit.curve,
+    enter.begin,
+    enter.end,
+    enter.curve,
+    uncover.begin,
+    uncover.end,
+    uncover.curve,
+    exitStagger,
+    enterStagger,
+    exitCurve,
+    enterCurve,
+    fallbackDuration,
+  );
 }
 
 /// What "reduced motion" means when it applies.
@@ -264,10 +264,10 @@ class CnScrollReveal {
   }) : enabled = true;
 
   const CnScrollReveal._off()
-      : duration = null,
-        curve = null,
-        offset = Offset.zero,
-        enabled = false;
+    : duration = null,
+      curve = null,
+      offset = Offset.zero,
+      enabled = false;
 
   /// Scroll reveal disabled. The default.
   static const CnScrollReveal off = CnScrollReveal._off();
@@ -387,16 +387,16 @@ class CnRouteChoreographyData {
 
   @override
   int get hashCode => Object.hash(
-        timing,
-        parting,
-        scrollReveal,
-        respectReducedMotion,
-        reducedMotionMode,
-        axis,
-        subjectDetection,
-        progress,
-        coverProgress,
-      );
+    timing,
+    parting,
+    scrollReveal,
+    respectReducedMotion,
+    reducedMotionMode,
+    axis,
+    subjectDetection,
+    progress,
+    coverProgress,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -498,8 +498,8 @@ class CnRouteChoreography extends InheritedWidget {
   /// any of them rebuilds the caller.
   static CnRouteChoreographyData of(BuildContext context) {
     final List<CnRouteChoreography> scopes = <CnRouteChoreography>[];
-    InheritedElement? element =
-        context.getElementForInheritedWidgetOfExactType<CnRouteChoreography>();
+    InheritedElement? element = context
+        .getElementForInheritedWidgetOfExactType<CnRouteChoreography>();
     while (element != null) {
       context.dependOnInheritedElement(element);
       scopes.add(element.widget as CnRouteChoreography);

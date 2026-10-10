@@ -29,15 +29,14 @@ void main() {
       expect(last.direction, Offset.zero);
     });
 
-    test(
-        'items above the subject part up, items below part down, nearer '
+    test('items above the subject part up, items below part down, nearer '
         'ones first', () {
       final subject = _row(4);
       CnPlacement at(int i) => cnPlacement(
-            element: _row(i),
-            viewport: _listViewport,
-            subject: subject,
-          );
+        element: _row(i),
+        viewport: _listViewport,
+        subject: subject,
+      );
 
       expect(at(3).direction, const Offset(0, -1));
       expect(at(0).direction, const Offset(0, -1));
@@ -77,10 +76,7 @@ void main() {
         expect(parted.direction, const Offset(0, 1), reason: 'row $i');
       }
       // Above the viewport too.
-      final above = cnPlacement(
-        element: _row(-1),
-        viewport: _listViewport,
-      );
+      final above = cnPlacement(element: _row(-1), viewport: _listViewport);
       expect(above.onScreen, isFalse);
       expect(above.f, 1);
     });
@@ -143,11 +139,11 @@ void main() {
       expect(first.direction, Offset.zero);
 
       CnPlacement at(int i) => cnPlacement(
-            element: _col(i),
-            viewport: viewport,
-            axis: Axis.horizontal,
-            subject: _col(2),
-          );
+        element: _col(i),
+        viewport: viewport,
+        axis: Axis.horizontal,
+        subject: _col(2),
+      );
       expect(at(1).direction, const Offset(-1, 0));
       expect(at(3).direction, const Offset(1, 0));
       expect(at(0).f, closeTo(200 / 600, 1e-9));
@@ -173,12 +169,12 @@ void main() {
       expect(leftmost.f, closeTo(550 / 600, 1e-9));
 
       CnPlacement at(int i) => cnPlacement(
-            element: _col(i),
-            viewport: viewport,
-            axis: Axis.horizontal,
-            subject: _col(2),
-            textDirection: rtl,
-          );
+        element: _col(i),
+        viewport: viewport,
+        axis: Axis.horizontal,
+        subject: _col(2),
+        textDirection: rtl,
+      );
       // Physically left of the subject = after it in RTL.
       expect(at(1).direction, const Offset(1, 0));
       expect(at(3).direction, const Offset(-1, 0));
@@ -219,10 +215,14 @@ void main() {
       expect(far.curve, Curves.easeIn);
       // uncover: exit reproduces the pre-0.9.0 behaviour (exit replayed).
       final replay = t.copyWith(uncover: t.exit);
-      expect(cnStaggeredUncover(replay, 0.5).begin,
-          cnStaggeredExit(replay, 0.5).begin);
-      expect(cnStaggeredUncover(replay, 0.5).end,
-          cnStaggeredExit(replay, 0.5).end);
+      expect(
+        cnStaggeredUncover(replay, 0.5).begin,
+        cnStaggeredExit(replay, 0.5).begin,
+      );
+      expect(
+        cnStaggeredUncover(replay, 0.5).end,
+        cnStaggeredExit(replay, 0.5).end,
+      );
     });
 
     test('enter slice shifts its start and pins its end to 1', () {
@@ -235,8 +235,7 @@ void main() {
       expect(far.curve, Curves.easeOutCubic);
     });
 
-    test(
-        'curved exit / enter / uncover Intervals assert (their curve is '
+    test('curved exit / enter / uncover Intervals assert (their curve is '
         'ignored)', () {
       final curvedExit = CnRouteTiming(
         exit: Interval(0.0, 0.35, curve: Curves.easeOut),
@@ -276,8 +275,10 @@ void main() {
         final enter = cnStaggeredEnter(t, f);
         final uncover = cnStaggeredUncover(t, f);
         expect(exit.begin, lessThanOrEqualTo(t.exit.begin + t.exitStagger));
-        expect(uncover.end,
-            lessThanOrEqualTo(t.uncover.end + t.exitStagger + 1e-9));
+        expect(
+          uncover.end,
+          lessThanOrEqualTo(t.uncover.end + t.exitStagger + 1e-9),
+        );
         expect(uncover.transform(1.0), 1.0);
         expect(uncover.transform(0.0), 0.0);
         expect(enter.begin, lessThanOrEqualTo(t.enter.begin + t.enterStagger));
@@ -311,7 +312,9 @@ void main() {
 
     test('scales distance by direction and grows with f', () {
       expect(
-          cnPartingOffset(spec, const Offset(0, 1), 0), const Offset(0, 0.6));
+        cnPartingOffset(spec, const Offset(0, 1), 0),
+        const Offset(0, 0.6),
+      );
       final far = cnPartingOffset(spec, const Offset(0, -1), 1);
       expect(far.dx, 0);
       expect(far.dy, closeTo(-0.9, 1e-9));
@@ -337,8 +340,7 @@ void main() {
   });
 
   group('render lookups', () {
-    testWidgets(
-        'ListView.builder: cache-extent items are built but off '
+    testWidgets('ListView.builder: cache-extent items are built but off '
         'screen', (tester) async {
       await tester.pumpWidget(
         Directionality(
@@ -363,7 +365,8 @@ void main() {
       final screen =
           Offset.zero & tester.view.physicalSize / tester.view.devicePixelRatio;
       RenderBox box(int i) => tester.renderObject<RenderBox>(
-          find.byKey(ValueKey(i), skipOffstage: false));
+        find.byKey(ValueKey(i), skipOffstage: false),
+      );
 
       final viewport = cnViewportRect(box(0), screen: screen);
       expect(viewport, Rect.fromLTWH(0, 100, screen.width, 300));
@@ -372,15 +375,21 @@ void main() {
 
       // Rows 3.. are built for the cache extent but lie outside the viewport.
       expect(
-          find.byKey(const ValueKey(4), skipOffstage: false), findsOneWidget);
+        find.byKey(const ValueKey(4), skipOffstage: false),
+        findsOneWidget,
+      );
       for (final i in [3, 4]) {
-        final p =
-            cnPlacement(element: cnGlobalRect(box(i)), viewport: viewport);
+        final p = cnPlacement(
+          element: cnGlobalRect(box(i)),
+          viewport: viewport,
+        );
         expect(p.onScreen, isFalse, reason: 'row $i');
         expect(p.f, 1, reason: 'row $i');
       }
-      final visible =
-          cnPlacement(element: cnGlobalRect(box(2)), viewport: viewport);
+      final visible = cnPlacement(
+        element: cnGlobalRect(box(2)),
+        viewport: viewport,
+      );
       expect(visible.onScreen, isTrue);
       expect(visible.f, closeTo(250 / 300, 1e-9));
     });

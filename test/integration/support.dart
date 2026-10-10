@@ -41,17 +41,17 @@ const double eps = 1e-6;
 const List<TargetPlatform> _allPlatforms = TargetPlatform.values;
 
 /// The fade-through installed for every platform, on [platform].
-ThemeData fadeThroughTheme(
-        {TargetPlatform platform = TargetPlatform.android}) =>
-    ThemeData(
-      platform: platform,
-      pageTransitionsTheme: PageTransitionsTheme(
-        builders: <TargetPlatform, PageTransitionsBuilder>{
-          for (final TargetPlatform p in _allPlatforms)
-            p: const CnFadeThroughPageTransitionsBuilder(),
-        },
-      ),
-    );
+ThemeData fadeThroughTheme({
+  TargetPlatform platform = TargetPlatform.android,
+}) => ThemeData(
+  platform: platform,
+  pageTransitionsTheme: PageTransitionsTheme(
+    builders: <TargetPlatform, PageTransitionsBuilder>{
+      for (final TargetPlatform p in _allPlatforms)
+        p: const CnFadeThroughPageTransitionsBuilder(),
+    },
+  ),
+);
 
 /// The two ways to install the fade-through (design §3.7).
 enum Install { cnPageRoute, themeOverMaterial }
@@ -104,8 +104,8 @@ double scaleOf(WidgetTester tester, String label) =>
     tester.widget<ScaleTransition>(_own<ScaleTransition>(label)).scale.value;
 
 ModalRoute<Object?> routeOf(WidgetTester tester, String label) => ModalRoute.of(
-      tester.element(find.byKey(ValueKey<String>(label), skipOffstage: false)),
-    )!;
+  tester.element(find.byKey(ValueKey<String>(label), skipOffstage: false)),
+)!;
 
 /// Records the last progress handed to a `builder:`.
 class ProgressLog {
@@ -173,7 +173,8 @@ void expectContinuous(List<double> samples, double bound, {String? what}) {
     expect(
       (samples[i] - samples[i - 1]).abs(),
       lessThanOrEqualTo(bound),
-      reason: '${what ?? 'sample'} jumped between frame ${i - 1} '
+      reason:
+          '${what ?? 'sample'} jumped between frame ${i - 1} '
           '(${samples[i - 1]}) and $i (${samples[i]}); all: $samples',
     );
   }

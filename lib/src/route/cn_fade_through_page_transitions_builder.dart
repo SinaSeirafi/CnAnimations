@@ -17,9 +17,7 @@ import 'cn_back_gesture_detector.dart';
 class CnFadeThroughPageTransitionsBuilder extends PageTransitionsBuilder {
   /// Creates the builder. [backgroundColor] defaults to
   /// `ColorScheme.surface` of the surrounding theme.
-  const CnFadeThroughPageTransitionsBuilder({
-    this.backgroundColor,
-  });
+  const CnFadeThroughPageTransitionsBuilder({this.backgroundColor});
 
   /// Color painted behind the incoming page.
   final Color? backgroundColor;
@@ -51,8 +49,7 @@ class CnFadeThroughPageTransitionsBuilder extends PageTransitionsBuilder {
     Animation<double> secondaryAnimation,
     bool allowSnapshotting,
     Widget? child,
-  ) =>
-      child;
+  ) => child;
 
   @override
   Widget buildTransitions<T>(
@@ -95,10 +92,10 @@ class _CnFadeThroughState extends State<_CnFadeThrough> {
   }
 
   CnDirectionalCurvedAnimation _make() => CnDirectionalCurvedAnimation(
-        widget.animation,
-        enter: CnFadeThroughPageTransitionsBuilder._enter,
-        exit: CnFadeThroughPageTransitionsBuilder._exit,
-      );
+    widget.animation,
+    enter: CnFadeThroughPageTransitionsBuilder._enter,
+    exit: CnFadeThroughPageTransitionsBuilder._exit,
+  );
 
   @override
   void didUpdateWidget(_CnFadeThrough old) {

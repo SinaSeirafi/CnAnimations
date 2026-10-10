@@ -16,21 +16,21 @@ import 'support.dart';
 
 /// Five 60 px items; tapping one pushes a page holding element 't'.
 Widget listPage(Install install, CnRouteTiming timing) => Builder(
-      builder: (BuildContext context) => column(<Widget>[
-        for (int i = 0; i < 5; i++)
-          CnRouteAnimation(
-            key: ValueKey<String>('s$i'),
-            timing: timing,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => Navigator.of(context).push(
-                routeFor<void>(install, (_) => column(<Widget>[item('t')])),
-              ),
-              child: SizedBox(height: 60, child: Text('s$i')),
-            ),
-          ),
-      ]),
-    );
+  builder: (BuildContext context) => column(<Widget>[
+    for (int i = 0; i < 5; i++)
+      CnRouteAnimation(
+        key: ValueKey<String>('s$i'),
+        timing: timing,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => Navigator.of(
+            context,
+          ).push(routeFor<void>(install, (_) => column(<Widget>[item('t')]))),
+          child: SizedBox(height: 60, child: Text('s$i')),
+        ),
+      ),
+  ]),
+);
 
 class Stack2 {
   Stack2(this.nav, this.below, this.top, this.parted0, this.parted4);
@@ -57,8 +57,9 @@ Future<Stack2> partedStack(
     const SizedBox(),
     theme: theme ?? themeFor(install, platform: platform),
   );
-  nav.currentState!
-      .push(routeFor<void>(install, (_) => listPage(install, timing)));
+  nav.currentState!.push(
+    routeFor<void>(install, (_) => listPage(install, timing)),
+  );
   await tester.pumpAndSettle();
   await tester.tap(find.text('s2'));
   await tester.pumpAndSettle();
@@ -105,16 +106,22 @@ class Sampler {
         // This page leaves on the exit curve whatever the status (forward
         // while dragging and cancelling, reverse after commit).
         expect(
-            topOpacity.last, moreOrLessEquals(shownLeaving(a), epsilon: eps));
+          topOpacity.last,
+          moreOrLessEquals(shownLeaving(a), epsilon: eps),
+        );
       }
     }
     if (exact) {
       // The cover left 1, so the uncover slice applies both ways.
       final double c = uncoveredAt(sv);
       expect(
-          sibling0.last, moreOrLessEquals(stack.parted0.dy * c, epsilon: eps));
+        sibling0.last,
+        moreOrLessEquals(stack.parted0.dy * c, epsilon: eps),
+      );
       expect(
-          sibling4.last, moreOrLessEquals(stack.parted4.dy * c, epsilon: eps));
+        sibling4.last,
+        moreOrLessEquals(stack.parted4.dy * c, epsilon: eps),
+      );
       expect(opacityOf(tester, 's0'), moreOrLessEquals(1 - c, epsilon: eps));
     }
   }
@@ -129,7 +136,8 @@ class Sampler {
         expect(
           (series[i] - series[i - 1]).abs(),
           lessThanOrEqualTo(5.0 * ds + 1e-9),
-          reason: 'frame $i: S ${s[i - 1]} -> ${s[i]}, '
+          reason:
+              'frame $i: S ${s[i - 1]} -> ${s[i]}, '
               'offset ${series[i - 1]} -> ${series[i]}',
         );
       }
@@ -173,8 +181,9 @@ Future<void> scrubAndCancel(
   expect(offsetOf(tester, 's0').dy, moreOrLessEquals(stack.parted0.dy));
   expect(offsetOf(tester, 's4').dy, moreOrLessEquals(stack.parted4.dy));
   expect(opacityOf(tester, 't'), 1.0);
-  final List<double> afterCancel =
-      sampler.sibling0.sublist(beforeCancel.length - 1);
+  final List<double> afterCancel = sampler.sibling0.sublist(
+    beforeCancel.length - 1,
+  );
   for (int i = 1; i < afterCancel.length; i++) {
     // s0 parts upward (negative): cancelling moves it monotonically up.
     expect(afterCancel[i], lessThanOrEqualTo(afterCancel[i - 1] + eps));
@@ -216,8 +225,11 @@ Future<void> scrubAndCommit(
   }
   // The pop continues from the release point: S only falls.
   for (int i = 1; i < sampler.s.length; i++) {
-    expect(sampler.s[i], lessThanOrEqualTo(sampler.s[i - 1] + 1e-9),
-        reason: 'frame $i');
+    expect(
+      sampler.s[i],
+      lessThanOrEqualTo(sampler.s[i - 1] + 1e-9),
+      reason: 'frame $i',
+    );
   }
   await tester.pumpAndSettle();
   sampler.sample();
@@ -231,26 +243,32 @@ void main() {
   for (final Install install in Install.values) {
     group('predictive back API, ${install.name}', () {
       testWidgets(
-          'scrub then cancel: parted siblings track the uncover curve every '
-          'frame and the cancel returns smoothly', (WidgetTester tester) async {
-        final Stack2 stack = await partedStack(tester, install);
-        final Sampler sampler = Sampler(tester, stack, exact: true);
-        await scrubAndCancel(tester, stack, sampler);
-        sampler.expectContinuity();
-        expect(sampler.s.reduce((double a, double b) => a < b ? a : b),
-            moreOrLessEquals(0.05));
-      });
+        'scrub then cancel: parted siblings track the uncover curve every '
+        'frame and the cancel returns smoothly',
+        (WidgetTester tester) async {
+          final Stack2 stack = await partedStack(tester, install);
+          final Sampler sampler = Sampler(tester, stack, exact: true);
+          await scrubAndCancel(tester, stack, sampler);
+          sampler.expectContinuity();
+          expect(
+            sampler.s.reduce((double a, double b) => a < b ? a : b),
+            moreOrLessEquals(0.05),
+          );
+        },
+      );
 
-      testWidgets('scrub then commit: siblings return to rest without a jump',
-          (WidgetTester tester) async {
+      testWidgets('scrub then commit: siblings return to rest without a jump', (
+        WidgetTester tester,
+      ) async {
         final Stack2 stack = await partedStack(tester, install);
         final Sampler sampler = Sampler(tester, stack, exact: true);
         await scrubAndCommit(tester, stack, sampler);
         sampler.expectContinuity();
       });
 
-      testWidgets('default (staggered) timing: still continuous both ways',
-          (WidgetTester tester) async {
+      testWidgets('default (staggered) timing: still continuous both ways', (
+        WidgetTester tester,
+      ) async {
         final Stack2 stack = await partedStack(
           tester,
           install,
@@ -268,31 +286,36 @@ void main() {
 
   group('real input paths', () {
     testWidgets(
-        'control: the system back-gesture channel scrubs the elements under '
-        "Flutter's PredictiveBackPageTransitionsBuilder",
-        (WidgetTester tester) async {
-      final Stack2 stack = await partedStack(
-        tester,
-        Install.themeOverMaterial,
-        theme: ThemeData(
-          platform: TargetPlatform.android,
-          pageTransitionsTheme: const PageTransitionsTheme(
-            builders: <TargetPlatform, PageTransitionsBuilder>{
-              TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
-            },
+      'control: the system back-gesture channel scrubs the elements under '
+      "Flutter's PredictiveBackPageTransitionsBuilder",
+      (WidgetTester tester) async {
+        final Stack2 stack = await partedStack(
+          tester,
+          Install.themeOverMaterial,
+          theme: ThemeData(
+            platform: TargetPlatform.android,
+            pageTransitionsTheme: const PageTransitionsTheme(
+              builders: <TargetPlatform, PageTransitionsBuilder>{
+                TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
+              },
+            ),
           ),
-        ),
-      );
-      await sendBackGesture(tester, 'startBackGesture');
-      await tester.pump();
-      await sendBackGesture(tester, 'updateBackGestureProgress', progress: 0.7);
-      await tester.pump();
-      expect(stack.top.animation!.value, moreOrLessEquals(0.3));
-      expect(offsetOf(tester, 's0').dy, greaterThan(stack.parted0.dy));
-      await sendBackGesture(tester, 'cancelBackGesture');
-      await tester.pumpAndSettle();
-      expect(offsetOf(tester, 's0').dy, moreOrLessEquals(stack.parted0.dy));
-    });
+        );
+        await sendBackGesture(tester, 'startBackGesture');
+        await tester.pump();
+        await sendBackGesture(
+          tester,
+          'updateBackGestureProgress',
+          progress: 0.7,
+        );
+        await tester.pump();
+        expect(stack.top.animation!.value, moreOrLessEquals(0.3));
+        expect(offsetOf(tester, 's0').dy, greaterThan(stack.parted0.dy));
+        await sendBackGesture(tester, 'cancelBackGesture');
+        await tester.pumpAndSettle();
+        expect(offsetOf(tester, 's0').dy, moreOrLessEquals(stack.parted0.dy));
+      },
+    );
 
     for (final Install install in Install.values) {
       testWidgets(
@@ -309,8 +332,11 @@ void main() {
             progress: 0.7,
           );
           await tester.pump();
-          expect(stack.top.animation!.value, moreOrLessEquals(0.3),
-              reason: 'the system gesture reaches the route');
+          expect(
+            stack.top.animation!.value,
+            moreOrLessEquals(0.3),
+            reason: 'the system gesture reaches the route',
+          );
           expect(stack.nav.currentState!.userGestureInProgress, isTrue);
           expect(offsetOf(tester, 's0').dy, greaterThan(stack.parted0.dy));
           await sendBackGesture(tester, 'cancelBackGesture');
@@ -320,34 +346,33 @@ void main() {
         },
       );
 
-      testWidgets(
-        'iOS edge drag scrubs the elements, ${install.name}',
-        (WidgetTester tester) async {
-          final Stack2 stack = await partedStack(
-            tester,
-            install,
-            platform: TargetPlatform.iOS,
-          );
-          final TestGesture gesture = await tester.startGesture(
-            const Offset(5, 300),
-          );
+      testWidgets('iOS edge drag scrubs the elements, ${install.name}', (
+        WidgetTester tester,
+      ) async {
+        final Stack2 stack = await partedStack(
+          tester,
+          install,
+          platform: TargetPlatform.iOS,
+        );
+        final TestGesture gesture = await tester.startGesture(
+          const Offset(5, 300),
+        );
+        await tester.pump();
+        // 3 x 200 px of an 800 px page puts S at 0.25, below the uncover
+        // slice (0.3..0.65), so a parted sibling has returned.
+        for (int i = 0; i < 3; i++) {
+          await gesture.moveBy(const Offset(200, 0));
           await tester.pump();
-          // 3 x 200 px of an 800 px page puts S at 0.25, below the uncover
-          // slice (0.3..0.65), so a parted sibling has returned.
-          for (int i = 0; i < 3; i++) {
-            await gesture.moveBy(const Offset(200, 0));
-            await tester.pump();
-          }
-          expect(stack.nav.currentState!.userGestureInProgress, isTrue);
-          expect(stack.top.animation!.value, moreOrLessEquals(0.25));
-          expect(offsetOf(tester, 's0').dy, greaterThan(stack.parted0.dy));
-          // Released past half: the page pops and the siblings rest.
-          await gesture.up();
-          await tester.pumpAndSettle();
-          expect(stack.top.isActive, isFalse);
-          expect(offsetOf(tester, 's0'), Offset.zero);
-        },
-      );
+        }
+        expect(stack.nav.currentState!.userGestureInProgress, isTrue);
+        expect(stack.top.animation!.value, moreOrLessEquals(0.25));
+        expect(offsetOf(tester, 's0').dy, greaterThan(stack.parted0.dy));
+        // Released past half: the page pops and the siblings rest.
+        await gesture.up();
+        await tester.pumpAndSettle();
+        expect(stack.top.isActive, isFalse);
+        expect(offsetOf(tester, 's0'), Offset.zero);
+      });
     }
   });
 }

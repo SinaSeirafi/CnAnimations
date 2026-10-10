@@ -3,7 +3,11 @@ import 'package:example/main.dart' as app;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Finder _item(int i) => find.descendant(of: find.byKey(ValueKey('list-item-$i'), skipOffstage: false), matching: find.byType(Card), skipOffstage: false);
+Finder _item(int i) => find.descendant(
+  of: find.byKey(ValueKey('list-item-$i'), skipOffstage: false),
+  matching: find.byType(Card),
+  skipOffstage: false,
+);
 
 Offset _pos(WidgetTester tester, Finder f) =>
     tester.getTopLeft(f, warnIfMissed: false);
@@ -67,12 +71,21 @@ void main() {
     await tester.pump(); // push starts
     await tester.pump(const Duration(milliseconds: 120));
 
-    expect(_pos(tester, _item(2)).dy - above.dy, lessThan(0),
-        reason: 'item above moves up');
-    expect(_pos(tester, _item(4)).dy - below.dy, greaterThan(0),
-        reason: 'item below moves down');
-    expect(_pos(tester, _item(3)).dy - tapped.dy, 0,
-        reason: 'the tapped item stays');
+    expect(
+      _pos(tester, _item(2)).dy - above.dy,
+      lessThan(0),
+      reason: 'item above moves up',
+    );
+    expect(
+      _pos(tester, _item(4)).dy - below.dy,
+      greaterThan(0),
+      reason: 'item below moves down',
+    );
+    expect(
+      _pos(tester, _item(3)).dy - tapped.dy,
+      0,
+      reason: 'the tapped item stays',
+    );
 
     await tester.pumpAndSettle();
     expect(find.text('Detail 3'), findsOneWidget);
@@ -90,12 +103,13 @@ void main() {
     await tester.tap(find.text('Item 3'));
     await tester.pumpAndSettle();
 
-    final Finder paragraph =
-        find.byKey(const ValueKey('detail-paragraph-0'));
+    final Finder paragraph = find.byKey(const ValueKey('detail-paragraph-0'));
     final Offset before = _pos(tester, paragraph);
     // The covered list page is offstage; read it with skipOffstage: false.
-    final Finder listItem = find.byKey(const ValueKey('list-item-4'),
-        skipOffstage: false);
+    final Finder listItem = find.byKey(
+      const ValueKey('list-item-4'),
+      skipOffstage: false,
+    );
     final Offset coveredBefore = _pos(tester, listItem);
 
     await _open(tester, 'Open dialog');
@@ -104,7 +118,9 @@ void main() {
     expect(_pos(tester, paragraph), before);
     expect(_pos(tester, listItem), coveredBefore);
     final Finder fades = find.ancestor(
-        of: paragraph, matching: find.byType(FadeTransition));
+      of: paragraph,
+      matching: find.byType(FadeTransition),
+    );
     for (final Element e in fades.evaluate()) {
       expect((e.widget as FadeTransition).opacity.value, 1);
     }

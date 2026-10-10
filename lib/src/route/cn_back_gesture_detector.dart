@@ -207,9 +207,9 @@ class _CnBackGestureDetectorState<T> extends State<CnBackGestureDetector<T>>
   double get _width => context.size!.width;
 
   double _toLogical(double value) => switch (Directionality.of(context)) {
-        TextDirection.rtl => -value,
-        TextDirection.ltr => value,
-      };
+    TextDirection.rtl => -value,
+    TextDirection.ltr => value,
+  };
 
   bool get _edgeSwipeOn {
     if (widget.route.fullscreenDialog) return false;
@@ -253,15 +253,15 @@ class _CnBackGestureDetectorState<T> extends State<CnBackGestureDetector<T>>
 /// and release either settles back to 1 or pops.
 class _EdgeSwipe {
   _EdgeSwipe(PageRoute<dynamic> route)
-      : navigator = route.navigator!,
-        // The route's own controller, as CupertinoRouteTransitionMixin uses
-        // it. It is protected on TransitionRoute; no public API settles a
-        // released drag with the Cupertino timing or handles a route that is
-        // no longer current at release.
-        // ignore: invalid_use_of_protected_member
-        controller = route.controller!,
-        _isCurrent = (() => route.isCurrent),
-        _isActive = (() => route.isActive) {
+    : navigator = route.navigator!,
+      // The route's own controller, as CupertinoRouteTransitionMixin uses
+      // it. It is protected on TransitionRoute; no public API settles a
+      // released drag with the Cupertino timing or handles a route that is
+      // no longer current at release.
+      // ignore: invalid_use_of_protected_member
+      controller = route.controller!,
+      _isCurrent = (() => route.isCurrent),
+      _isActive = (() => route.isActive) {
     navigator.didStartUserGesture();
   }
 

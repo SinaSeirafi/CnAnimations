@@ -2,6 +2,8 @@ name: cn_animations
 description: Fade, slide and scale widgets plus navigation-driven, progress-based element choreography for page transitions that react to push and pop.
 version: 1.0.0
 homepage: https://github.com/SinaSeirafi/CnAnimations
+repository: https://github.com/SinaSeirafi/CnAnimations
+issue_tracker: https://github.com/SinaSeirafi/CnAnimations/issues
 
 environment:
   sdk: ^3.7.0

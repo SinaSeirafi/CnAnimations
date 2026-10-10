@@ -54,13 +54,12 @@ Future<GlobalKey<NavigatorState>> _app(
 
 void main() {
   group('CnFadeThroughPageTransitionsBuilder', () {
-    testWidgets('fades in over [0.3, 1] on push and out over [0.6, 1] on pop',
-        (t) async {
+    testWidgets('fades in over [0.3, 1] on push and out over [0.6, 1] on pop', (
+      t,
+    ) async {
       final home = _Rec();
       final nav = await _app(t, home);
-      nav.currentState!.push(
-        CnPageRoute<void>(builder: (_) => _Probe(_Rec())),
-      );
+      nav.currentState!.push(CnPageRoute<void>(builder: (_) => _Probe(_Rec())));
       await t.pump(); // route installed, ticker starts
       await t.pump(_ms); // progress 0.25
       expect(_opacityOf(t, 'page'), 0.0);
@@ -77,8 +76,9 @@ void main() {
       expect(_opacityOf(t, 'page'), 0.0);
     });
 
-    testWidgets('delegatedTransition is non-null and returns its child',
-        (t) async {
+    testWidgets('delegatedTransition is non-null and returns its child', (
+      t,
+    ) async {
       const builder = CnFadeThroughPageTransitionsBuilder();
       expect(builder.delegatedTransition, isNotNull);
       await t.pumpWidget(const SizedBox());
@@ -104,40 +104,42 @@ void main() {
       final route = CnPageRoute<void>(builder: (_) => const SizedBox());
       expect(route.transitionDuration, const Duration(milliseconds: 400));
       expect(
-          route.reverseTransitionDuration, const Duration(milliseconds: 400));
+        route.reverseTransitionDuration,
+        const Duration(milliseconds: 400),
+      );
     });
 
     testWidgets(
-        'installed via pageTransitionsTheme, a MaterialPageRoute uses it',
-        (t) async {
-      final home = _Rec();
-      final nav = await _app(
-        t,
-        home,
-        theme: ThemeData(
-          pageTransitionsTheme: const PageTransitionsTheme(
-            builders: {
-              TargetPlatform.android: CnFadeThroughPageTransitionsBuilder(),
-            },
+      'installed via pageTransitionsTheme, a MaterialPageRoute uses it',
+      (t) async {
+        final home = _Rec();
+        final nav = await _app(
+          t,
+          home,
+          theme: ThemeData(
+            pageTransitionsTheme: const PageTransitionsTheme(
+              builders: {
+                TargetPlatform.android: CnFadeThroughPageTransitionsBuilder(),
+              },
+            ),
           ),
-        ),
-      );
-      final route = MaterialPageRoute<void>(builder: (_) => _Probe(_Rec()));
-      nav.currentState!.push(route);
-      await t.pump();
-      expect(route.transitionDuration, const Duration(milliseconds: 400));
-      await t.pump(_ms);
-      expect(_opacityOf(t, 'page'), 0.0);
-      await t.pump(_ms);
-      expect(_opacityOf(t, 'page'), closeTo(0.2 / 0.7, 0.02));
-      // The page below runs its secondary animation (delegated transition).
-      expect(home.secondary.value, greaterThan(0));
-    });
+        );
+        final route = MaterialPageRoute<void>(builder: (_) => _Probe(_Rec()));
+        nav.currentState!.push(route);
+        await t.pump();
+        expect(route.transitionDuration, const Duration(milliseconds: 400));
+        await t.pump(_ms);
+        expect(_opacityOf(t, 'page'), 0.0);
+        await t.pump(_ms);
+        expect(_opacityOf(t, 'page'), closeTo(0.2 / 0.7, 0.02));
+        // The page below runs its secondary animation (delegated transition).
+        expect(home.secondary.value, greaterThan(0));
+      },
+    );
   });
 
   group('CnPageRoute covering behaviour', () {
-    testWidgets(
-        'MaterialPageRoute<int> beneath CnPageRoute<void> drives its '
+    testWidgets('MaterialPageRoute<int> beneath CnPageRoute<void> drives its '
         'secondaryAnimation', (t) async {
       final home = _Rec();
       final below = _Rec();
@@ -155,8 +157,7 @@ void main() {
       expect(below.secondary.value, 1.0);
     });
 
-    testWidgets(
-        'MaterialPageRoute<dynamic> and a PageRouteBuilder below also '
+    testWidgets('MaterialPageRoute<dynamic> and a PageRouteBuilder below also '
         'animate under CnPageRoute', (t) async {
       final home = _Rec();
       final nav = await _app(t, home);
@@ -170,9 +171,9 @@ void main() {
       await t.pumpAndSettle();
 
       final prb = _Rec();
-      nav.currentState!.push(PageRouteBuilder<void>(
-        pageBuilder: (_, _, _) => _Probe(prb),
-      ));
+      nav.currentState!.push(
+        PageRouteBuilder<void>(pageBuilder: (_, _, _) => _Probe(prb)),
+      );
       await t.pumpAndSettle();
       nav.currentState!.push(
         CnPageRoute<void>(builder: (_) => const SizedBox()),
@@ -195,50 +196,57 @@ void main() {
       expect(cn.secondary.value, greaterThan(0));
     });
 
-    testWidgets(
-        'PageRouteBuilder(opaque: false) does not cover a CnPageRoute '
+    testWidgets('PageRouteBuilder(opaque: false) does not cover a CnPageRoute '
         'page', (t) async {
       final home = _Rec();
       final cn = _Rec();
       final nav = await _app(t, home);
       nav.currentState!.push(CnPageRoute<void>(builder: (_) => _Probe(cn)));
       await t.pumpAndSettle();
-      nav.currentState!.push(PageRouteBuilder<void>(
-        opaque: false,
-        pageBuilder: (_, _, _) => const SizedBox(),
-        transitionDuration: const Duration(milliseconds: 300),
-      ));
+      nav.currentState!.push(
+        PageRouteBuilder<void>(
+          opaque: false,
+          pageBuilder: (_, _, _) => const SizedBox(),
+          transitionDuration: const Duration(milliseconds: 300),
+        ),
+      );
       await _pumpFrames(t);
       expect(cn.secondary.value, 0.0);
       expect(cn.secondary.isDismissed, isTrue);
     });
 
-    testWidgets('fullscreenDialog routes do not cover a CnPageRoute page',
-        (t) async {
+    testWidgets('fullscreenDialog routes do not cover a CnPageRoute page', (
+      t,
+    ) async {
       final home = _Rec();
       final cn = _Rec();
       final nav = await _app(t, home);
       nav.currentState!.push(CnPageRoute<void>(builder: (_) => _Probe(cn)));
       await t.pumpAndSettle();
-      nav.currentState!.push(MaterialPageRoute<void>(
-        fullscreenDialog: true,
-        builder: (_) => const SizedBox(),
-      ));
+      nav.currentState!.push(
+        MaterialPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => const SizedBox(),
+        ),
+      );
       await _pumpFrames(t);
       expect(cn.secondary.value, 0.0);
       await t.pumpAndSettle();
       nav.currentState!.pop();
       await t.pumpAndSettle();
-      nav.currentState!.push(CnPageRoute<void>(
-        fullscreenDialog: true,
-        builder: (_) => const SizedBox(),
-      ));
+      nav.currentState!.push(
+        CnPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => const SizedBox(),
+        ),
+      );
       await _pumpFrames(t);
       expect(cn.secondary.value, 0.0);
     });
 
-    testWidgets('dialogs and sheets do not cover a CnPageRoute page',
-        (t) async {
+    testWidgets('dialogs and sheets do not cover a CnPageRoute page', (
+      t,
+    ) async {
       final home = _Rec();
       final cn = _Rec();
       final nav = await _app(t, home);

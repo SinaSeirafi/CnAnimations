@@ -18,11 +18,13 @@ import 'geometry.dart';
 ///
 /// [child] is the widget's `child`, passed through so it is not rebuilt on
 /// every frame.
+// dart format off
 typedef CnRouteAnimationBuilder = Widget Function(
   BuildContext context,
   CnElementProgress progress,
   Widget? child,
 );
+// dart format on
 
 /// The part an element plays in the current cover transition.
 enum CnElementRole {
@@ -88,7 +90,8 @@ class CnElementProgress {
   int get hashCode => Object.hash(shown, covered, role, partingDirection);
 
   @override
-  String toString() => 'CnElementProgress(shown: ${shown.toStringAsFixed(3)}, '
+  String toString() =>
+      'CnElementProgress(shown: ${shown.toStringAsFixed(3)}, '
       'covered: ${covered.toStringAsFixed(3)}, role: ${role.name}, '
       'partingDirection: $partingDirection)';
 }
@@ -106,10 +109,10 @@ class CnElementProgress {
 /// one). A [CnRouteChoreography] above can replace either with its
 /// `progress` / `coverProgress`. Each source is sliced per element by the
 /// resolved [CnRouteTiming]: entrances use [CnRouteTiming.enter] with
-/// [CnRouteTiming.enterCurve], exits and covers use [CnRouteTiming.exit] with
-/// [CnRouteTiming.exitCurve]. A curve set on the `enter` or `exit` [Interval]
-/// itself is ignored. When the page above pops, the cover runs in reverse
-/// over the same exit slice.
+/// [CnRouteTiming.enterCurve], exits and covers use [CnRouteTiming.exit], and
+/// uncovers (the page above pops) use [CnRouteTiming.uncover], the exit and
+/// uncover slices both with [CnRouteTiming.exitCurve]. A curve set on the
+/// `enter`, `exit` or `uncover` [Interval] itself is ignored.
 ///
 /// **Timed entrance.** When there is no progress to follow, the element plays
 /// one entrance over [CnRouteTiming.fallbackDuration]: with no route and no
@@ -258,8 +261,9 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
   // Timed fallback: which kind is playing, if any.
   _Fallback? _fallback;
 
-  // Geometry. f is the stagger factor (0 nearest the anchor, 1 farthest or
-  // unknown); 1 is the no-stagger value used until layout is known.
+  // Geometry. f is the stagger factor (0 nearest the anchor, 1 farthest, off
+  // screen or unknown); 1 is the largest delay (and parting distance), used
+  // until layout is known.
   double _primaryF = 1.0;
   double _coverF = 1.0;
   CnElementRole _role = CnElementRole.plain;
@@ -280,10 +284,10 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
   CnScrollReveal get _reveal => widget.scrollReveal ?? _config.scrollReveal;
 
   CnReducedMotionMode? get _reducedMode => _config.reducedMotionFor(
-        disableAnimations: _disableAnimations,
-        respectReducedMotion: widget.respectReducedMotion,
-        reducedMotionMode: widget.reducedMotionMode,
-      );
+    disableAnimations: _disableAnimations,
+    respectReducedMotion: widget.respectReducedMotion,
+    reducedMotionMode: widget.reducedMotionMode,
+  );
 
   /// The page record, if any. Never creates one.
   CnRouteRecord? get _record {
@@ -408,8 +412,8 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
   void _updateForcedSubject() {
     final CnRouteRecord? record = _record;
     if (record == null) return;
-    final List<_CnRouteAnimationState> list =
-        _forcedSubjects[record] ??= <_CnRouteAnimationState>[];
+    final List<_CnRouteAnimationState> list = _forcedSubjects[record] ??=
+        <_CnRouteAnimationState>[];
     list.remove(this);
     if (widget.subject == true) list.add(this);
   }
@@ -444,9 +448,7 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
       _elementStateOf(selection),
       ...?_forcedList(record),
       if (detection == CnSubjectDetection.pointer)
-        _asElementState(
-          record.pointerSubject(maxAge: kCnPointerSubjectWindow),
-        ),
+        _asElementState(record.pointerSubject(maxAge: kCnPointerSubjectWindow)),
     ];
     for (final _CnRouteAnimationState? candidate in candidates) {
       if (candidate == null || !candidate.mounted) continue;
@@ -561,7 +563,8 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
     final Rect element = cnGlobalRect(box);
     final Rect viewport = cnViewportRect(box, screen: _screen);
     final Rect? subjectRect = record?.subjectRect;
-    final bool parting = _config.subjectDetection != CnSubjectDetection.off &&
+    final bool parting =
+        _config.subjectDetection != CnSubjectDetection.off &&
         subject != null &&
         subjectRect != null;
     if (parting && identical(subject, this)) {
@@ -709,8 +712,9 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
       shown: _shown,
       covered: _covered,
       role: _role,
-      partingDirection:
-          _role == CnElementRole.sibling ? _direction : Offset.zero,
+      partingDirection: _role == CnElementRole.sibling
+          ? _direction
+          : Offset.zero,
     );
   }
 
@@ -720,7 +724,8 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
     final double coverFactor;
     switch (_role) {
       case CnElementRole.subject:
-        coverFactor = (!_insideSubject &&
+        coverFactor =
+            (!_insideSubject &&
                 _config.parting.subjectBehavior == CnSubjectBehavior.fade)
             ? 1.0 - covered
             : 1.0;
@@ -738,8 +743,9 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
     if (widget.enter) {
       final _Fallback? fallback = _fallback;
       if (fallback != null) {
-        final Offset from =
-            fallback == _Fallback.reveal ? _reveal.offset : widget.enterOffset;
+        final Offset from = fallback == _Fallback.reveal
+            ? _reveal.offset
+            : widget.enterOffset;
         offset += from * (1.0 - _fallbackShown);
       }
       offset += widget.enterOffset * (1.0 - _routeShown);

@@ -36,8 +36,9 @@ void main() {
     _expectHomeButtonsVisible(tester);
   });
 
-  testWidgets('home content is visible again after a round trip',
-      (tester) async {
+  testWidgets('home content is visible again after a round trip', (
+    tester,
+  ) async {
     app.main();
     await tester.pumpAndSettle();
 

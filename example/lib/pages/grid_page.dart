@@ -18,24 +18,25 @@ class GridPage extends StatelessWidget {
           crossAxisSpacing: 8,
         ),
         itemCount: 30,
-        itemBuilder: (context, index) => CnRouteAnimation(
-          key: ValueKey('grid-item-$index'),
-          child: Card(
-            child: InkWell(
-              onTap: () => openDetail(context, index),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    heroThumb(index, size: 40),
-                    const SizedBox(height: 6),
-                    Text('Cell $index'),
-                  ],
+        itemBuilder:
+            (context, index) => CnRouteAnimation(
+              key: ValueKey('grid-item-$index'),
+              child: Card(
+                child: InkWell(
+                  onTap: () => openDetail(context, index),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        heroThumb(index, size: 40),
+                        const SizedBox(height: 6),
+                        Text('Cell $index'),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
       ),
     );
   }

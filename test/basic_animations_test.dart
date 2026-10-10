@@ -18,12 +18,9 @@ Offset _offset(WidgetTester tester) =>
 void main() {
   group('bug 4: CnScale(forward: false)', () {
     testWidgets('animates from end to begin', (tester) async {
-      await tester.pumpWidget(wrap(const CnScale(
-        forward: false,
-        begin: 0.5,
-        end: 1.0,
-        child: _box,
-      )));
+      await tester.pumpWidget(
+        wrap(const CnScale(forward: false, begin: 0.5, end: 1.0, child: _box)),
+      );
       expect(_scale(tester), 1.0);
 
       await tester.pumpAndSettle();
@@ -124,7 +121,7 @@ void main() {
       for (final Curve curve in [
         Curves.linear,
         Curves.easeIn,
-        Curves.easeOut
+        Curves.easeOut,
       ]) {
         await tester.pumpWidget(wrap(build(curve)));
       }
@@ -170,13 +167,17 @@ void main() {
 
   group('previously unused parameters', () {
     testWidgets('CnSlide applies intervalBegin / intervalEnd', (tester) async {
-      await tester.pumpWidget(wrap(const CnSlide(
-        begin: Offset(1, 0),
-        duration: Duration(seconds: 1),
-        intervalBegin: 0.5,
-        curve: Curves.linear,
-        child: _box,
-      )));
+      await tester.pumpWidget(
+        wrap(
+          const CnSlide(
+            begin: Offset(1, 0),
+            duration: Duration(seconds: 1),
+            intervalBegin: 0.5,
+            curve: Curves.linear,
+            child: _box,
+          ),
+        ),
+      );
       await tester.pump(const Duration(milliseconds: 1)); // start timer fires
       await tester.pump(const Duration(milliseconds: 400));
       expect(_offset(tester), const Offset(1, 0));
@@ -202,10 +203,12 @@ void main() {
     });
 
     testWidgets('CnScale with forward: false', (tester) async {
-      await tester.pumpWidget(wrap(
-        const CnScale(forward: false, begin: 0.5, child: _box),
-        disableAnimations: true,
-      ));
+      await tester.pumpWidget(
+        wrap(
+          const CnScale(forward: false, begin: 0.5, child: _box),
+          disableAnimations: true,
+        ),
+      );
       expect(_scale(tester), 0.5);
     });
 
@@ -219,14 +222,18 @@ void main() {
     });
 
     testWidgets('respectReducedMotion: false animates anyway', (tester) async {
-      await tester.pumpWidget(wrap(
-        const Column(children: [
-          CnFade(respectReducedMotion: false, child: _box),
-          CnSlide(respectReducedMotion: false, child: _box),
-          CnScale(respectReducedMotion: false, child: _box),
-        ]),
-        disableAnimations: true,
-      ));
+      await tester.pumpWidget(
+        wrap(
+          const Column(
+            children: [
+              CnFade(respectReducedMotion: false, child: _box),
+              CnSlide(respectReducedMotion: false, child: _box),
+              CnScale(respectReducedMotion: false, child: _box),
+            ],
+          ),
+          disableAnimations: true,
+        ),
+      );
       expect(_opacity(tester), 0);
       expect(_offset(tester), const Offset(0, 0.5));
       expect(_scale(tester), 0.7);
@@ -242,18 +249,24 @@ void main() {
     });
 
     testWidgets('an external controller is always followed', (tester) async {
-      final AnimationController controller =
-          AnimationController(vsync: const TestVSync(), value: 0);
+      final AnimationController controller = AnimationController(
+        vsync: const TestVSync(),
+        value: 0,
+      );
       addTearDown(controller.dispose);
 
-      await tester.pumpWidget(wrap(
-        Column(children: [
-          CnFade(controller: controller, child: _box),
-          CnSlide(controller: controller, child: _box),
-          CnScale(controller: controller, child: _box),
-        ]),
-        disableAnimations: true,
-      ));
+      await tester.pumpWidget(
+        wrap(
+          Column(
+            children: [
+              CnFade(controller: controller, child: _box),
+              CnSlide(controller: controller, child: _box),
+              CnScale(controller: controller, child: _box),
+            ],
+          ),
+          disableAnimations: true,
+        ),
+      );
       expect(_opacity(tester), 0);
       expect(_offset(tester), const Offset(0, 0.5));
       expect(_scale(tester), 0.7);
@@ -276,17 +289,22 @@ void main() {
 
     tearDown(() => source.dispose());
 
-    Widget all(
-        {Animation<double>? animation, AnimationController? controller}) {
-      return Column(children: [
-        CnFade(animation: animation, controller: controller, child: _box),
-        CnSlide(animation: animation, controller: controller, child: _box),
-        CnScale(animation: animation, controller: controller, child: _box),
-      ]);
+    Widget all({
+      Animation<double>? animation,
+      AnimationController? controller,
+    }) {
+      return Column(
+        children: [
+          CnFade(animation: animation, controller: controller, child: _box),
+          CnSlide(animation: animation, controller: controller, child: _box),
+          CnScale(animation: animation, controller: controller, child: _box),
+        ],
+      );
     }
 
-    testWidgets('follows the animation and starts no internal ticker',
-        (tester) async {
+    testWidgets('follows the animation and starts no internal ticker', (
+      tester,
+    ) async {
       await tester.pumpWidget(wrap(all(animation: source)));
       expect(_opacity(tester), 0);
       expect(_offset(tester), const Offset(0, 0.5));
@@ -317,10 +335,13 @@ void main() {
       expect(_opacity(tester), 0.5);
     });
 
-    testWidgets('switching between animation, controller and null',
-        (tester) async {
-      final AnimationController other =
-          AnimationController(vsync: const TestVSync(), value: 1);
+    testWidgets('switching between animation, controller and null', (
+      tester,
+    ) async {
+      final AnimationController other = AnimationController(
+        vsync: const TestVSync(),
+        value: 1,
+      );
       addTearDown(other.dispose);
 
       await tester.pumpWidget(wrap(all(animation: source)));
