@@ -33,6 +33,14 @@ All work branches below (everything except `master`) were **pushed to origin on 
   - R6: (a) add a separate `uncover` slice to `CnRouteTiming` (default `Interval(0.3, 0.65)`; first set to `Interval(0.25, 0.6)`, which measurement showed left one dead frame per pop; 0.65 is where the top element's exit ends, and the length matches the exit slice), used when S is falling (pop and interactive back), so the page below's elements start returning while the top page is still fading. Additive; decided before 1.0.0 because changing the default later is a visual change.
   - R8: (a) the no-op `timing` on `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute` is deprecated in 0.9.0 ("has no effect; removed in 1.0.0") and removed by slice R.
   - R11: (a) keep the protected `route.controller` access (it matches Cupertino's own code and its settle feel). Revisit only if Flutter changes it.
+- **Publishing decisions (owner, 2026-10-11, session 4: "all recommendations"):** on `.dev/publishing-suggestions.md`:
+  - `description` = §1.1 proposed (160 chars). `topics` = §1.2 (`animation`, `page-transition`, `transitions`, `navigation`, `widget`).
+  - Screenshots = the §1.3 four-file set in `pubspec.yaml` (lineup PNG first, iOS swipe-back GIF, Android predictive-back GIF, renamed basics GIF). They are recorded **before** the release rebuild, so the tags move only once.
+  - Both root GIFs are deleted; `CnAnimations gif 0.2.gif` becomes `screenshots/basics.gif`. README images link to the release tag (`v0.9.0` in 0.9.0, `v1.0.0` in 1.0.0), not `master`. This resolves N6.
+  - README first screen = the §2 draft (badges, tagline, one GIF, three-step quick start with the route install and the manifest flag); the 2023 intro goes.
+  - All docs-only items in §5: 1, 3, 5 (defaults table), 6 ("Migrating from 0.0.x"), 7 (plain words in the quick start), 11 ("open List").
+  - Visibility changes go into **both** releases, so 1.0.0 stays 0.9.0 minus the deprecations (the 0.9.0↔1.0.0 diff outside the removals stays CHANGELOG-only).
+  - Keep the name `cn_animations`. No verified publisher for now (no domain). Publish both the same day, 0.9.0 then 1.0.0, after the review and the screenshots, still only on the owner's explicit go-ahead.
 - **pub.dev on 2026-10-09:** the latest published version is 0.0.3 (2023-01-30), with 28 downloads in the last 30 days, 0 likes and 140/160 points.
 
 ## Progress
@@ -123,7 +131,9 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 
 ## Next steps, in order (for the next thread)
 
-1. **Owner reviews `.dev/publishing-suggestions.md`** (written by Fable in session 3) and decides:
+**Session 4 (2026-10-11):** step 1 is done (see "Publishing decisions" under Owner decisions). Order changed: step 3 (screenshots) runs **before** step 2, because the pubspec `screenshots:` paths and the README image links must be in the release commits. Running order: screenshots on `v1/screenshots` → owner reviews the files → step 2 fix slice (includes the screenshot files) → rebuild both releases, move both tags → CI on both → fresh-context opus review → publish on go-ahead.
+
+1. **Done (session 4).** Owner reviews `.dev/publishing-suggestions.md`** (written by Fable in session 3) and decides:
    - the pubspec `description`, `topics` and `screenshots`;
    - the README's first screen;
    - whether visibility changes go into 0.9.0 as well, which the suggestions advise against;
