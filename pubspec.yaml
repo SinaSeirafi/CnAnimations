@@ -1,9 +1,25 @@
 name: cn_animations
-description: Fade, slide and scale widgets plus navigation-driven, progress-based element choreography for page transitions that react to push and pop.
+description: "Animate page elements with the route transition: enter on push, part around the tapped item, scrub with swipe-back and predictive back. Also fade, slide, scale."
 version: 1.0.0
-homepage: https://github.com/SinaSeirafi/CnAnimations
 repository: https://github.com/SinaSeirafi/CnAnimations
 issue_tracker: https://github.com/SinaSeirafi/CnAnimations/issues
+
+topics:
+  - animation
+  - page-transition
+  - transitions
+  - navigation
+  - widget
+
+screenshots:
+  - description: List items part around the tapped item, then follow an iOS swipe-back.
+    path: screenshots/parting-lineup.png
+  - description: "Tap an item, swipe back slowly: the neighbours scrub with the finger."
+    path: screenshots/parting-swipe-back.gif
+  - description: Android predictive back scrubs the page below in the same way.
+    path: screenshots/predictive-back.gif
+  - description: CnFade, CnSlide and CnScale entrance animations.
+    path: screenshots/basics.gif
 
 environment:
   sdk: ^3.7.0

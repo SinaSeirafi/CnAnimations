@@ -565,8 +565,9 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
     if (_placementSegment == segment) return;
     final RenderBox? box = _readableBox();
     if (box == null) {
-      // Built during the segment, or mid-frame: plain with no stagger until
-      // the post-frame measure (a monotonic one-frame correction).
+      // Built during the segment, or mid-frame: plain with f = 1 (the largest
+      // delay) until the post-frame measure (a monotonic one-frame
+      // correction).
       _setRole(CnElementRole.plain, Offset.zero, 1.0, inside: false);
       _scheduleMeasure();
       return;
@@ -653,7 +654,7 @@ class _CnRouteAnimationState extends State<CnRouteAnimation>
       _measureScheduled = false;
       if (!mounted) return;
       // One retry per scheduling: an element that never gets a layout keeps
-      // f = 1 (no stagger) rather than polling every frame.
+      // f = 1 (the largest delay) rather than polling every frame.
       if (!_measurePrimary(retry: false)) return;
       if (_cover != null && _lastCover > 0.0) _ensureCoverPlacement(_record);
       _hub.notify();

@@ -246,36 +246,59 @@ void main() {
     });
   }
 
-  for (final bool settle in <bool>[true, false]) {
-    final String when = settle ? 'after a cancel' : 'during a cancel';
-    testWidgets('a second gesture $when commits one way', (
-      WidgetTester tester,
-    ) async {
-      await _pumpDetail(tester, tapSubject: true);
-      final ModalRoute<Object?> top = routeOf(tester, 't');
-      await _dragToHalf(tester);
-      await sendBackGesture(tester, 'cancelBackGesture');
-      if (settle) {
-        await tester.pumpAndSettle();
-      } else {
-        await tester.pump(const Duration(milliseconds: 32));
-      }
-      expect(top.isCurrent, isTrue);
-      await _dragToHalf(tester);
-      if (settle) expect(opacityOf(tester, 's0'), inExclusiveRange(0.0, 1.0));
-      const List<String> labels = <String>[..._below, 't'];
-      final List<_Frame> frames = await _release(
-        tester,
-        'commitBackGesture',
-        labels,
-      );
-      frames.addAll(
-        await _sampleUntil(tester, labels, () => top.animation!.isDismissed),
-      );
-      expect(top.animation!.isDismissed, isTrue);
-      _expectCommitMonotonic(frames);
-    });
-  }
+  testWidgets('a second gesture after a cancel commits one way', (
+    WidgetTester tester,
+  ) async {
+    await _pumpDetail(tester, tapSubject: true);
+    final ModalRoute<Object?> top = routeOf(tester, 't');
+    await _dragToHalf(tester);
+    await sendBackGesture(tester, 'cancelBackGesture');
+    await tester.pumpAndSettle();
+    expect(top.isCurrent, isTrue);
+    await _dragToHalf(tester);
+    expect(opacityOf(tester, 's0'), inExclusiveRange(0.0, 1.0));
+    const List<String> labels = <String>[..._below, 't'];
+    final List<_Frame> frames = await _release(
+      tester,
+      'commitBackGesture',
+      labels,
+    );
+    frames.addAll(
+      await _sampleUntil(tester, labels, () => top.animation!.isDismissed),
+    );
+    expect(top.animation!.isDismissed, isTrue);
+    _expectCommitMonotonic(frames);
+  });
+
+  // While the cancel is still animating forward, the route refuses a new
+  // back gesture (ModalRoute.popGestureEnabled is false until the animation
+  // completes), so the drag does not move it and the commit falls through to
+  // a plain pop. userGestureInProgress is not checked mid-drag: the first
+  // gesture holds it until its cancel completes, on every SDK.
+  testWidgets('a back gesture during a cancel is refused and pops plainly', (
+    WidgetTester tester,
+  ) async {
+    final GlobalKey<NavigatorState> nav = await _pumpDetail(
+      tester,
+      tapSubject: true,
+    );
+    final ModalRoute<Object?> top = routeOf(tester, 't');
+    await _dragToHalf(tester);
+    await sendBackGesture(tester, 'cancelBackGesture');
+    await tester.pump(const Duration(milliseconds: 32));
+    expect(top.isCurrent, isTrue);
+    await _dragToHalf(tester);
+    // Refused: the route is still on the cancel's forward run, not at the
+    // drag's 0.5, and the drag never took over.
+    expect(top.animation!.value, isNot(closeTo(0.5, 0.01)));
+    expect(top.animation!.status, AnimationStatus.forward);
+    await sendBackGesture(tester, 'commitBackGesture');
+    await tester.pumpAndSettle();
+    expect(top.animation!.isDismissed, isTrue);
+    expect(exists('t'), isFalse);
+    expect(nav.currentState!.userGestureInProgress, isFalse);
+    expect(opacityOf(tester, 's0'), 1.0);
+  });
 
   testWidgets('a push during the committed reverse turns once', (
     WidgetTester tester,
