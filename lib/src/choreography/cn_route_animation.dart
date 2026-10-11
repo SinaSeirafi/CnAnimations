@@ -98,7 +98,8 @@ class CnElementProgress {
 
 /// Animates its [child] with the route it lives in: in when the page is
 /// pushed, out when it is popped or covered by another page, scrubbing with
-/// interactive back gestures. It needs no `RouteObserver`.
+/// interactive back gestures. Replaces `CnRouteAwareAnimation`; it needs no
+/// `RouteObserver`.
 ///
 /// ```dart
 /// CnRouteAnimation(child: ListTile(title: const Text('Hello')))

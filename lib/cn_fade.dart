@@ -6,6 +6,9 @@ class CnFade extends StatefulWidget {
   final Widget child;
   final Duration duration;
 
+  /// Overrides [duration] when non-null.
+  @Deprecated('Use duration instead; removed in 1.0.0')
+  final int? durationInMilliseconds;
   final bool forward;
   final Curve? curve;
   final double fadeStartValue;
@@ -33,6 +36,8 @@ class CnFade extends StatefulWidget {
     super.key,
     required this.child,
     this.duration = const Duration(milliseconds: 500),
+    @Deprecated('Use duration instead; removed in 1.0.0')
+    this.durationInMilliseconds,
     this.forward = true,
     this.fadeStartValue = 0,
     this.fadeEndValue = 1,
@@ -68,7 +73,13 @@ class _CnFadeState extends State<CnFade> with SingleTickerProviderStateMixin {
   CurvedAnimation? _curvedAnimation;
   Timer? _delayTimer;
 
-  Duration get _duration => widget.duration;
+  Duration get _duration {
+    // ignore: deprecated_member_use_from_same_package
+    final int? milliseconds = widget.durationInMilliseconds;
+    return milliseconds != null
+        ? Duration(milliseconds: milliseconds)
+        : widget.duration;
+  }
 
   double get _finalValue =>
       widget.forward ? widget.fadeEndValue : widget.fadeStartValue;
