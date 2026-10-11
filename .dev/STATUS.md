@@ -136,9 +136,9 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 **Session 5 checkpoint (2026-10-11):**
 - Done: the screenshots (owner-approved, merged in 01d52cd; notes in `notes/screenshots-notes.md`); the fix slice (`notes/prepublish-notes.md`); a fresh-context opus review: 0 blockers, 1 should-fix (S1, example README), 7 nits. Round 2 fixed S1, T1, T3, T4, T5 and T7; T2 and T6 were skipped. The main thread read the round-2 diff.
 - Release commits, on branch `v1/prepublish-2` (worktree `cn_animations-wt/prepublish`): **0.9.0 = 9f3d415**, **1.0.0 = af49f7a** (`git diff 370513d af49f7a` is empty). Checks per release: analyze clean, tests 301+7 (0.9.0) and 280+7 (1.0.0), dry-run 0 warnings, pana 150/160 (the missing 10 points come from this machine lacking webp tools).
-- `v1/prepublish` (a22fb24, round 1) is superseded. Local `feat/v1-choreography` still points at a22fb24 and must move to `v1/prepublish-2`.
-- Blocked on the owner, because Claude Code's auto-mode classifier refuses tag moves and pushes even with chat permission: move `v0.9.0` → 9f3d415 and `v1.0.0` → af49f7a; push `feat/v1-choreography` (a fast-forward on origin) and `release/0.9.0` → 9f3d415 over SSH; force-push both tags; open PR #2; dispatch CI on `release/0.9.0`.
-- Then: CI green on both → merge PR #2 → publish on the owner's go-ahead. Review follow-up U1: merging PR #2 breaks a GIF that the published 0.0.3 page links on `master`, so merge right before publishing 0.9.0.
+- `v1/prepublish` (a22fb24, round 1) is superseded (kept). `feat/v1-choreography` now contains `v1/prepublish-2`.
+- Done (owner-authorized; the allow rules are in life-overview's `.claude/settings.local.json`): tags moved and force-pushed (`v0.9.0` → 9f3d415, `v1.0.0` → af49f7a); `feat/v1-choreography` and `release/0.9.0` (→ 9f3d415) pushed over SSH; PR #2 opened (https://github.com/SinaSeirafi/CnAnimations/pull/2). CI is green on both releases, Flutter 3.29.0 and stable: run 38127762554 (0.9.0) and run 38127762074 (PR head, content = 1.0.0).
+- **Next, only on the owner's go-ahead:** merge PR #2 → publish 0.9.0 from a clean checkout of `v0.9.0` (dry run first) → publish 1.0.0 from `v1.0.0` (dry run first). Merge PR #2 right before publishing 0.9.0 (review follow-up U1: the merge removes a GIF that the published 0.0.3 page links on `master`).
 
 1. **Done (session 4).** Owner reviews `.dev/publishing-suggestions.md`** (written by Fable in session 3) and decides:
    - the pubspec `description`, `topics` and `screenshots`;
