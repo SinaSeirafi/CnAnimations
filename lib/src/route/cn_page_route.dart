@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../choreography/cn_route_choreography.dart' show CnRouteTiming;
 import 'cn_fade_through_page_transitions_builder.dart';
 
 /// Standalone route using [CnFadeThroughPageTransitionsBuilder], for apps that
@@ -24,8 +23,6 @@ class CnPageRoute<T> extends PageRoute<T> with MaterialRouteTransitionMixin<T> {
     super.fullscreenDialog,
     this.maintainState = true,
     this.backgroundColor,
-    @Deprecated('Has no effect; removed in 1.0.0')
-    this.timing = CnRouteTiming.standard,
   }) : _transitions = CnFadeThroughPageTransitionsBuilder(
          backgroundColor: backgroundColor,
        );
@@ -38,11 +35,6 @@ class CnPageRoute<T> extends PageRoute<T> with MaterialRouteTransitionMixin<T> {
 
   /// Color painted behind the incoming page; defaults to the theme surface.
   final Color? backgroundColor;
-
-  /// Has no effect; see [CnFadeThroughPageTransitionsBuilder.timing]. Removed
-  /// in 1.0.0.
-  @Deprecated('Has no effect; removed in 1.0.0')
-  final CnRouteTiming timing;
 
   final CnFadeThroughPageTransitionsBuilder _transitions;
 
