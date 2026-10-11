@@ -30,3 +30,6 @@ Raw captures and helper scripts live in the session scratchpad:
 
 - The brief expected an idle host, but other agents' processes (eslint, vitest in life-overview worktrees) and macOS daemons (mds, ecosystemd, mediaanalysisd) kept the 1-min load between 4.5 and 130 from 08:05 onwards. The gate waits up to 4 min per take for load < 4, then records anyway and logs the load.
 - iOS take 1 (08:47): load 6.2-6.9; largest frame gap 50 ms (one, during the push), all others <= 33 ms. Smooth in the frame-by-frame check.
+11:16 Session 2 picks up: evaluating retake take4/take5, then predictive-back on Android. Load at start 3.15.
+- 11:18 Retake evaluated. take4 (load 3.75-4.01): gaps 37 ms at 0.03 s (before the tap), 32 ms, 35 ms at 4.28 s (swipe start). take5 (load 3.93-4.80): one gap 33 ms at 2.94 s (push), all else <= 30 ms. Both frame sheets show the full flow; the pause at 47 % holds the parted list. take5 chosen: smoothest, lower load than take 1 (6.2-6.9, 50 ms gap), better pause.
+- take5 tap at ~2.85 s (touch dot first frame). GIF: -ss 2.45 -t 5.2, same recipe but max_colors=88 (96 gave 1.03 MB; 88 gives 982 KB, no visible loss). Lineup frames: 2.5 (rest), 3.02 (mid-push, parted), 3.8 (Detail 6), 5.9 (paused mid-swipe, touch dot). 3.04 rejected: ghost "Detail 6" title over the List title.
