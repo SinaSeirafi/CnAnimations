@@ -10,7 +10,7 @@ Raw captures and helper scripts live in the session scratchpad:
 | --- | --- |
 | `screenshots/basics.gif` | Done: `git mv` of `CnAnimations gif 0.2.gif`, content unchanged (380x766, 66 frames, 1.09 s, 233 KB). `CnAnimations RA gif 0.1.gif` removed. |
 | `screenshots/parting-swipe-back.gif` | Checkpoint from iOS take 1 committed (360x783, 105 frames, 20 fps, 5.25 s, 995 KB). A retake with the pause at 47 % width (parting more visible while paused) is in progress; it replaces this file if better. |
-| `screenshots/parting-lineup.png` | Not done. Frames come from the iOS recording. |
+| `screenshots/parting-lineup.png` | Checkpoint committed from iOS take 1 (1224x700, 79 KB, 256-colour PNG): frames at 2.5 s (list at rest), 2.978 s (mid-push, neighbours parted, Item 6 stays), 3.8 s (Detail 6), 5.2 s (mid-swipe, touch dot). Panels 276x600 with a 1 px #C9D3D0 border on #E4EAE8, built by `make-lineup.sh` in the scratchpad. Regenerated from the retake if that one is used. |
 | `screenshots/predictive-back.gif` | Not done. Android emulator Pixel_API_36, profile APK already built in `example/build`. |
 
 ## How the iOS recording is driven
