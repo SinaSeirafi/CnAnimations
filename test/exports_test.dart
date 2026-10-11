@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use_from_same_package
-
 import 'dart:io';
 
 import 'package:cn_animations/cn_animations.dart';
@@ -14,8 +12,6 @@ void main() {
       CnFade,
       CnSlide,
       CnScale,
-      CnRouteAwareAnimation,
-      RouteAwareWidget,
       CnDirectionalCurvedAnimation,
       CnRouteTiming,
       CnReducedMotionMode,
@@ -73,6 +69,14 @@ void main() {
     expect(code, isNot(contains('geometry.dart')));
     expect(code, isNot(contains('CnRouteSubjectTarget')));
     expect(code, isNot(contains('kCn')));
-    expect(code, contains('hide routeObserver'));
+    expect(code, isNot(contains('hide')));
+  });
+
+  // The 0.9.0 deprecated symbols were removed in 1.0.0.
+  test('removed route-aware files are not exported', () {
+    final String barrel = File('lib/cn_animations.dart').readAsStringSync();
+    expect(barrel, isNot(contains('route_aware')));
+    expect(File('lib/route_aware_widget.dart').existsSync(), isFalse);
+    expect(File('lib/cn_route_aware_animation.dart').existsSync(), isFalse);
   });
 }

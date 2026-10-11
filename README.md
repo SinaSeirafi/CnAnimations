@@ -10,7 +10,7 @@ iOS swipe-back or Android predictive back with your finger. No `RouteObserver`,
 no controllers: the motion is read from the route's own progress. Fade, slide
 and scale widgets for one-off entrances are included.
 
-![Tap an item: the items around it move away; swipe back slowly and they follow the finger](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/v0.9.0/screenshots/parting-swipe-back.gif)
+![Tap an item: the items around it move away; swipe back slowly and they follow the finger](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/v1.0.0/screenshots/parting-swipe-back.gif)
 
 ## Quick start
 
@@ -56,7 +56,7 @@ Needs Flutter 3.29+. To see it running, run the example app in `example/`
 
 By default `CnFade`, `CnSlide` and `CnScale` play a one-off entrance when they are built. Add one above the widget to animate; they need no route install.
 
-![CnFade, CnSlide and CnScale entrances](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/v0.9.0/screenshots/basics.gif)
+![CnFade, CnSlide and CnScale entrances](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/v1.0.0/screenshots/basics.gif)
 
 ```dart
 CnFade(
@@ -228,46 +228,13 @@ Under Flutter's stock platform transitions (on Android the zoom or predictive-ba
 
 Android predictive back needs `android:enableOnBackInvokedCallback="true"` on the `<application>` in your `AndroidManifest.xml`, as for Flutter's own predictive-back transition.
 
-![Android predictive back: the page below's elements follow the gesture](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/v0.9.0/screenshots/predictive-back.gif)
+![Android predictive back: the page below's elements follow the gesture](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/v1.0.0/screenshots/predictive-back.gif)
 
 A `Hero` follows the iOS swipe-back and Android predictive back only when it sets `transitionOnUserGestures: true`, as with Flutter's own transitions; without it the hero stays on its page during the gesture and flies only on push and button pops.
 
 The two installs cover a page under slightly different routes. A `CnPageRoute` page is covered by any opaque, non-full-screen-dialog `PageRoute`, including a plain `PageRouteBuilder(opaque: true)`. A `MaterialPageRoute` page under the theme builder follows Flutter's Material rule: it is covered only by Material routes (`MaterialPageRoute`, `CnPageRoute`) or routes with a delegated transition, so a plain `PageRouteBuilder` above it does not pull its elements out. If your app pushes its own `PageRouteBuilder`s, push the pages below them as `CnPageRoute`.
 
 A `CupertinoPageRoute<T>` page below a `CnPageRoute` receives exits only when both routes have the same type argument (`CupertinoPageRoute.canTransitionTo` compares them); `CnPageRoute` does not fix this. Give the routes matching type arguments, or use the theme builder.
-
-### Route-aware animation (deprecated)
-`CnRouteAwareAnimation` and `RouteAwareWidget` react to navigation events through a `RouteObserver`. They still work in 0.9.0 and will be removed in 1.0.0; see [Migrating from 0.0.x](#migrating-from-00x). They still need the observer:
-
-```dart
-MaterialApp(
-  navigatorObservers: [RouteAwareWidget.routeObserver],
-)
-```
-
-If you simply add it on top of your widget, it will do a basic fade and slide upon all navigation events. 
-
-```dart
-CnRouteAwareAnimation(
-  child: child,
-) 
-```
-
-You can differentiate between Same page and Next page animations by changing input values. 
-
-With the values below, the child widget comes in to the page from left and goes out towards right. 
-
-```dart
-CnRouteAwareAnimation(
-  // Where slide begins for Same Page animation 
-  beginSamePage: const Offset(-0.5, 0),
-  // Where slide ends for Next Page animation 
-  endNextPage: const Offset(0.5, 0),
-  // Cancel fade animations for all navigation events
-  showFadeAnimation: false,
-  child: child,
-) 
-```
 
 
 ## How it works
@@ -330,7 +297,7 @@ When `MediaQuery.disableAnimations` is set, the default is `CnReducedMotionMode.
 An element exits by cover only when the route pushed over its page animates the page's `secondaryAnimation`. Flutter decides that per route pair, and the package relies on those rules. Dialogs, bottom sheets, `fullscreenDialog` routes and non-opaque routes do not cover a page, so its elements stay where they are. A `CnPageRoute` page is covered by any opaque, non-full-screen-dialog `PageRoute`; a `MaterialPageRoute` page under the theme builder is covered by Material routes and routes with a delegated transition, which is why the fade-through builder declares a no-op one. The exact rules per install, and the Cupertino type-argument caveat, are in [Routes](#routes).
 
 ## Migrating from 0.0.x
-0.9.0 keeps every 0.0.x widget working. The route-aware widgets are deprecated and will be removed in 1.0.0, so migrate now. (0.1.0 was never published to pub.dev; its fixes are included in 0.9.0.)
+1.0.0 removes the route-aware widgets that 0.9.0 deprecated. If you are on 0.0.x, move to the new API as follows. (0.1.0 was never published to pub.dev; its fixes are included in 0.9.0.)
 
 1. Replace `CnRouteAwareAnimation` with `CnRouteAnimation`:
 
@@ -348,14 +315,14 @@ An element exits by cover only when the route pushed over its page animates the 
    Before and after:
 
    ```dart
-   // 0.0.x (deprecated, removed in 1.0.0)
+   // 0.0.x (removed in 1.0.0)
    CnRouteAwareAnimation(
      beginSamePage: const Offset(0, -0.1),
      endNextPage: const Offset(0, 0.1),
      child: child,
    )
 
-   // 0.9.0
+   // 1.0.0
    CnRouteAnimation(
      enterOffset: const Offset(0, -0.1),
      exitOffset: const Offset(0, 0.1),
@@ -363,14 +330,14 @@ An element exits by cover only when the route pushed over its page animates the 
    )
    ```
 
-2. Delete the observer from `navigatorObservers`: `[routeObserver]` (0.0.x, imported from `package:cn_animations/route_aware_widget.dart`) or `[RouteAwareWidget.routeObserver]` (0.1.0), and delete that import, unless you use `RouteAwareWidget` yourself. Nothing in the package needs an observer.
+2. Delete the observer from `navigatorObservers`: `[routeObserver]` (0.0.x, imported from `package:cn_animations/route_aware_widget.dart`) or `[RouteAwareWidget.routeObserver]` (0.1.0), and delete that import. `RouteAwareWidget` and the observer are gone and nothing in the package needs one.
 3. If you used a custom `PageRouteBuilder` fade route, switch to `CnPageRoute` or the theme builder. A plain `PageRouteBuilder` over a `MaterialPageRoute` never drives the lower page's exits.
 4. If you relied on items animating as they were scrolled into view, set `scrollReveal: const CnScrollReveal()` on the `CnRouteChoreography` scope.
-5. Also deprecated, and removed in 1.0.0: `RouteAwareWidget` and the top-level `routeObserver` (0.0.x) and `RouteAwareWidget.routeObserver` (0.1.0), with no replacement needed (step 2), `CnFade.durationInMilliseconds` (use `duration`), `CnSlide.reverseControllerValue` (it has no effect; delete it) and the `timing` parameter of `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute` (it has no effect; set element timing with `CnRouteChoreography` or `CnRouteAnimation.timing`).
+5. Also removed in 1.0.0: `RouteAwareWidget` and the top-level `routeObserver` (0.0.x) and `RouteAwareWidget.routeObserver` (0.1.0), with no replacement needed (step 2), `CnFade.durationInMilliseconds` (use `duration`), `CnSlide.reverseControllerValue` (it had no effect; delete it) and the `timing` parameter of `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute` (it had no effect; set element timing with `CnRouteChoreography` or `CnRouteAnimation.timing`).
 
 
 ## History
 cn_animations was first published in January 2023 (0.0.1 to 0.0.3) with `CnFade`, `CnSlide`, `CnScale` and the route-aware widgets. In 2026 it was reworked with Claude, Anthropic's AI model, into the progress-driven route choreography of 0.9.0 and 1.0.0. Claude worked on the design, implementation, tests, reviews and documentation; the package author made the product decisions. If you are coming from 0.0.x, see [Migrating from 0.0.x](#migrating-from-00x).
 
-The package has 301 tests, plus 7 in the example app, and CI runs analysis and the tests on Flutter 3.29.0 (the minimum) and on the current stable release.
+The package has 280 tests, plus 7 in the example app, and CI runs analysis and the tests on Flutter 3.29.0 (the minimum) and on the current stable release.
 
