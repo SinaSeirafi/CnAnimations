@@ -133,6 +133,8 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 
 **Session 4 (2026-10-11):** step 1 is done (see "Publishing decisions" under Owner decisions). Order changed: step 3 (screenshots) runs **before** step 2, because the pubspec `screenshots:` paths and the README image links must be in the release commits. Running order: screenshots on `v1/screenshots` → owner reviews the files → step 2 fix slice (includes the screenshot files) → rebuild both releases, move both tags → CI on both → fresh-context opus review → publish on go-ahead.
 
+**Session 4 checkpoint (usage limit near):** screenshots slice is running/was running on worktree `cn_animations-wt/screenshots`, branch `v1/screenshots` (opus agent; unpushed; raw captures and notes in that session's scratchpad `screenshots/`, which may be lost). If it stopped: check `git -C ../screenshots log` and `screenshots/`; finish or re-run it (record only at low host load). The fix-slice + release-rebuild brief is ready: `.dev/notes/prepublish-brief.md` — launch it (opus) after the owner approves the screenshot files and `v1/screenshots` is merged into `feat/v1-choreography`. After the review: PR #2 `feat/v1-choreography` → `master` (owner ok to merge), so the moved tags stay in master's history.
+
 1. **Done (session 4).** Owner reviews `.dev/publishing-suggestions.md`** (written by Fable in session 3) and decides:
    - the pubspec `description`, `topics` and `screenshots`;
    - the README's first screen;
