@@ -1,6 +1,6 @@
 name: cn_animations
 description: "Animate page elements with the route transition: enter on push, part around the tapped item, scrub with swipe-back and predictive back. Also fade, slide, scale."
-version: 1.0.0
+version: 0.9.0
 repository: https://github.com/SinaSeirafi/CnAnimations
 issue_tracker: https://github.com/SinaSeirafi/CnAnimations/issues
 
