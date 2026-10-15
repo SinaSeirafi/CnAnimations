@@ -1,20 +1,22 @@
 # cn_animations 0.9.0 / 1.0.0: status and next steps
 
-Last updated: 2026-10-11, at the end of session 3 (PR #1 merged; nothing published). This file is the single source of truth for where the work stands. Update it at every checkpoint.
+Last updated: 2026-10-15, session 6 (publish rehearsed from clean tag checkouts; nothing published; the owner's steps are in `publish-runbook.md`). This file is the single source of truth for where the work stands. Update it at every checkpoint.
 
 ## Where everything is
 
-All work branches below (everything except `master`) were **pushed to origin on 2026-10-09 as a backup**, at the owner's request. `master` on origin is unchanged at 0.0.3. Nothing is published to pub.dev. Future pushes of new commits to these branches are fine as backups, but `master` must not be touched, and publishing needs the owner's go-ahead.
+As of 2026-10-15. `master` on origin is at a4bb185 (PR #1 merged: the 1.0.0 code plus 0.9.0 in its history). Nothing is published to pub.dev. `master` must not be touched except by merging PR #2, and publishing needs the owner's go-ahead.
 
 | Branch | Worktree | Head | State |
 | --- | --- | --- | --- |
-| `master` | `~/Development/CnPackages/cn_animations` | 0f3b9bd (0.0.3) | The owner's checkout. It has **uncommitted 2023 WIP in 3 files; do not touch it.** |
-| `fix/route-aware-regressions` | `~/Development/CnPackages/cn_animations-fixes` | 2b3ee71 | 0.1.0: 8 bugs fixed plus the 7 review findings. Done and verified (39 + 2 tests). |
-| `feat/v1-choreography` | `~/Development/CnPackages/cn_animations-wt/integration` | see `git log` | **PR #1 head (1.0.0).** Every slice is merged. Current counts are in the newest Session 3 entry. This `.dev/` folder lives here. |
-| `v1/slice-f2` | `…/cn_animations-wt/slice-f2` | 8b55c8a (no commits) | Slice F part 2: README and CHANGELOG for `CnRouteAnimation`. Not started; there were no changes when the session stopped. |
-| `v1/slice-g` | `…/cn_animations-wt/slice-g` | 7ffb772 (WIP) | Example app rewritten; tests not fully verified. |
-| `v1/slice-h` | `…/cn_animations-wt/slice-h` | f8b0af5 (WIP) | Integration tests: interactive back only, 7 pass and 4 are skipped as bugs. |
-| `v1/slice-a`…`e`, `v1/slice-d` | `…/cn_animations-wt/slice-*` | merged | Already merged into integration. Their worktrees can be removed once 0.9.0 ships. |
+| `master` | `~/Development/CnPackages/cn_animations` | 0f3b9bd (0.0.3), 112 behind origin | The owner's checkout. It has **uncommitted 2023 WIP in 4 files; do not touch it.** The owner discards it and pulls. |
+| `feat/v1-choreography` | `~/Development/CnPackages/cn_animations-wt/integration` | see `git log` | **PR #2 head.** Contains both release commits; only `.dev/` sits above `v1.0.0`. This `.dev/` folder lives here. |
+| `v1/prepublish-2` | `…/cn_animations-wt/prepublish` | 12d43fd | Where the release commits were built. Merged into `feat/v1-choreography`; removable after publishing. |
+| `v1/screenshots` | `…/cn_animations-wt/screenshots` | b0c07a3 | The four screenshot files. Merged; removable after publishing. |
+| `v1/prepublish` | (none) | a22fb24 | Round 1, superseded by `v1/prepublish-2`. Removable. |
+| `release/0.9.0` (origin only) | (none) | 9f3d415 = `v0.9.0` | Exists so CI could run on the 0.9.0 commit. Removable after publishing. |
+| Tags | | `v0.9.0` → 9f3d415, `v1.0.0` → af49f7a | Pushed; local and origin agree. Do not move them once published. |
+
+Earlier branches (`fix/route-aware-regressions`, `v1/slice-*`) are merged and their worktrees were removed in session 3.
 
 `.dev/` is excluded from `flutter analyze` and from `pub publish` (verified with `--dry-run`).
 
@@ -69,7 +71,7 @@ About 97% toward 0.9.0 and 95% toward 1.0.0, weighted by effort (as of the end o
 | Local tag `v0.9.0` (step 8) | Created on 869bb94 (annotated, not pushed) |
 | 1.0.0 removal (slice R) | Merged (cbfd0d9, 0251d2c → merge f50f8be); version 1.0.0; root 268 pass (21 removed with the symbols) |
 | Push / PR (step 9, owner chose B) | Done: branches and tag `v0.9.0` pushed; PR #1 `feat/v1-choreography` → `master` opened |
-| pub publish | **Not done.** The owner is researching how best to publish for visibility and usefulness first |
+| pub publish | **Not done.** Rehearsed in session 6 (2026-10-15) from clean tag checkouts; the owner's steps are in `publish-runbook.md` |
 
 ## Known bugs (found by slice H; fixed by C2 in ee3de20; H tests un-skipped and passing; checked on emulators)
 
@@ -140,6 +142,11 @@ Full repros are in `.dev/notes/slice-h-notes.md` → "Bugs found". The fix is de
 - Done (owner-authorized; the allow rules are in life-overview's `.claude/settings.local.json`): tags moved and force-pushed (`v0.9.0` → 9f3d415, `v1.0.0` → af49f7a); `feat/v1-choreography` and `release/0.9.0` (→ 9f3d415) pushed over SSH; PR #2 opened (https://github.com/SinaSeirafi/CnAnimations/pull/2). CI is green on both releases, Flutter 3.29.0 and stable: run 38127762554 (0.9.0) and run 38127762074 (PR head, content = 1.0.0).
 - **Next, only on the owner's go-ahead:** merge PR #2 → publish 0.9.0 from a clean checkout of `v0.9.0` (dry run first) → publish 1.0.0 from `v1.0.0` (dry run first). Merge PR #2 right before publishing 0.9.0 (review follow-up U1: the merge removes a GIF that the published 0.0.3 page links on `master`).
 
+**Session 6 (2026-10-15): publish rehearsal, nothing published.** Full detail, the owner's commands and the decision list are in `publish-runbook.md`.
+- Verified: PR #2 still open, mergeable and clean, CI green on both legs; tags match origin; clean detached checkouts of `v0.9.0` and `v1.0.0` on Flutter 3.32.7 give analyze clean, 301 + 7 and 280 + 7 tests passing, dry-run 0 warnings on both (one informational hint on 0.9.0 about the jump from 0.0.3); the archive excludes `.dev/`, `.github/` and `.metadata` without a `.pubignore` (hidden paths); every README link at both tags returns 200; pana 150/160 locally (webp tools missing here, as in session 5).
+- Found: the pub credential on this machine is from 2023-01-31, so the owner should `dart pub logout && dart pub login` as the 0.0.3 uploader first (runbook §1.1). pub.dev has no publisher for the package ("unverified uploader", as decided). The GitHub repo has no description, topics or releases; commands are in the runbook §4.
+- Not done, by design: no merge, no publish, no push, no GitHub changes. The STATUS table above was rewritten to the current branches and worktrees.
+
 1. **Done (session 4).** Owner reviews `.dev/publishing-suggestions.md`** (written by Fable in session 3) and decides:
    - the pubspec `description`, `topics` and `screenshots`;
    - the README's first screen;
@@ -204,6 +211,8 @@ Deferred past 1.0.0 (not blocking): `CnPage` and `MaterialPageRoute` parity on `
 ## Files in `.dev/`
 
 - `STATUS.md`: this file.
+- `publish-runbook.md`: the verified state on 2026-10-15, the owner's publish commands (0.9.0 then 1.0.0), the after-publish steps, and the decision list.
+- `publishing-suggestions.md`: the session 3 visibility suggestions; §4 (discoverability) is still to do after publishing.
 - `design-0.9.md`: the authoritative design. Its §7 slices, §8 test strategy and §9 example plan apply, and the "Owner decisions" at its end supersede §10.
 - `review-0.1.0.md`: the Opus review of 0.1.0. All findings are fixed in 2b3ee71.
 - `notes/`: run notes, plus one notes file per slice. These record interface details and design gaps that each agent found, and each has a "Status at stop" for the WIP slices.
