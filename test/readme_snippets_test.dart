@@ -48,6 +48,28 @@ void main() {
       expect(find.text('child'), findsNWidgets(3));
     });
 
+    testWidgets('defaults table in the README', (tester) async {
+      const fade = CnFade(child: child);
+      expect(fade.duration, const Duration(milliseconds: 500));
+      expect(fade.delayInMilliseconds, 10);
+      expect(fade.delay, isNull);
+      expect(fade.fadeStartValue, 0);
+      expect(fade.fadeEndValue, 1);
+      expect(fade.curve, isNull); // Curves.easeInOut
+      const slide = CnSlide(child: child);
+      expect(slide.duration, const Duration(milliseconds: 300));
+      expect(slide.delayInMilliseconds, 0);
+      expect(slide.begin, const Offset(0, 0.5));
+      expect(slide.end, Offset.zero);
+      expect(slide.curve, isNull);
+      const scale = CnScale(child: child);
+      expect(scale.duration, const Duration(milliseconds: 300));
+      expect(scale.delayInMilliseconds, 0);
+      expect(scale.begin, 0.7);
+      expect(scale.end, 1.0);
+      expect(scale.curve, isNull);
+    });
+
     testWidgets('CnScale with controller', (tester) async {
       final controller = AnimationController(
         vsync: tester,
@@ -84,6 +106,8 @@ void main() {
   });
 
   group('route install', () {
+    // The quick start and Routes snippets (the quick start omits `home:`;
+    // its import line is this file's `package:cn_animations` import).
     testWidgets('theme builder', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -130,6 +154,7 @@ void main() {
   });
 
   group('CnRouteAnimation', () {
+    // The quick start's one-line wrap.
     testWidgets('minimal', (tester) async {
       await pumpApp(
         tester,

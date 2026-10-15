@@ -21,7 +21,8 @@ const CnSubjectDetection kCnDefaultSubjectDetection =
 const Duration kCnPointerSubjectWindow = Duration(milliseconds: 700);
 
 /// Whether `MediaQuery.disableAnimations` is honored when nothing overrides
-/// it (0.1.0 name and default).
+/// it. Same default as `respectReducedMotion` on `CnFade`, `CnSlide` and
+/// `CnScale`.
 const bool kCnDefaultRespectReducedMotion = true;
 
 // ---------------------------------------------------------------------------
@@ -71,10 +72,10 @@ class CnRouteTiming {
   /// starts returning when the cover progress falls past `end`. The default,
   /// `Interval(0.3, 0.65)`, as long as the default [exit], starts the return
   /// as the top page's elements finish leaving (their exit ends at 65 % of
-  /// progress, while the fade-through page fades out over the top 40 %),
-  /// instead of a quarter of the pop later. Use
+  /// progress, while the fade-through page fades out over the top 40 %), so
+  /// a pop has no stretch where neither page's elements show. Use
   /// `uncover: exit` (the default `exit` is `Interval(0.0, 0.35)`) to replay
-  /// the exit slice backwards instead, as before 0.9.0.
+  /// the exit slice backwards instead.
   ///
   /// The choice between [exit] and [uncover] is locked by the rest the cover
   /// progress left, not by the animation's status: after leaving 0 (a push
@@ -439,7 +440,7 @@ class CnRouteChoreography extends InheritedWidget {
   final CnPartingSpec? parting;
   final CnScrollReveal? scrollReveal;
 
-  /// Default true (0.1.0 name).
+  /// Default true, as on the basic widgets.
   final bool? respectReducedMotion;
 
   /// Default [CnReducedMotionMode.fadeOnly].

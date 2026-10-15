@@ -1,64 +1,67 @@
+[![pub](https://img.shields.io/pub/v/cn_animations.svg)](https://pub.dev/packages/cn_animations)
 [![CI](https://github.com/SinaSeirafi/CnAnimations/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/SinaSeirafi/CnAnimations/actions/workflows/ci.yml)
+[![license](https://img.shields.io/github/license/SinaSeirafi/CnAnimations)](LICENSE)
 
-# Flutter basic animations simplified
+# Page elements that move with the route
 
-Flutter is made of widgets, right?
-So adding a simple fade in or slide animation shouldn't be that hard. 
-In fact, it should be as simple as adding a widget on top of your current widget.
+Wrap an element in `CnRouteAnimation` and it enters with its page, leaves when
+a new page opens over it, moves away from the item you tapped, and follows an
+iOS swipe-back or Android predictive back with your finger. No `RouteObserver`,
+no controllers: the motion is read from the route's own progress. Fade, slide
+and scale widgets for one-off entrances are included.
 
-This is exactly what this package is trying to help you with.
+![Tap an item: the items around it move away; swipe back slowly and they follow the finger](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/v1.0.0/screenshots/parting-swipe-back.gif)
 
-## Features
+## Quick start
 
-### Basic animations
-- Fade
-- Slide
-- Scale
+1. Add the package: `flutter pub add cn_animations`.
+2. Install the route transition (it keeps the page below still while its
+   elements leave; Flutter's default transitions move or hide that page), or
+   push single routes with `CnPageRoute`:
 
-![](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/master/CnAnimations%20gif%200.2.gif)
+   ```dart
+   import 'package:cn_animations/cn_animations.dart';
 
-### Navigation-driven element choreography
-Elements of a page animate with the page transition itself: they leave when another page covers theirs, arrive when the page appears, and follow a swipe-back gesture. The motion is driven by route progress, not by navigation events, so it stays in sync however the route moves.
+   MaterialApp(
+     theme: ThemeData(
+       pageTransitionsTheme: PageTransitionsTheme(builders: {
+         for (final platform in TargetPlatform.values)
+           platform: const CnFadeThroughPageTransitionsBuilder(),
+       }),
+     ),
+   )
+   ```
 
-Pair it with `CnPageRoute` or `CnFadeThroughPageTransitionsBuilder`, and tune it app-wide with `CnRouteChoreography`.
+3. Wrap the elements of a page:
 
-```dart
-CnRouteAnimation(
-  child: Card(child: ListTile(title: Text('Item'))),
-)
-```
+   ```dart
+   CnRouteAnimation(child: Card(child: ListTile(title: Text('Item'))))
+   ```
 
-No `RouteObserver` is needed. The element reads the route it sits on: it arrives with the page, leaves when another page covers it, returns when that page is popped, and follows a swipe-back or predictive-back gesture.
+That is all. The item you tap stays put while the others move away from it,
+and back gestures move the elements with your finger, with no further setup.
+For Android predictive back, set
+`android:enableOnBackInvokedCallback="true"` on `<application>`, as for
+Flutter's own predictive-back transition.
 
-
-## Getting started
-If you only want to use basic animations, you're good to go!
-
-For navigation-driven choreography, use `CnPageRoute`, or add the builder to your theme for every platform:
-
-```dart
-import 'package:cn_animations/cn_animations.dart';
-
-MaterialApp(
-  theme: ThemeData(
-    pageTransitionsTheme: PageTransitionsTheme(builders: {
-      for (final platform in TargetPlatform.values)
-        platform: const CnFadeThroughPageTransitionsBuilder(),
-    }),
-  ),
-)
-```
+Works with `Navigator.push`, `Navigator.pages` and `go_router` (their
+`MaterialPage`s take the transition from the theme). A `PageView` can drive the
+same elements; see [Configuring app-wide or per page](#configuring-app-wide-or-per-page).
+Needs Flutter 3.29+. To see it running, run the example app in `example/`
+(`flutter run`) and open List.
 
 
 ## Usage
-### Basic Animations
+### Basic animations
 
-Simply add these widgets above target widget.
+By default `CnFade`, `CnSlide` and `CnScale` play a one-off entrance when they are built. Add one above the widget to animate; they need no route install.
+
+![CnFade, CnSlide and CnScale entrances](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/v1.0.0/screenshots/basics.gif)
 
 ```dart
 CnFade(
   child: child,
-) 
+)
 ```
 
 ```dart
@@ -66,21 +69,20 @@ CnSlide(
   begin: const Offset(-0.2, 0),
   duration: const Duration(milliseconds: 500),
   // Delay before starting the animation
-  delay: const Duration(milliseconds: 100), 
+  delay: const Duration(milliseconds: 100),
   curve: Curves.easeIn,
   child: child,
-) 
+)
 ```
 
-If you want you can pass the animation controller to the widget. 
-But the duration is not overriden.
+You can pass your own `AnimationController`. The widget follows it and does not change its duration: `duration` applies only to the widget's internal controller.
 
 ```dart
 CnScale(
   begin: 0.5,
   controller: _controller,
   child: child,
-) 
+)
 ```
 
 Pass an `Animation<double>` instead of a controller to follow any progress value. The widget never starts or disposes it, and reduced motion never overrides it. Give at most one of `controller` and `animation`.
@@ -91,6 +93,16 @@ CnFade(
   child: child,
 )
 ```
+
+Defaults (all three use `Curves.easeInOut`):
+
+| Widget | Duration | Delay | Animates |
+| --- | --- | --- | --- |
+| `CnFade` | 500 ms | 10 ms (`delayInMilliseconds`) | opacity from 0 to 1 |
+| `CnSlide` | 300 ms | none | offset from `Offset(0, 0.5)` (half its own height, from below) to `Offset.zero` |
+| `CnScale` | 300 ms | none | scale from 0.7 to 1.0 |
+
+`delay:` (a `Duration`) wins over `delayInMilliseconds` when both are set. For comparison, `CnRouteAnimation` enters from `Offset(0, 0.1)`.
 
 ### Navigation-driven animation (CnRouteAnimation)
 
@@ -216,6 +228,8 @@ Under Flutter's stock platform transitions (on Android the zoom or predictive-ba
 
 Android predictive back needs `android:enableOnBackInvokedCallback="true"` on the `<application>` in your `AndroidManifest.xml`, as for Flutter's own predictive-back transition.
 
+![Android predictive back: the page below's elements follow the gesture](https://raw.githubusercontent.com/SinaSeirafi/CnAnimations/v1.0.0/screenshots/predictive-back.gif)
+
 A `Hero` follows the iOS swipe-back and Android predictive back only when it sets `transitionOnUserGestures: true`, as with Flutter's own transitions; without it the hero stays on its page during the gesture and flies only on push and button pops.
 
 The two installs cover a page under slightly different routes. A `CnPageRoute` page is covered by any opaque, non-full-screen-dialog `PageRoute`, including a plain `PageRouteBuilder(opaque: true)`. A `MaterialPageRoute` page under the theme builder follows Flutter's Material rule: it is covered only by Material routes (`MaterialPageRoute`, `CnPageRoute`) or routes with a delegated transition, so a plain `PageRouteBuilder` above it does not pull its elements out. If your app pushes its own `PageRouteBuilder`s, push the pages below them as `CnPageRoute`.
@@ -229,7 +243,7 @@ A short mental model of the choreography, for deciding whether it fits your app.
 ### Progress, not events
 A `CnRouteAnimation` does not listen for navigation events. It reads the two animations its `ModalRoute` already exposes: `animation` (this page coming and going) and `secondaryAnimation` (another page coming over this one). Each frame, the element's opacity, offset and scale are computed from those two values and nothing else. There is no `RouteObserver`, no timer, and no `AnimationController` of its own while a route is driving it.
 
-Because the values are the route's own, the elements go wherever the route goes. A swipe-back on iOS or a predictive back on Android moves the route's animation with the finger, so the elements scrub with it; letting go settles the same value back or on to completion, and the elements follow. The package's routes keep the platform's back-gesture wiring for this reason: `CnPageRoute` and `CnFadeThroughPageTransitionsBuilder` wrap the page in a reproduction of the predictive-back and edge-swipe handling that Flutter's stock transitions carry, and those gestures only move the route's progress.
+Because the values are the route's own, the elements go wherever the route goes. The one exception is a committed back under Flutter's stock predictive-back builder on Flutter 3.35+: the route restarts its reverse from 1.0, and the elements continue from the release value instead of following that restart. A swipe-back on iOS or a predictive back on Android moves the route's animation with the finger, so the elements scrub with it; letting go settles the same value back or on to completion, and the elements follow. The package's routes keep the platform's back-gesture wiring for this reason: `CnPageRoute` and `CnFadeThroughPageTransitionsBuilder` wrap the page in a reproduction of the predictive-back and edge-swipe handling that Flutter's stock transitions carry, and those gestures only move the route's progress.
 
 ### Four roles, sliced from one transition
 An element plays one of four parts, depending on which animation is moving and which way:
@@ -282,8 +296,8 @@ When `MediaQuery.disableAnimations` is set, the default is `CnReducedMotionMode.
 ### What covers a page
 An element exits by cover only when the route pushed over its page animates the page's `secondaryAnimation`. Flutter decides that per route pair, and the package relies on those rules. Dialogs, bottom sheets, `fullscreenDialog` routes and non-opaque routes do not cover a page, so its elements stay where they are. A `CnPageRoute` page is covered by any opaque, non-full-screen-dialog `PageRoute`; a `MaterialPageRoute` page under the theme builder is covered by Material routes and routes with a delegated transition, which is why the fade-through builder declares a no-op one. The exact rules per install, and the Cupertino type-argument caveat, are in [Routes](#routes).
 
-## Migrating from 0.1.0
-1.0.0 removes the route-aware widgets that 0.9.0 deprecated. If you are on 0.1.0 or earlier, move to the new API as follows:
+## Migrating from 0.0.x
+1.0.0 removes the route-aware widgets that 0.9.0 deprecated. If you are on 0.0.x, move to the new API as follows. (0.1.0 was never published to pub.dev; its fixes are included in 0.9.0.)
 
 1. Replace `CnRouteAwareAnimation` with `CnRouteAnimation`:
 
@@ -301,7 +315,7 @@ An element exits by cover only when the route pushed over its page animates the 
    Before and after:
 
    ```dart
-   // 0.1.0 (removed in 1.0.0)
+   // 0.0.x (removed in 1.0.0)
    CnRouteAwareAnimation(
      beginSamePage: const Offset(0, -0.1),
      endNextPage: const Offset(0, 0.1),
@@ -319,9 +333,11 @@ An element exits by cover only when the route pushed over its page animates the 
 2. Delete the observer from `navigatorObservers`: `[routeObserver]` (0.0.x, imported from `package:cn_animations/route_aware_widget.dart`) or `[RouteAwareWidget.routeObserver]` (0.1.0), and delete that import. `RouteAwareWidget` and the observer are gone and nothing in the package needs one.
 3. If you used a custom `PageRouteBuilder` fade route, switch to `CnPageRoute` or the theme builder. A plain `PageRouteBuilder` over a `MaterialPageRoute` never drives the lower page's exits.
 4. If you relied on items animating as they were scrolled into view, set `scrollReveal: const CnScrollReveal()` on the `CnRouteChoreography` scope.
-5. Also removed in 1.0.0: `RouteAwareWidget`, `RouteAwareWidget.routeObserver` and the top-level `routeObserver` from 0.0.x (no replacement needed), `CnFade.durationInMilliseconds` (use `duration`), `CnSlide.reverseControllerValue` (it had no effect; delete it) and the `timing` parameter of `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute` (it had no effect; set element timing with `CnRouteChoreography` or `CnRouteAnimation.timing`).
+5. Also removed in 1.0.0: `RouteAwareWidget` and the top-level `routeObserver` (0.0.x) and `RouteAwareWidget.routeObserver` (0.1.0), with no replacement needed (step 2), `CnFade.durationInMilliseconds` (use `duration`), `CnSlide.reverseControllerValue` (it had no effect; delete it) and the `timing` parameter of `CnFadeThroughPageTransitionsBuilder` and `CnPageRoute` (it had no effect; set element timing with `CnRouteChoreography` or `CnRouteAnimation.timing`).
 
 
 ## History
-cn_animations was first published in January 2023 (0.0.1 to 0.0.3) with `CnFade`, `CnSlide`, `CnScale` and the route-aware widgets. In 2026 it was reworked with Claude, Anthropic's AI model, into the progress-driven route choreography of 0.9.0 and 1.0.0. Claude worked on the design, implementation, tests, reviews and documentation; the package author made the product decisions. If you are coming from 0.0.x, see [Migrating from 0.1.0](#migrating-from-010).
+cn_animations was first published in January 2023 (0.0.1 to 0.0.3) with `CnFade`, `CnSlide`, `CnScale` and the route-aware widgets. In 2026 it was reworked with Claude, Anthropic's AI model, into the progress-driven route choreography of 0.9.0 and 1.0.0. Claude worked on the design, implementation, tests, reviews and documentation; the package author made the product decisions. If you are coming from 0.0.x, see [Migrating from 0.0.x](#migrating-from-00x).
+
+The package has 280 tests, plus 7 in the example app, and CI runs analysis and the tests on Flutter 3.29.0 (the minimum) and on the current stable release.
 
